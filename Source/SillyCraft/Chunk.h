@@ -2,33 +2,33 @@
 
 #pragma once
 
-#include "ChunkMesher.h"
-#include "Chunk.h"
 #include "CoreMinimal.h"
-#include "Logging/LogVerbosity.h"
+#include "Block.h"
 #include "GameFramework/Actor.h"
-#include "VoxelGenerator.generated.h"
+#include <ProceduralMeshComponent.h>
+#include "Chunk.generated.h"
 
 UCLASS()
-class SILLYCRAFT_API AVoxelGenerator : public AActor
+class SILLYCRAFT_API AChunk : public AActor
 {
 	GENERATED_BODY()
+private:
+	int* m_blockIDs;
 public:	
 	// Sets default values for this actor's properties
-	AVoxelGenerator();
-	~AVoxelGenerator();
+	AChunk();
+	~AChunk();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
 public:	
+
+	UPROPERTY(VisibleAnywhere, BluePrintReadWrite)
+	UProceduralMeshComponent* Mesh;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-private:
-	TMap<TTuple<int, int, int>, AChunk*> m_chunks;
-	TArray<Block*> m_blocks;
-	TArray<AChunk*> m_ungeneratedChunks;
 
-	void InitBlocks();
-	void Refill();
+	void Fill(const Block& block);
+	void Fill(Block* block);
 };
