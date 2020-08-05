@@ -3,10 +3,9 @@
 
 #include "Block.h"
 
-Block::Block(const FName& name, const int& id, const Hardness& hardness, const FColor& color, const int& range, const int& seed, const bool& surface, const float& frequency) :
-	Name(name), BlockHardness(hardness), Color(color), Range(range), Noise(FastNoise(seed)), ID(id), SurfaceBlock(surface)
+Block::Block(const FName& name, const int& id, const Hardness& hardness, const FColor& color, const int& range, const bool& surface, UFastNoiseWrapper* noise) :
+	Name(name), BlockHardness(hardness), Color(color), Range(range), Noise(noise), ID(id), SurfaceBlock(surface)
 {
-	Noise.SetFrequency(frequency);
 }
 
 Block::Block(const FName& name, const int& id, const Hardness& hardness, const bool& surface) :
@@ -16,11 +15,14 @@ Block::Block(const FName& name, const int& id, const Hardness& hardness, const b
 
 int Block::Get(const int& x, const int& z) const
 {	
-	int lol = abs(Noise.GetPerlinFractal(x / Constants::Longitude, z / Constants::Latitude) * Constants::MaxElevation);
-	FString out("");
-	out.AppendInt(lol);
-	UE_LOG(LogTemp, Display, TEXT("Elevation: %s"), *out);
-	return lol;
+	double i = Noise->GetNoise2D(x, z);
+	if (i > 0.0) {
+		std::stringstream lol;
+		lol << i;
+		FString out(lol.str().c_str());
+		UE_LOG(LogTemp, Display, TEXT("Elevation: %s"), *out);
+	}
+	return i;
 }
 
 Block::~Block()

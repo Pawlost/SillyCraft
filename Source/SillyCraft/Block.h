@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Constants.h"
-#include "modules/FastNoise/FastNoise.h"
+#include <string>
+#include <sstream>
+#include <FastNoiseWrapper.h>
 
 /**
  * 
@@ -18,11 +20,11 @@ public:
 		Empty, Soft, Medium, Hard
 	};
 
+	UFastNoiseWrapper* Noise;
 	const FName Name;
 	const Hardness BlockHardness;
 	FColor Color;
 	int Range;
-	FastNoise Noise;
 	const int ID;
 	const bool SurfaceBlock;
 

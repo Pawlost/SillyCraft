@@ -3,14 +3,13 @@
 #pragma once
 
 namespace Constants {
-	const int MaxElevation = 500;
-	const int Longitude = 500;
-	const int Latitude = 500;
-	const int Seed = 100;
-	const int ChunkSize = 16;
-	const int ChunkCount = 9;
-	const int ChunkScale = 100;
-	const int ChunkLenght = ChunkScale * ChunkSize;
-	const int ChunkSize2D = ChunkSize * ChunkSize;
-	const int ChunkSize3D = ChunkSize * ChunkSize * ChunkSize;
+	const static float MaxElevation = 100.0f;
+	const static int Seed = 8908908;
+	const static int ChunkSize = 16;
+	const static int ChunkCount = 37;
+	const static int ChunkScale = 100;
+	const static float NoiseFrequency = 10.0f;
+	const static int ChunkLenght = ChunkScale * ChunkSize;
+	const static int ChunkSize2D = ChunkSize * ChunkSize;
+	const static int ChunkSize3D = ChunkSize * ChunkSize * ChunkSize;
 }

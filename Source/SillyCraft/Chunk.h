@@ -6,6 +6,7 @@
 #include "Block.h"
 #include "GameFramework/Actor.h"
 #include <array>
+#include <string>
 #include <ProceduralMeshComponent.h>
 #include "Chunk.generated.h"
 

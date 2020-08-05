@@ -8,7 +8,7 @@ BlockRegistry::BlockRegistry()
 	Block* air = new Block("Air", 0, Block::Empty, false);
 	Air = air;
 	AddBlock(air);
-	Block* stone = new Block("Stone", 1, Block::Hardness::Hard, FColor::Silver, 0, 123, false, 1.2f);
+	Block* stone = new Block("Stone", 1, Block::Hardness::Hard, FColor::Silver, 0, Constants::Seed, false, Constants::NoiseFrequency);
 	SetBaseBlock(stone);
 }
 
