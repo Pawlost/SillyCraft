@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Chunk.h"
 #include "Constants.h"
+#include "BlockRegistry.h"
 #include <ProceduralMeshComponent.h>
 
 /**
@@ -12,9 +13,11 @@
  */
 class SILLYCRAFT_API ChunkMesher
 {
+private:
+	BlockRegistry* m_registry;
 public:
-	ChunkMesher();
+	ChunkMesher(BlockRegistry* generator);
 	~ChunkMesher();
 
-	static void MeshChunk(AChunk* chunk);
+	void MeshChunk(AChunk* chunk);
 };

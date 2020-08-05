@@ -5,6 +5,7 @@
 #include "ChunkMesher.h"
 #include "Chunk.h"
 #include "CoreMinimal.h"
+#include "BlockRegistry.h"
 #include "Logging/LogVerbosity.h"
 #include "GameFramework/Actor.h"
 #include "VoxelGenerator.generated.h"
@@ -24,11 +25,12 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
 private:
 	TMap<TTuple<int, int, int>, AChunk*> m_chunks;
-	TArray<Block*> m_blocks;
 	TArray<AChunk*> m_ungeneratedChunks;
+	BlockRegistry* m_registry;
+	ChunkMesher* m_mesher;
 
-	void InitBlocks();
 	void Refill();
 };

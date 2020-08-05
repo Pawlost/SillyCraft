@@ -2,9 +2,8 @@
 
 #include "ChunkMesher.h"
 
-ChunkMesher::ChunkMesher()
+ChunkMesher::ChunkMesher(BlockRegistry* registry) : m_registry(registry)
 {
-
 }
 
 void ChunkMesher::MeshChunk(AChunk* chunk) {
@@ -16,128 +15,135 @@ void ChunkMesher::MeshChunk(AChunk* chunk) {
 	int index = 0;
 
 	for (int i = 0; i < Constants::ChunkSize3D; i++) {
-		int x = (i % Constants::ChunkSize) * Constants::ChunkScale;
-		int y = (i / Constants::ChunkSize2D) * Constants::ChunkScale;
-		int z = ((i / Constants::ChunkSize) % Constants::ChunkSize) * Constants::ChunkScale;
+		int id = chunk->GetBlockID(i);
+		Block* block = m_registry->GetBlock(id);
 
-		//Front
-		vectors.Add(FVector(x, y, z));
-		vectors.Add(FVector(x + Constants::ChunkScale, y, z));
-		vectors.Add(FVector(x + Constants::ChunkScale, y + Constants::ChunkScale, z));
-		vectors.Add(FVector(x, y + Constants::ChunkScale, z));
+		if (block->BlockHardness != Block::Hardness::Empty)
+		{
 
+			int x = (i % Constants::ChunkSize) * Constants::ChunkScale;
+			int y = (i / Constants::ChunkSize2D) * Constants::ChunkScale;
+			int z = ((i / Constants::ChunkSize) % Constants::ChunkSize) * Constants::ChunkScale;
 
-		indice.Add(index);
-		indice.Add(index +1);
-		indice.Add(index +2);
-
-
-		indice.Add(index +2);
-		indice.Add(index +3);
-		indice.Add(index);
-
-		index += 4;
-
-		//Back
-
-		vectors.Add(FVector(x + Constants::ChunkScale, y, z + Constants::ChunkScale));
-		vectors.Add(FVector(x, y, z + Constants::ChunkScale));
-		vectors.Add(FVector(x, y + Constants::ChunkScale, z + Constants::ChunkScale));
-		vectors.Add(FVector(x + Constants::ChunkScale, y + Constants::ChunkScale, z + Constants::ChunkScale));
+			//Front
+			vectors.Add(FVector(x, y, z));
+			vectors.Add(FVector(x + Constants::ChunkScale, y, z));
+			vectors.Add(FVector(x + Constants::ChunkScale, y + Constants::ChunkScale, z));
+			vectors.Add(FVector(x, y + Constants::ChunkScale, z));
 
 
-		indice.Add(index);
-		indice.Add(index + 1);
-		indice.Add(index + 2);
+			indice.Add(index);
+			indice.Add(index + 1);
+			indice.Add(index + 2);
 
 
-		indice.Add(index + 2);
-		indice.Add(index + 3);
-		indice.Add(index);
+			indice.Add(index + 2);
+			indice.Add(index + 3);
+			indice.Add(index);
 
-		index += 4;
+			index += 4;
 
-		//Left
+			//Back
 
-		vectors.Add(FVector(x, y, z + Constants::ChunkScale));
-		vectors.Add(FVector(x, y, z));
-		vectors.Add(FVector(x, y + Constants::ChunkScale, z));
-		vectors.Add(FVector(x, y + Constants::ChunkScale, z + Constants::ChunkScale));
-
-
-		indice.Add(index);
-		indice.Add(index + 1);
-		indice.Add(index + 2);
+			vectors.Add(FVector(x + Constants::ChunkScale, y, z + Constants::ChunkScale));
+			vectors.Add(FVector(x, y, z + Constants::ChunkScale));
+			vectors.Add(FVector(x, y + Constants::ChunkScale, z + Constants::ChunkScale));
+			vectors.Add(FVector(x + Constants::ChunkScale, y + Constants::ChunkScale, z + Constants::ChunkScale));
 
 
-		indice.Add(index + 2);
-		indice.Add(index + 3);
-		indice.Add(index);
-
-		index += 4;
-
-		//Right
-
-		vectors.Add(FVector(x + Constants::ChunkScale, y, z));
-		vectors.Add(FVector(x + Constants::ChunkScale, y, z + Constants::ChunkScale));
-		vectors.Add(FVector(x + Constants::ChunkScale, y + Constants::ChunkScale, z + Constants::ChunkScale));
-		vectors.Add(FVector(x + Constants::ChunkScale, y + Constants::ChunkScale, z));
+			indice.Add(index);
+			indice.Add(index + 1);
+			indice.Add(index + 2);
 
 
-		indice.Add(index);
-		indice.Add(index + 1);
-		indice.Add(index + 2);
+			indice.Add(index + 2);
+			indice.Add(index + 3);
+			indice.Add(index);
+
+			index += 4;
+
+			//Left
+
+			vectors.Add(FVector(x, y, z + Constants::ChunkScale));
+			vectors.Add(FVector(x, y, z));
+			vectors.Add(FVector(x, y + Constants::ChunkScale, z));
+			vectors.Add(FVector(x, y + Constants::ChunkScale, z + Constants::ChunkScale));
 
 
-		indice.Add(index + 2);
-		indice.Add(index + 3);
-		indice.Add(index);
-
-		index += 4;
-
-		//Top
-
-		vectors.Add(FVector(x, y + Constants::ChunkScale, z));
-		vectors.Add(FVector(x + Constants::ChunkScale, y + Constants::ChunkScale, z));
-		vectors.Add(FVector(x + Constants::ChunkScale, y + Constants::ChunkScale, z + Constants::ChunkScale));
-		vectors.Add(FVector(x, y + Constants::ChunkScale, z + Constants::ChunkScale));
-
-		indice.Add(index);
-		indice.Add(index + 1);
-		indice.Add(index + 2);
+			indice.Add(index);
+			indice.Add(index + 1);
+			indice.Add(index + 2);
 
 
-		indice.Add(index + 2);
-		indice.Add(index + 3);
-		indice.Add(index);
+			indice.Add(index + 2);
+			indice.Add(index + 3);
+			indice.Add(index);
 
-		index += 4;
-		
-		//Bottom		
-		vectors.Add(FVector(x + Constants::ChunkScale, y, z));
-		vectors.Add(FVector(x, y, z));
-		vectors.Add(FVector(x, y, z + Constants::ChunkScale));
-		vectors.Add(FVector(x + Constants::ChunkScale, y, z+ Constants::ChunkScale));
+			index += 4;
+
+			//Right
+
+			vectors.Add(FVector(x + Constants::ChunkScale, y, z));
+			vectors.Add(FVector(x + Constants::ChunkScale, y, z + Constants::ChunkScale));
+			vectors.Add(FVector(x + Constants::ChunkScale, y + Constants::ChunkScale, z + Constants::ChunkScale));
+			vectors.Add(FVector(x + Constants::ChunkScale, y + Constants::ChunkScale, z));
 
 
-		indice.Add(index);
-		indice.Add(index + 1);
-		indice.Add(index + 2);
+			indice.Add(index);
+			indice.Add(index + 1);
+			indice.Add(index + 2);
 
-		indice.Add(index + 2);
-		indice.Add(index + 3);
-		indice.Add(index);
-		
-		index += 4;
 
-		color.Add(FLinearColor::Black);
-		color.Add(FLinearColor::Black);
-		color.Add(FLinearColor::Black);
-		color.Add(FLinearColor::Black);
-		color.Add(FLinearColor::Black);
-		color.Add(FLinearColor::Black);
-		color.Add(FLinearColor::Black);
-		color.Add(FLinearColor::Black);
+			indice.Add(index + 2);
+			indice.Add(index + 3);
+			indice.Add(index);
+
+			index += 4;
+
+			//Top
+
+			vectors.Add(FVector(x, y + Constants::ChunkScale, z));
+			vectors.Add(FVector(x + Constants::ChunkScale, y + Constants::ChunkScale, z));
+			vectors.Add(FVector(x + Constants::ChunkScale, y + Constants::ChunkScale, z + Constants::ChunkScale));
+			vectors.Add(FVector(x, y + Constants::ChunkScale, z + Constants::ChunkScale));
+
+			indice.Add(index);
+			indice.Add(index + 1);
+			indice.Add(index + 2);
+
+
+			indice.Add(index + 2);
+			indice.Add(index + 3);
+			indice.Add(index);
+
+			index += 4;
+
+			//Bottom		
+			vectors.Add(FVector(x + Constants::ChunkScale, y, z));
+			vectors.Add(FVector(x, y, z));
+			vectors.Add(FVector(x, y, z + Constants::ChunkScale));
+			vectors.Add(FVector(x + Constants::ChunkScale, y, z + Constants::ChunkScale));
+
+
+			indice.Add(index);
+			indice.Add(index + 1);
+			indice.Add(index + 2);
+
+			indice.Add(index + 2);
+			indice.Add(index + 3);
+			indice.Add(index);
+
+			index += 4;
+
+			color.Add(FLinearColor::Black);
+			color.Add(FLinearColor::Black);
+			color.Add(FLinearColor::Black);
+			color.Add(FLinearColor::Black);
+			color.Add(FLinearColor::Black);
+			color.Add(FLinearColor::Black);
+			color.Add(FLinearColor::Black);
+			color.Add(FLinearColor::Black);
+		}
 	}
 
 	chunk->Mesh->CreateMeshSection_LinearColor(int32(0), vectors, indice, TArray<FVector>(), TArray<FVector2D>(), color, TArray<FProcMeshTangent>(), false);

@@ -7,13 +7,15 @@
 #include "GameFramework/Actor.h"
 #include <ProceduralMeshComponent.h>
 #include "Chunk.generated.h"
+#include <array>
 
 UCLASS()
 class SILLYCRAFT_API AChunk : public AActor
 {
 	GENERATED_BODY()
+		
 private:
-	int* m_blockIDs;
+	//std::array<int,100> m_blockIDs;
 public:	
 	// Sets default values for this actor's properties
 	AChunk();
@@ -28,7 +30,7 @@ public:
 	UProceduralMeshComponent* Mesh;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	void Fill(const Block& block);
-	void Fill(Block* block);
+	int GetBlockID(const int& index) const;
+	void BaseFill(const Block* baseblock, const Block* air);
+	void Fill(const Block* block);
 };

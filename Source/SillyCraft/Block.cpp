@@ -16,7 +16,11 @@ Block::Block(const FName& name, const int& id, const Hardness& hardness, const b
 
 int Block::Get(const int& x, const int& z) const
 {	
-	return abs(Noise.GetPerlinFractal(x / Constants::Longitude, z / Constants::Latitude)) * Constants::MaxElevation;
+	int lol = abs(Noise.GetPerlinFractal(x / Constants::Longitude, z / Constants::Latitude) * Constants::MaxElevation);
+	FString out("");
+	out.AppendInt(lol);
+	UE_LOG(LogTemp, Display, TEXT("Elevation: %s"), *out);
+	return lol;
 }
 
 Block::~Block()
