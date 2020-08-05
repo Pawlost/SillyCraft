@@ -15,6 +15,8 @@
 
 class SILLYCRAFT_API Block
 {
+private:
+	void InitNoise();
 public:
 	static enum Hardness {
 		Empty, Soft, Medium, Hard
@@ -30,8 +32,8 @@ public:
 
 	int Get(const int& x, const int& z) const;
 
+	Block(const FName& name, const int& id, const Hardness& hardness, const FColor& color, const bool& surface);
 	Block(const FName& name, const int& id, const Hardness& hardness, const bool& surface);
-	Block(const FName& name, const int& id, const Hardness& hardness, const FColor& color, const int& range, const int& seed, const bool& surface, const float& frequency);
 
 	~Block();
 };

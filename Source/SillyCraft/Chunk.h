@@ -33,5 +33,5 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	int GetBlockID(const int& index) const;
 	void BaseFill(const Block* baseblock, const Block* air);
-	void Fill(const Block* block);
+	void Fill(const Block* block, const int& range);
 };
