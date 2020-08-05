@@ -25,7 +25,7 @@ void AVoxelGenerator::BeginPlay()
 	{
 		for (int y = 0; y < Constants::ChunkCount / 3; y++)
 		{
-			for (int z = 0; z < Constants::ChunkCount / 3; z++)
+			for (int z = -10; z < Constants::ChunkCount / 3; z++)
 			{
 				const int& posX = x * Constants::ChunkLenght;
 				const int& posY = y * Constants::ChunkLenght;

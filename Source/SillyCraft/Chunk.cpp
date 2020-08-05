@@ -40,14 +40,14 @@ void  AChunk::BaseFill(const Block* baseblock, const Block* air)
 {
 	const FVector& actorLocation = GetActorLocation();
 	for (int x = 0; x < Constants::ChunkSize; x++) {
-		for (int z = 0; z < Constants::ChunkSize; z++) {
-			int origin = baseblock->Get(x + actorLocation.X, z + actorLocation.Z);
-			for (int y = 0; y < Constants::ChunkSize; y++) {
-				if (actorLocation.Y + y + Constants::ChunkSize >= origin && actorLocation.Y <= origin) {
-						m_blockIDs[x + y * Constants::ChunkSize + z * Constants::ChunkSize * Constants::ChunkSize] = baseblock->ID;
+		for (int y = 0; y < Constants::ChunkSize; y++) {
+			int origin = baseblock->Get(y + actorLocation.Y, x + actorLocation.X);
+			for (int z = 0; z < Constants::ChunkSize; z++) {
+				if (actorLocation.Z + z + Constants::ChunkSize <= origin) {
+						m_blockIDs[y + z * Constants::ChunkSize + x * Constants::ChunkSize2D] = baseblock->ID;
 						continue;
 				}
-				m_blockIDs[x + y * Constants::ChunkSize + z * Constants::ChunkSize * Constants::ChunkSize] = air->ID;
+				m_blockIDs[y + z * Constants::ChunkSize + x * Constants::ChunkSize2D] = air->ID;
 			}
 		}
 	}

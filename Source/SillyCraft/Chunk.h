@@ -5,9 +5,9 @@
 #include "CoreMinimal.h"
 #include "Block.h"
 #include "GameFramework/Actor.h"
+#include <array>
 #include <ProceduralMeshComponent.h>
 #include "Chunk.generated.h"
-#include <array>
 
 UCLASS()
 class SILLYCRAFT_API AChunk : public AActor
@@ -15,7 +15,7 @@ class SILLYCRAFT_API AChunk : public AActor
 	GENERATED_BODY()
 		
 private:
-	//std::array<int,100> m_blockIDs;
+	std::array<int, Constants::ChunkSize3D> m_blockIDs;
 public:	
 	// Sets default values for this actor's properties
 	AChunk();
