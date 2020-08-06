@@ -15,7 +15,7 @@ namespace Constants {
 
 	//Chunk
 	const static int ChunkSize = 32;
-	const static int ChunkScale = 100;
+	const static float ChunkScale = 100;
 	const static int ChunkLenght = ChunkScale * ChunkSize;
 	const static int ChunkSize2D = ChunkSize * ChunkSize;
 	const static int ChunkSize3D = ChunkSize * ChunkSize * ChunkSize;

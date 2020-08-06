@@ -23,13 +23,6 @@ void Block::InitNoise() {
 int Block::Get(const int& x, const int& z) const
 {	
 	return abs(Noise->GetNoise2D(x, z)) * Constants::MaxElevation;
-	/*if (i > 0.0) {
-		std::stringstream lol;
-		lol << i;
-		FString out(lol.str().c_str());
-		UE_LOG(LogTemp, Display, TEXT("Elevation: %s"), *out);
-	}
-	return i;*/
 }
 
 Block::~Block()

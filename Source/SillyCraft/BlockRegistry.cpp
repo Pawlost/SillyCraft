@@ -24,6 +24,11 @@ Block* BlockRegistry::GetBaseBlock() const
 
 Block* BlockRegistry::GetBlock(const int& id) const
 {
+/*	std::stringstream lol;
+	lol << id;
+	FString out(lol.str().c_str());
+	UE_LOG(LogTemp, Display, TEXT("id: %s"), *out);*/
+
 	return m_blocks[id];
 }
 
