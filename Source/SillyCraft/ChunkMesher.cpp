@@ -13,14 +13,15 @@ void ChunkMesher::MeshChunk(const AChunk* chunk) const
 	TArray<FVector>* vectors = new TArray<FVector>;
 	TArray<int32>* indice = new TArray<int32>;
 	TArray<FLinearColor>* color = new TArray<FLinearColor>;
-
+	std::vector<Voxel*>* meshedVoxels = new std::vector<Voxel*>;
 	NaiveGreedyMeshing(voxels, chunk);
+	GreedyMeshing(voxels, *meshedVoxels);
 
 	int index = 0;
 
-	for (int i = 0; i < Constants::ChunkSize3D; i++)
+	for (int i = 0; i < meshedVoxels->size(); i++)
 	{
-		Voxel* voxel = &voxels[i];
+		Voxel* voxel = (*meshedVoxels)[i];
 		Block* currentBlock = m_registry->GetBlock(voxel->ID);
 		if (currentBlock->BlockHardness != Block::Hardness::Empty) {
 			for (int f = 0; f < 6; f++) {
@@ -54,6 +55,7 @@ void ChunkMesher::MeshChunk(const AChunk* chunk) const
 	delete vectors;
 	delete indice;
 	delete color;
+	delete meshedVoxels;
 }
 
 FVector ChunkMesher::IntVector::GetVertice() const
@@ -416,9 +418,58 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 	}
 }
 
-void ChunkMesher::GreedyMeshing(const std::array<Voxel, Constants::ChunkSize3D>& vectors) const
+void ChunkMesher::GreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& voxels, std::vector<Voxel*>& meshedVoxels) const
 {
+	int index = 0;
 
+	for (int i = 0; i < Constants::ChunkSize3D; i++) 
+	{
+		int y = i % Constants::ChunkSize;
+		int z = (i / Constants::ChunkSize) % Constants::ChunkSize;
+		int x = i / Constants::ChunkSize2D;
+
+		bool valid = false;
+		Voxel* voxel = &voxels[i];
+
+		for (int f = 0; f < 6; f++) 
+		{
+			Face* face = &voxel->face[f];
+			if(face->visible){
+				switch (f)
+				{
+				case Faces::Front:
+				case Faces::Back:
+				case Faces::Right:
+				case Faces::Left:
+					if (y < Constants::ChunkSize - 1) {
+						index = i + MakeIndex(0, 1, 0);
+						Face* otherface = &voxels[index].face[f];
+						if (ChunkMesher::GreedyJoin(face, otherface)) 
+						{
+							continue;
+						}
+					}
+					break;
+				case Faces::Top:
+				case Faces::Bottom:
+					if (x < Constants::ChunkSize - 1) {
+						index = i + MakeIndex(0, 0, 1);
+						Face* otherface = &voxels[index].face[f];
+						if (ChunkMesher::GreedyJoin(face, otherface))
+						{
+							continue;
+						}
+					}
+					break;
+				}
+				valid = true;
+			}
+		}
+		if(valid)
+		{
+			meshedVoxels.push_back(voxel);
+		}
+	}
 }
 
 void ChunkMesher::Join(Face* face, Face* prevface)
@@ -451,6 +502,18 @@ void ChunkMesher::JoinReversed(Face* face, Face* prevface)
 	face->prevFace = prevface;
 }
 
+bool ChunkMesher::GreedyJoin(Face* face, Face* otherface)
+{
+	if (face->v3 == otherface->v2 && face->v4 == otherface->v1 && otherface->visible)
+	{
+		otherface->v1 = face->v1;
+		otherface->v2 = face->v2;
+		face->visible = false;
+		return true;
+	}
+	return false;
+}
+
 void ChunkMesher::AddIndice(const int& index, TArray<int>& indice) const
 {
 	indice.Add(index);
@@ -470,4 +533,13 @@ int ChunkMesher::MakeIndex(const int& y, const int& z, const int& x) const
 
 ChunkMesher::~ChunkMesher()
 {
+}
+
+bool ChunkMesher::IntVector:: operator ==(const IntVector& a) 
+{
+	return X == a.X && Y == a.Y && Z == a.Z;
+}
+bool ChunkMesher::IntVector:: operator !=(const IntVector& a)
+{
+	return !(*this == a);
 }

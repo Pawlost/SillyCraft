@@ -24,6 +24,9 @@ private:
 		int Y;
 		int Z;
 
+		bool operator==(const IntVector& a);
+		bool operator!=(const IntVector& a);
+
 		FVector GetVertice() const;
 	};
 
@@ -47,9 +50,10 @@ private:
 	void AddIndice(const int& index, TArray<int>& indice) const;
 	int MakeIndex(const int& x, const int& y, const int& z) const;
 	void NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& voxels, const AChunk* chunk) const;
-	void GreedyMeshing(const std::array<Voxel, Constants::ChunkSize3D>& vectors) const;
+	void GreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& voxels, std::vector<Voxel*>& meshedVoxels) const;
 	static void Join(Face* face, Face* prevFace);
 	static void JoinReversed(Face* face, Face* prevFace);
+	static bool GreedyJoin(Face* face, Face* prevFace);
 
 public:
 	ChunkMesher(BlockRegistry* generator);
