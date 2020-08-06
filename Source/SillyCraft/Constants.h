@@ -14,7 +14,7 @@ namespace Constants {
 	const static float NoiseFrequency = 0.1f;
 
 	//Chunk
-	const static int ChunkSize = 32;
+	const static int ChunkSize = 9;
 	const static float ChunkScale = 100;
 	const static int ChunkLenght = ChunkScale * ChunkSize;
 	const static int ChunkSize2D = ChunkSize * ChunkSize;

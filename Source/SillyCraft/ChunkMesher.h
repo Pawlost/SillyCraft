@@ -34,6 +34,7 @@ private:
 		IntVector v4;
 
 		bool visible;
+		Face* prevFace;
 	};
 
 	struct Voxel {
@@ -47,6 +48,8 @@ private:
 	int MakeIndex(const int& x, const int& y, const int& z) const;
 	void NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& voxels, const AChunk* chunk) const;
 	void GreedyMeshing(const std::array<Voxel, Constants::ChunkSize3D>& vectors) const;
+	static void Join(Face* face, Face* prevFace);
+	static void JoinReversed(Face* face, Face* prevFace);
 
 public:
 	ChunkMesher(BlockRegistry* generator);
