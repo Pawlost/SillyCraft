@@ -16,7 +16,7 @@ namespace Constants {
 	const static int FillZone = MeshZone + 2;
 
 	//Chunk
-	const static int ChunkSize = 9;
+	const static int ChunkSize = 32;
 	const static float ChunkScale = 100;
 	const static int ChunkLenght = ChunkScale * ChunkSize;
 	const static int ChunkSize2D = ChunkSize * ChunkSize;

@@ -49,7 +49,7 @@ private:
 	BlockRegistry* m_registry;
 	void AddIndice(const int& index, TArray<int>& indice) const;
 	int MakeIndex(const int& x, const int& y, const int& z) const;
-	void NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& voxels, const AChunk* chunk) const;
+	void NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& voxels, const AChunk& chunk) const;
 	void GreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& voxels, std::vector<Voxel*>& meshedVoxels) const;
 	static void Join(Face* face, Face* prevFace);
 	static void JoinReversed(Face* face, Face* prevFace);
@@ -59,5 +59,5 @@ public:
 	ChunkMesher(BlockRegistry* generator);
 	~ChunkMesher();
 
-	void MeshChunk(const AChunk* chunk) const;
+	bool MeshChunk(const AChunk& chunk) const;
 };
