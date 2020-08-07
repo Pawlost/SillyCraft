@@ -4,8 +4,10 @@
 
 #include "ChunkMesher.h"
 #include "Chunk.h"
+#include <FastNoiseWrapper.h>
 #include "BlockRegistry.h"
 #include "CoreMinimal.h"
+#include <mutex>
 #include "Components/ActorComponent.h"
 #include "VoxelGeneratorComponent.generated.h"
 
@@ -29,12 +31,13 @@ public:
 
 private:
 	TMap<TTuple<int, int, int>, AChunk*> m_chunks;
-	TArray<AChunk*> m_ungeneratedChunks;
 	BlockRegistry* m_registry;
 	ChunkMesher* m_mesher;
 	AChunk* m_currentChunk;
+	AActor* m_owner;
+	FVector m_lastPosition;
 
-	bool GenerateChunk();
 	bool GenerateChunk(AChunk& chunk);
+	void ChangeZone(bool needspawn);
 	void Refill();
 };

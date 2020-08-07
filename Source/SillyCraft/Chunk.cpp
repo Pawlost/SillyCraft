@@ -4,12 +4,12 @@
 #include "Chunk.h"
 
 // Sets default values
-AChunk::AChunk()// : m_blockIDs(TArray<int, TFixedAllocator<Constants::ChunkSize3D>>())
+AChunk::AChunk() : m_noise(CreateDefaultSubobject<UFastNoiseWrapper>("Noise")), Mesh(CreateDefaultSubobject<UProceduralMeshComponent>("CustomMesh")), m_blockIDs(new std::array<int, Constants::ChunkSize3D>)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	Mesh = CreateDefaultSubobject<UProceduralMeshComponent>("CustomMesh");
-	Mesh->SetupAttachment(RootComponent);
+	SetRootComponent(Mesh);
+	m_noise->SetupFastNoise(Constants::NoiseType, Constants::Seed, Constants::NoiseFrequency);
 }
 
 AChunk::~AChunk()
@@ -33,21 +33,29 @@ void AChunk::Tick(float DeltaTime)
 int AChunk::GetBlockID(const int& index) const
 {
 
-	return m_blockIDs[index];
+	return (*m_blockIDs)[index];
 }
 
-void  AChunk::BaseFill(const Block* baseblock, const Block* air)
+void  AChunk::BaseFill(int baseID, int airID)
 {
-	const FVector& actorLocation = GetActorLocation();
-	for (int x = 0; x < Constants::ChunkSize; x++) {
-		for (int y = 0; y < Constants::ChunkSize; y++) {
-			int origin = baseblock->Get(y + (actorLocation.Y / Constants::ChunkScale) * Constants::ChunkSize, x + (actorLocation.X / Constants::ChunkScale) * Constants::ChunkSize);
-			for (int z = 0; z < Constants::ChunkSize; z++) {
-				if (actorLocation.Z + z <= origin) {
-						m_blockIDs[y + z * Constants::ChunkSize + x * Constants::ChunkSize2D] = baseblock->ID;
+	FVector actorLocation = GetActorLocation();
+	int chunkX = actorLocation.X / Constants::ChunkScale;
+	int chunkY = actorLocation.Y / Constants::ChunkScale;
+	int chunkZ = actorLocation.Z / Constants::ChunkScale;
+
+	for (int x = 0; x < Constants::ChunkSize; x++) 
+	{
+		for (int y = 0; y < Constants::ChunkSize; y++) 
+		{
+			int origin = m_noise->GetNoise2D(y + chunkY, x + chunkX) * Constants::MaxElevation;
+			for (int z = 0; z < Constants::ChunkSize; z++) 
+			{
+				if (chunkZ + z <= origin) 
+				{
+						(*m_blockIDs)[y + z * Constants::ChunkSize + x * Constants::ChunkSize2D] = baseID;
 						continue;
 				}
-				m_blockIDs[y + z * Constants::ChunkSize + x * Constants::ChunkSize2D] = air->ID;
+				(*m_blockIDs)[y + z * Constants::ChunkSize + x * Constants::ChunkSize2D] = airID;
 			}
 		}
 	}
@@ -56,7 +64,7 @@ void  AChunk::BaseFill(const Block* baseblock, const Block* air)
 
 void AChunk::Fill(const Block* block, const int& range)
 {
-	const FVector& actorLocation = GetActorLocation();
+	/*const FVector& actorLocation = GetActorLocation();
 	for (int x = 0; x < Constants::ChunkSize; x++) {
 		for (int z = 0; z < Constants::ChunkSize; z++) {
 			int origin = block->Get(x + actorLocation.X * Constants::ChunkSize, z + actorLocation.Z * Constants::ChunkSize) - (Constants::ChunkSize * actorLocation.Y);
@@ -68,6 +76,6 @@ void AChunk::Fill(const Block* block, const int& range)
 				}
 			}
 		}
-	}
+	}*/    
 }
 

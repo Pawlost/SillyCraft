@@ -4,12 +4,11 @@
 #include "VoxelGeneratorComponent.h"
 
 // Sets default values for this component's properties
-UVoxelGeneratorComponent::UVoxelGeneratorComponent() :m_registry(new BlockRegistry()), m_mesher(new ChunkMesher(m_registry))
+UVoxelGeneratorComponent::UVoxelGeneratorComponent() : m_registry(new BlockRegistry()), m_mesher(new ChunkMesher(m_registry)), m_owner(GetOwner())
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
 	// ...
 }
 
@@ -21,64 +20,87 @@ void UVoxelGeneratorComponent::BeginPlay()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 
 	int index = 0;
-	for (int x = 0; x < Constants::MeshZone; x++)
+	m_lastPosition = m_owner->GetActorLocation();
+	ChangeZone(true);
+}
+
+
+
+void UVoxelGeneratorComponent::ChangeZone(bool needspawn)
+{
+	FVector ownerLocation = m_owner->GetActorLocation();
+	int ownerX = ownerLocation.X / Constants::ChunkLenght;
+	int ownerY = ownerLocation.Y / Constants::ChunkLenght;
+	int ownerZ = ownerLocation.Z / Constants::ChunkLenght;
+
+	for (int x = ownerX - Constants::FillZone; x < ownerX + Constants::FillZone; x++)
 	{
-		for (int y = 0; y < Constants::MeshZone; y++)
+		for (int y = ownerY - Constants::FillZone; y < ownerY + Constants::FillZone; y++)
 		{
-			for (int z = 0; z < Constants::MeshZone; z++)
+			for (int z = ownerZ - Constants::FillZone; z < ownerZ + Constants::FillZone; z++)
 			{
 				const int& posX = x * Constants::ChunkLenght;
 				const int& posY = y * Constants::ChunkLenght;
 				const int& posZ = z * Constants::ChunkLenght;
 
-				FVector location(posX, posY, posZ);
-				FRotator rotation(0.0f, 0.0f, 0.0f);
-				FActorSpawnParameters parameters;
-				FString name("Chunk");
-				name.AppendInt(int32(index));
-				parameters.Name = FName(name);
-				AChunk* chunk = GetWorld()->SpawnActor<AChunk>(location, rotation, parameters);
-				m_chunks.Add(TTuple<int, int, int>(x, y, z), chunk);
-				chunk->BaseFill(m_registry->GetBaseBlock(), m_registry->Air);
-				m_ungeneratedChunks.Add(chunk);
-				index++;
+				if (!m_chunks.Contains(TTuple<int, int, int>(x, y, z))) {
+					FVector location(posX, posY, posZ);
+					FRotator rotation(0.0f, 0.0f, 0.0f);
+					FActorSpawnParameters parameters;
+					FString name("Chunk: x ");
+					name.AppendInt(x);
+					name.Append(" y ");
+					name.AppendInt(y);
+					name.Append(" z ");
+					name.AppendInt(z);
+
+					parameters.Name = FName(name);
+
+					AChunk* chunk = GetWorld()->SpawnActor<AChunk>(location, rotation, parameters);
+					chunk->BaseFill(m_registry->BaseBlockID, m_registry->AirID);
+					m_chunks.Add(TTuple<int, int, int>(x, y, z), chunk);
+				}
 			}
 		}
 	}
-    AActor* owner = GetOwner();
-	FVector chunkLocation;
-	bool needspawn = true;
-	for (AChunk* chunk : m_ungeneratedChunks) 
+
+	for (int x = ownerX - Constants::MeshZone; x < ownerX + Constants::MeshZone; x++)
 	{
-		chunkLocation = chunk->GetActorLocation();
-		if (!GenerateChunk(*chunk) && needspawn)
+		for (int y = ownerY - Constants::MeshZone; y < ownerY + Constants::MeshZone; y++)
 		{
-			needspawn = false;
-			owner->SetActorLocation(chunkLocation);
+			for (int z = ownerZ - Constants::MeshZone; z < ownerZ + Constants::MeshZone; z++)
+			{
+
+				if (m_chunks.Contains(TTuple<int, int, int>(x, y, z))) {
+					AChunk* chunk = m_chunks[TTuple<int, int, int>(x, y, z)];
+					if (chunk && !chunk->Generated && chunk->GetRootComponent()) {
+						FVector location = chunk->GetActorLocation();
+						if (!GenerateChunk(*chunk)) {
+							if (needspawn && location.X == ownerLocation.X && location.Y == ownerLocation.Y)
+							{
+								needspawn = false;
+								m_owner->SetActorLocation(location);
+							}
+						}
+						chunk->Generated = true;
+					}
+				}
+			}
 		}
 	}
-
-	m_ungeneratedChunks.Empty();
 }
-
-
 // Called every frame
 void UVoxelGeneratorComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	GenerateChunk();
-}
+	FVector position = m_owner->GetActorLocation();
 
-bool UVoxelGeneratorComponent::GenerateChunk()
-{
-	if (m_ungeneratedChunks.Num() > 0)
+	if (m_lastPosition != position) 
 	{
-		AChunk* chunk = m_ungeneratedChunks.Pop();
-		return GenerateChunk(*chunk);
+		m_lastPosition = position;
+		ChangeZone(false);
 	}
-
-	return false;
 }
 
 bool UVoxelGeneratorComponent::GenerateChunk(AChunk& chunk)
@@ -94,15 +116,17 @@ bool UVoxelGeneratorComponent::GenerateChunk(AChunk& chunk)
 	return false;
 }
 
+/*for (TPair<int, Block*> block : m_blocks)
+{
+	for (TPair<TTuple<int, int, int>, AChunk*> pair : m_chunks)
+	{
+		AChunk* chunk = pair.Value;
+		chunk->Fill(block.Value);
+	}
+}*/
+
 void UVoxelGeneratorComponent::Refill()
 {
-	/*for (TPair<int, Block*> block : m_blocks)
-	{
-		for (TPair<TTuple<int, int, int>, AChunk*> pair : m_chunks)
-		{
-			AChunk* chunk = pair.Value;
-			chunk->Fill(block.Value);
-		}
-	}*/
+
 }
 

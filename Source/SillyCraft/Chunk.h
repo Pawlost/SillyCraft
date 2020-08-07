@@ -16,7 +16,9 @@ class SILLYCRAFT_API AChunk : public AActor
 	GENERATED_BODY()
 		
 private:
-	std::array<int, Constants::ChunkSize3D> m_blockIDs;
+	std::array<int, Constants::ChunkSize3D>* m_blockIDs;
+	UFastNoiseWrapper* m_noise;
+
 public:	
 	// Sets default values for this actor's properties
 	AChunk();
@@ -32,6 +34,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	int GetBlockID(const int& index) const;
-	void BaseFill(const Block* baseblock, const Block* air);
+	void BaseFill(int baseID, int airID);
 	void Fill(const Block* block, const int& range);
+	bool Generated = false;
 };
