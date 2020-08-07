@@ -4,14 +4,16 @@
 #include <FastNoiseWrapper.h>
 
 namespace Constants {
-	//General
-	const static int  MaxElevation = 50;
-	const static int ChunkCount = 32;
-
 	//Noise
 	const static int Seed = 1334;
 	const static EFastNoise_NoiseType NoiseType = EFastNoise_NoiseType::PerlinFractal;
-	const static float NoiseFrequency = 0.1f;
+	const static float NoiseFrequency = 0.01f;
+	const static int MaxElevation = 50;
+
+	//Zones
+	const static int Distance = 1;
+	const static int MeshZone = 2 * Distance + 1;
+	const static int FillZone = MeshZone + 2;
 
 	//Chunk
 	const static int ChunkSize = 9;

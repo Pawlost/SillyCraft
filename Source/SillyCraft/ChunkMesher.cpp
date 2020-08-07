@@ -50,7 +50,8 @@ void ChunkMesher::MeshChunk(const AChunk* chunk) const
 		}
 	}
 
-	chunk->Mesh->CreateMeshSection_LinearColor(int32(0), *vectors, *indice, TArray<FVector>(), TArray<FVector2D>(), *color, TArray<FProcMeshTangent>(), false);
+	chunk->Mesh->CreateMeshSection_LinearColor(int32(0), *vectors, *indice, TArray<FVector>(), TArray<FVector2D>(), *color, TArray<FProcMeshTangent>(), true);
+	chunk->Mesh->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);		
 
 	delete vectors;
 	delete indice;
@@ -441,7 +442,7 @@ void ChunkMesher::GreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& voxel
 				case Faces::Back:
 				case Faces::Right:
 				case Faces::Left:
-					if (y < Constants::ChunkSize - 1) {
+					if (z < Constants::ChunkSize - 1) {
 						index = i + MakeIndex(0, 1, 0);
 						Face* otherface = &voxels[index].face[f];
 						if (ChunkMesher::GreedyJoin(face, otherface)) 

@@ -21,11 +21,11 @@ void AVoxelGenerator::BeginPlay()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 
 	int index = 0;
-	for (int x = 0; x < Constants::ChunkCount / 3; x++)
+	for (int x = 0; x < Constants::MeshZone; x++)
 	{
-		for (int y = 0; y < Constants::ChunkCount / 3; y++)
+		for (int y = 0; y < Constants::MeshZone; y++)
 		{
-			for (int z = 0; z < Constants::ChunkCount / 3; z++)
+			for (int z = 0; z < Constants::MeshZone; z++)
 			{
 				const int& posX = x * Constants::ChunkLenght;
 				const int& posY = y * Constants::ChunkLenght;
