@@ -6,67 +6,86 @@ ChunkMesher::ChunkMesher(BlockRegistry* registry) : m_registry(registry)
 {
 }
 
-bool ChunkMesher::MeshChunk(const AChunk& chunk) const
+bool ChunkMesher::MeshChunk(AChunk& chunk) const
 {
 	std::array<Voxel, Constants::ChunkSize3D>* voxels = new std::array<Voxel, Constants::ChunkSize3D>();
 
-	TArray<FVector>* vectors = new TArray<FVector>;
-	TArray<int32>* indice = new TArray<int32>;
-	TArray<FLinearColor>* color = new TArray<FLinearColor>;
-	std::vector<Voxel*>* meshedVoxels = new std::vector<Voxel*>;
+	TMap<int, TArray<FVector>>* vectorsMap = new TMap<int, TArray<FVector>>;
+	TMap<int, TArray<int32>>* indiceMap = new TMap<int, TArray<int32>>;
+	TMap<int, TArray<FLinearColor>>* colorMap = new TMap<int, TArray<FLinearColor>>;
+	TMap<int, int>* indexes = new TMap<int, int>;
+	TArray<FVector>* vectors;
+	TArray<int32>* indice;
+	TArray<FLinearColor>* color;
+	int* index;
+
+	TMultiMap<int, Face*> meshedFaces;
 	NaiveGreedyMeshing(*voxels, chunk);
+	GreedyMeshing(*voxels, meshedFaces);
 
-	GreedyMeshing(*voxels, *meshedVoxels);
-	if (meshedVoxels->size() > 0) {
-		int index = 0;
-		for (int i = 0; i < meshedVoxels->size(); i++)
-		{
-			Voxel* voxel = (*meshedVoxels)[i];
-			Block* currentBlock = m_registry->GetBlock(voxel->ID);
-			if (currentBlock->BlockHardness != Block::Hardness::Empty) {
-				for (int f = 0; f < 6; f++) {
-					Face* face = &voxel->face[f];
-					if (face->visible) {
+	if (meshedFaces.Num() > 0) {
+		for (TPair<int, Face*> pair : meshedFaces) {
+			Block* currentBlock = m_registry->GetBlock(pair.Key);
+			Face* face = pair.Value;
+			if (face->visible) {
 
-						IntVector* v1 = &face->v1;
-						IntVector* v2 = &face->v2;
-						IntVector* v3 = &face->v3;
-						IntVector* v4 = &face->v4;
+				IntVector* v1 = &face->v1;
+				IntVector* v2 = &face->v2;
+				IntVector* v3 = &face->v3;
+				IntVector* v4 = &face->v4;
 
-						vectors->Add(v1->GetVertice());
-						vectors->Add(v2->GetVertice());
-						vectors->Add(v3->GetVertice());
-						vectors->Add(v4->GetVertice());
-
-						AddIndice(index, *indice);
-						index += 4;
-
-						color->Add(currentBlock->Color);
-						color->Add(currentBlock->Color);
-						color->Add(currentBlock->Color);
-						color->Add(currentBlock->Color);
-					}
+				if (!vectorsMap->Contains(pair.Key))
+				{
+					vectorsMap->Add(pair.Key, TArray<FVector>());
+					indiceMap->Add(pair.Key, TArray<int32>());
+					colorMap->Add(pair.Key, TArray<FLinearColor>());
+					indexes->Add(pair.Key, 0);
 				}
+
+				index = &(*indexes)[pair.Key];
+				vectors = &(*vectorsMap)[pair.Key];
+				indice = &(*indiceMap)[pair.Key];
+				color = &(*colorMap)[pair.Key];
+
+				vectors->Add(v1->GetVertice());
+				vectors->Add(v2->GetVertice());
+				vectors->Add(v3->GetVertice());
+				vectors->Add(v4->GetVertice());
+
+				AddIndice(*index, *indice);
+				*index += 4;
+
+				color->Add(currentBlock->Color);
+				color->Add(currentBlock->Color);
+				color->Add(currentBlock->Color);
+				color->Add(currentBlock->Color);
 			}
 		}
 
+		int i = 0;
+		for (TPair<int, TArray<FVector>> pair : *vectorsMap) 
+		{
+			vectors = &pair.Value;
+			indice = &(*indiceMap)[pair.Key];
+			color = &(*colorMap)[pair.Key];
+			chunk.SetMesh(i, *vectors, *indice, *color);
 
-		chunk.Mesh->CreateMeshSection_LinearColor(int32(0), *vectors, *indice, TArray<FVector>(), TArray<FVector2D>(), *color, TArray<FProcMeshTangent>(), true);
-		chunk.Mesh->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
+			i++;
+		}
 
-		delete vectors;
-		delete indice;
-		delete color;
-		delete meshedVoxels;
+		chunk.Activate();
+
+		delete vectorsMap;
+		delete indiceMap;
+		delete colorMap;
 		delete voxels;
 
 		return true;
 	}
 
-	delete vectors;
-	delete indice;
-	delete color;
-	delete meshedVoxels;
+	delete vectorsMap;
+	delete indiceMap;
+	delete colorMap;
 	delete voxels;
 
 	return false;
@@ -90,6 +109,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 	IntVector* v4 = nullptr;
 	Face* face = nullptr;
 	Face* prevface = nullptr;
+	Block* otherBlock = nullptr;
 	int index = 0;
 
 	for (int i = 0; i < Constants::ChunkSize3D; i++)
@@ -107,14 +127,14 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 
 			//Front
 			face = &voxel->face[Faces::Front];
-			id = m_registry->AirID;
+			otherBlock = m_registry->GetBlock(m_registry->AirID);
 
 			if (x > 0) {
-				index = i + MakeIndex(0, 0, -1);
-				id = voxels[index].ID;
+				index = i + Constants::MakeIndex(0, 0, -1);
+				otherBlock = m_registry->GetBlock(chunk.GetBlockID(index));
 			}
 
-			if (id != currentBlock->ID)
+			if (otherBlock->BlockHardness == Block::Hardness::Empty)
 			{
 				face->visible = true;
 
@@ -133,7 +153,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 
 				id = m_registry->AirID;
 				if (y > 0) {
-					index = i + MakeIndex(-1, 0, 0);
+					index = i + Constants::MakeIndex(-1, 0, 0);
 					id = chunk.GetBlockID(index);
 				}
 
@@ -161,14 +181,14 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 
 			//Back
 			face = &voxel->face[Faces::Back];
-			id = m_registry->AirID;
+			otherBlock = m_registry->GetBlock(m_registry->AirID);
 
 			if (x < Constants::ChunkSize - 1) {
-				index = i + MakeIndex(0, 0, 1);
-				id = chunk.GetBlockID(index);
+				index = i + Constants::MakeIndex(0, 0, 1);
+				otherBlock = m_registry->GetBlock(chunk.GetBlockID(index));
 			}
 
-			if (id != currentBlock->ID)
+			if (otherBlock->BlockHardness == Block::Hardness::Empty)
 			{
 				face->visible = true;
 
@@ -187,7 +207,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 
 				id = m_registry->AirID;
 				if (y > 0) {
-					index = i + MakeIndex(-1, 0, 0);
+					index = i + Constants::MakeIndex(-1, 0, 0);
 					id = chunk.GetBlockID(index);
 				}
 
@@ -215,14 +235,14 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 
 			//Left
 			face = &voxel->face[Faces::Left];
-			id = m_registry->AirID;
+			otherBlock = m_registry->GetBlock(m_registry->AirID);
 
 			if (y > 0) {
-				index = i + MakeIndex(-1, 0, 0);
-				id = chunk.GetBlockID(index);
+				index = i + Constants::MakeIndex(-1, 0, 0);
+				otherBlock = m_registry->GetBlock(chunk.GetBlockID(index));
 			}
 
-			if (id != currentBlock->ID)
+			if (otherBlock->BlockHardness == Block::Hardness::Empty)
 			{
 				face->visible = true;
 
@@ -241,7 +261,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 
 				id = m_registry->AirID;
 				if (x > 0) {
-					index = i + MakeIndex(0, 0, -1);
+					index = i + Constants::MakeIndex(0, 0, -1);
 					id = chunk.GetBlockID(index);
 				}
 
@@ -269,14 +289,14 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 
 			//Right
 			face = &voxel->face[Faces::Right];
-			id = m_registry->AirID;
+			otherBlock = m_registry->GetBlock(m_registry->AirID);
 
 			if (y < Constants::ChunkSize - 1) {
-				index = i + MakeIndex(1, 0, 0);
-				id = chunk.GetBlockID(index);
+				index = i + Constants::MakeIndex(1, 0, 0);
+				otherBlock = m_registry->GetBlock(chunk.GetBlockID(index));
 			}
 
-			if (id != currentBlock->ID)
+			if (otherBlock->BlockHardness == Block::Hardness::Empty)
 			{
 				face->visible = true;
 
@@ -296,7 +316,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 				id = m_registry->AirID;
 				if (x > 0)
 				{
-					index = i + MakeIndex(0, 0, -1);
+					index = i + Constants::MakeIndex(0, 0, -1);
 					id = chunk.GetBlockID(index);
 				}
 
@@ -324,14 +344,14 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 
 			//Bottom
 			face = &voxel->face[Faces::Bottom];
-			id = m_registry->AirID;
+			otherBlock = m_registry->GetBlock(m_registry->AirID);
 
 			if (z > 0) {
-				index = i + MakeIndex(0, -1, 0);
-				id = chunk.GetBlockID(index);
+				index = i + Constants::MakeIndex(0, -1, 0);
+				otherBlock = m_registry->GetBlock(chunk.GetBlockID(index));
 			}
 
-			if (id != currentBlock->ID)
+			if (otherBlock->BlockHardness == Block::Hardness::Empty)
 			{
 				face->visible = true;
 
@@ -350,7 +370,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 
 				id = m_registry->AirID;
 				if (y > 0) {
-					index = i + MakeIndex(-1, 0, 0);
+					index = i + Constants::MakeIndex(-1, 0, 0);
 					id = chunk.GetBlockID(index);
 				}
 
@@ -378,14 +398,14 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 
 			//Top
 			face = &voxel->face[Faces::Top];
-			id = m_registry->AirID;
+			otherBlock = m_registry->GetBlock(m_registry->AirID);
 
 			if (z < Constants::ChunkSize - 1) {
-				index = i + MakeIndex(0, 1, 0);
-				id = chunk.GetBlockID(index);
+				index = i + Constants::MakeIndex(0, 1, 0);
+				otherBlock = m_registry->GetBlock(chunk.GetBlockID(index));
 			}
 
-			if (id != currentBlock->ID)
+			if (otherBlock->BlockHardness == Block::Hardness::Empty)
 			{
 				face->visible = true;
 
@@ -405,7 +425,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 				id = m_registry->AirID;
 
 				if (y > 0) {
-					index = i + MakeIndex(-1, 0, 0);
+					index = i + Constants::MakeIndex(-1, 0, 0);
 					id = chunk.GetBlockID(index);
 				}
 
@@ -434,7 +454,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 	}
 }
 
-void ChunkMesher::GreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& voxels, std::vector<Voxel*>& meshedVoxels) const
+void ChunkMesher::GreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& voxels, TMultiMap<int, Face*>& meshedFaces) const
 {
 	int index = 0;
 
@@ -444,7 +464,6 @@ void ChunkMesher::GreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& voxel
 		int z = (i / Constants::ChunkSize) % Constants::ChunkSize;
 		int x = i / Constants::ChunkSize2D;
 
-		bool valid = false;
 		Voxel* voxel = &voxels[i];
 
 		for (int f = 0; f < 6; f++) 
@@ -457,33 +476,29 @@ void ChunkMesher::GreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& voxel
 				case Faces::Back:
 				case Faces::Right:
 				case Faces::Left:
-					if (z < Constants::ChunkSize - 1) {
-						index = i + MakeIndex(0, 1, 0);
+					/*if (z < Constants::ChunkSize - 1) {
+						index = i + Constants::MakeIndex(0, 1, 0);
 						Face* otherface = &voxels[index].face[f];
 						if (ChunkMesher::GreedyJoin(face, otherface)) 
 						{
 							continue;
 						}
 					}
-					break;
+					break;*/
 				case Faces::Top:
 				case Faces::Bottom:
-					if (x < Constants::ChunkSize - 1) {
-						index = i + MakeIndex(0, 0, 1);
+					/*if (x < Constants::ChunkSize - 1) {
+						index = i + Constants::MakeIndex(0, 0, 1);
 						Face* otherface = &voxels[index].face[f];
 						if (ChunkMesher::GreedyJoin(face, otherface))
 						{
 							continue;
 						}
-					}
+					}*/
 					break;
 				}
-				valid = true;
+				meshedFaces.Add(voxel->ID, face);
 			}
-		}
-		if(valid)
-		{
-			meshedVoxels.push_back(voxel);
 		}
 	}
 }
@@ -540,11 +555,6 @@ void ChunkMesher::AddIndice(const int& index, TArray<int>& indice) const
 	indice.Add(index + 2);
 	indice.Add(index + 3);
 	indice.Add(index);
-}
-
-int ChunkMesher::MakeIndex(const int& y, const int& z, const int& x) const
-{
-	return y + z * Constants::ChunkSize + x * Constants::ChunkSize2D;
 }
 
 ChunkMesher::~ChunkMesher()

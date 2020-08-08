@@ -18,6 +18,7 @@ public:
 	Block* GetBaseBlock() const;
 	int BaseBlockID;
 	const int AirID;
+	void GetIDs(TArray<int>& outIDs) const;
 	BlockRegistry();
 	~BlockRegistry();
 };

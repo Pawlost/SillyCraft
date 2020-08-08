@@ -4,9 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Block.h"
-#include "GameFramework/Actor.h"
+#include "BlockRegistry.h"
 #include <array>
-#include <string>
+#include "GameFramework/Actor.h"
 #include <ProceduralMeshComponent.h>
 #include "Chunk.generated.h"
 
@@ -18,7 +18,10 @@ class SILLYCRAFT_API AChunk : public AActor
 private:
 	std::array<int, Constants::ChunkSize3D>* m_blockIDs;
 	UFastNoiseWrapper* m_noise;
-
+	BlockRegistry* m_registry;
+	UProceduralMeshComponent* m_mesh;
+	UMaterial* m_material;
+	bool m_hasMesh = false;
 public:	
 	// Sets default values for this actor's properties
 	AChunk();
@@ -29,12 +32,19 @@ protected:
 	virtual void BeginPlay() override;
 public:	
 
-	UPROPERTY(VisibleAnywhere, BluePrintReadWrite)
-	UProceduralMeshComponent* Mesh;
-	// Called every frame
+ 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
 	int GetBlockID(const int& index) const;
-	void BaseFill(int baseID, int airID);
-	void Fill(const Block* block, const int& range);
+	void BaseFill();
+	void Fill(const int& blockID);
+	void Initialize(BlockRegistry* registry, UMaterial* material);
 	bool Generated = false;
+
+	void Activate();
+	void Deactivate();
+
+	bool HasMesh();
+
+	void SetMesh(const int& index, const TArray<FVector>& vectors, const TArray<int32>& indice, const TArray<FLinearColor>& color);
 };

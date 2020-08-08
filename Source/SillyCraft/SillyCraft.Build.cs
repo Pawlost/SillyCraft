@@ -8,7 +8,7 @@ public class SillyCraft : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "ProceduralMeshComponent", "FastNoiseGenerator", "FastNoise" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "ProceduralMeshComponent", "FastNoiseGenerator", "FastNoise", "RenderCore" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

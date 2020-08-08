@@ -21,4 +21,10 @@ namespace Constants {
 	const static int Distance = 1;
 	const static int MeshZone = 2 * Distance + 1;
 	const static int FillZone = MeshZone + 2;
+
+	static int MakeIndex(const int& y, const int& z, const int& x)
+	{
+		return y + z * Constants::ChunkSize + x * Constants::ChunkSize2D;
+	}
+
 }

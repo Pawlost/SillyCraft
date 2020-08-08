@@ -21,6 +21,9 @@ public:
 	// Sets default values for this component's properties
 	UVoxelGeneratorComponent();
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Materials");
+	UMaterial* Material;
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -37,7 +40,6 @@ private:
 	AActor* m_owner;
 	FVector m_lastPosition;
 
-	bool GenerateChunk(AChunk& chunk);
 	void ChangeZone(bool needspawn);
 	void Refill();
 };

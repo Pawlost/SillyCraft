@@ -3,13 +3,12 @@
 
 #include "Block.h"
 
-Block::Block(const FName& name, const int& id, const Hardness& hardness, const FColor& color, const bool& surface) :
-	Name(name), BlockHardness(hardness), Color(color), ID(id), SurfaceBlock(surface)
+Block::Block(const FName& name, const int& id, const Hardness& hardness) :
+	Name(name), BlockHardness(hardness), ID(id), Range(0), Color(FColor::White), MaxElevation(0),MinElevation(0)
 {
 }
 
-Block::Block(const FName& name, const int& id, const Hardness& hardness, const bool& surface) :
-	Name(name), BlockHardness(hardness), ID(id), SurfaceBlock(surface)
+Block::Block(const FName& name, const int& id, const Hardness& hardness, const FColor& color, const int& range, const int& maxElevation, const int& minElevation) : Name(name), BlockHardness(hardness), Color(color), ID(id), Range(range), MaxElevation(maxElevation), MinElevation(minElevation)
 {
 }
 

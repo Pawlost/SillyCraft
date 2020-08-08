@@ -19,13 +19,14 @@ public:
 
 	const FName Name;
 	const Hardness BlockHardness;
-	FColor Color;
-	int Range;
+	const FColor Color;
+	const int MinElevation;
+	const int MaxElevation;
 	const int ID;
-	const bool SurfaceBlock;
+	const int Range;
 
-	Block(const FName& name, const int& id, const Hardness& hardness, const FColor& color, const bool& surface);
-	Block(const FName& name, const int& id, const Hardness& hardness, const bool& surface);
+	Block(const FName& name, const int& id, const Hardness& hardness, const FColor& color, const int& range, const int& maxElevation, const int& minElevation);
+	Block(const FName& name, const int& id, const Hardness& hardness);
 
 	~Block();
 };

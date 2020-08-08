@@ -55,9 +55,15 @@ void UVoxelGeneratorComponent::ChangeZone(bool needspawn)
 					name.AppendInt(z);
 
 					parameters.Name = FName(name);
-
 					AChunk* chunk = GetWorld()->SpawnActor<AChunk>(location, rotation, parameters);
-					chunk->BaseFill(m_registry->BaseBlockID, m_registry->AirID);
+					chunk->Initialize(m_registry, Material);
+					chunk->BaseFill();
+					TArray<int> ids;
+					m_registry->GetIDs(ids);
+					for (int id : ids)
+					{
+						chunk->Fill(id);
+					}
 					m_chunks.Add(TTuple<int, int, int>(x, y, z), chunk);
 				}
 			}
@@ -75,9 +81,12 @@ void UVoxelGeneratorComponent::ChangeZone(bool needspawn)
 					AChunk* chunk = m_chunks[TTuple<int, int, int>(x, y, z)];
 					if (chunk && !chunk->Generated && chunk->GetRootComponent()) {
 						FVector location = chunk->GetActorLocation();
-						if (!GenerateChunk(*chunk)) {
+						if (!m_mesher->MeshChunk(*chunk)) {
 							if (needspawn && location.X == ownerLocation.X && location.Y == ownerLocation.Y)
 							{
+								location.X += Constants::ChunkScale;
+								location.Y += Constants::ChunkScale;
+								location.Z += Constants::ChunkScale;
 								needspawn = false;
 								m_owner->SetActorLocation(location);
 							}
@@ -101,19 +110,6 @@ void UVoxelGeneratorComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 		m_lastPosition = position;
 		ChangeZone(false);
 	}
-}
-
-bool UVoxelGeneratorComponent::GenerateChunk(AChunk& chunk)
-{
-
-	if (m_mesher->MeshChunk(chunk))
-	{
-		return true;
-	}
-
-	GetWorld()->DestroyActor(&chunk);
-
-	return false;
 }
 
 /*for (TPair<int, Block*> block : m_blocks)
