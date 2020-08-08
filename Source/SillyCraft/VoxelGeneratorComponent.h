@@ -7,7 +7,7 @@
 #include <FastNoiseWrapper.h>
 #include "BlockRegistry.h"
 #include "CoreMinimal.h"
-#include <mutex>
+#include "InteractionParticles.h"
 #include "Components/ActorComponent.h"
 #include "VoxelGeneratorComponent.generated.h"
 
@@ -24,6 +24,16 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Materials");
 	UMaterial* Material;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Particles");
+	UParticleSystem* Particles;
+
+
+	UFUNCTION(BlueprintCallable, Category = "VoxelInteraction")
+	void Pick(const bool& hit, FVector location, const FVector& normal);
+
+	UFUNCTION(BlueprintCallable, Category = "VoxelInteraction")
+	void Place(const bool& hit, const FVector& location, const FVector& normal);
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -38,7 +48,10 @@ private:
 	ChunkMesher* m_mesher;
 	AChunk* m_currentChunk;
 	AActor* m_owner;
+	AInteractionParticles* m_particles;
 	FVector m_lastPosition;
+	FTimerHandle m_timer;
+	void DestroyParticles();
 
 	void ChangeZone(bool needspawn);
 	void Refill();

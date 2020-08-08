@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Block.h"
+#include "Constants.h"
 #include "BlockRegistry.h"
 #include <array>
 #include "GameFramework/Actor.h"
@@ -22,20 +23,14 @@ private:
 	UProceduralMeshComponent* m_mesh;
 	UMaterial* m_material;
 	bool m_hasMesh = false;
+
 public:	
 	// Sets default values for this actor's properties
 	AChunk();
 	~AChunk();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-public:	
-
- 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 	int GetBlockID(const int& index) const;
+	void ChangeBlockID(const int& index, const int& id);
 	void BaseFill();
 	void Fill(const int& blockID);
 	void Initialize(BlockRegistry* registry, UMaterial* material);
@@ -47,4 +42,12 @@ public:
 	bool HasMesh();
 
 	void SetMesh(const int& index, const TArray<FVector>& vectors, const TArray<int32>& indice, const TArray<FLinearColor>& color);
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+public:	
+
+ 	// Called every frame
+	virtual void Tick(float DeltaTime) override;
 };

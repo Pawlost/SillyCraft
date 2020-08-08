@@ -457,6 +457,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 void ChunkMesher::GreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& voxels, TMultiMap<int, Face*>& meshedFaces) const
 {
 	int index = 0;
+	Voxel* otherVoxel;
 
 	for (int i = 0; i < Constants::ChunkSize3D; i++) 
 	{
@@ -476,25 +477,27 @@ void ChunkMesher::GreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& voxel
 				case Faces::Back:
 				case Faces::Right:
 				case Faces::Left:
-					/*if (z < Constants::ChunkSize - 1) {
+					if (z < Constants::ChunkSize - 1) {
 						index = i + Constants::MakeIndex(0, 1, 0);
-						Face* otherface = &voxels[index].face[f];
-						if (ChunkMesher::GreedyJoin(face, otherface)) 
+						otherVoxel = &voxels[index];
+						Face* otherface = &otherVoxel->face[f];
+						if (otherVoxel->ID == voxel->ID && ChunkMesher::GreedyJoin(face, otherface)) 
 						{
 							continue;
 						}
 					}
-					break;*/
+					break;
 				case Faces::Top:
 				case Faces::Bottom:
-					/*if (x < Constants::ChunkSize - 1) {
+					if (x < Constants::ChunkSize - 1) {
 						index = i + Constants::MakeIndex(0, 0, 1);
-						Face* otherface = &voxels[index].face[f];
-						if (ChunkMesher::GreedyJoin(face, otherface))
+						otherVoxel = &voxels[index];
+						Face* otherface = &otherVoxel->face[f];
+						if (otherVoxel->ID == voxel->ID && ChunkMesher::GreedyJoin(face, otherface))
 						{
 							continue;
 						}
-					}*/
+					}
 					break;
 				}
 				meshedFaces.Add(voxel->ID, face);

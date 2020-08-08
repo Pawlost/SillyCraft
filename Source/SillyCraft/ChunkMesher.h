@@ -7,7 +7,6 @@
 #include "Constants.h"
 #include "BlockRegistry.h"
 #include <array>
-#include <ProceduralMeshComponent.h>
 
 /**
  * 

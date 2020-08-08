@@ -8,7 +8,7 @@ Block::Block(const FName& name, const int& id, const Hardness& hardness) :
 {
 }
 
-Block::Block(const FName& name, const int& id, const Hardness& hardness, const FColor& color, const int& range, const int& maxElevation, const int& minElevation) : Name(name), BlockHardness(hardness), Color(color), ID(id), Range(range), MaxElevation(maxElevation), MinElevation(minElevation)
+Block::Block(const FName& name, const int& id, const Hardness& hardness, const FLinearColor& color, const int& range, const int& maxElevation, const int& minElevation) : Name(name), BlockHardness(hardness), Color(color), ID(id), Range(range), MaxElevation(maxElevation), MinElevation(minElevation)
 {
 }
 
