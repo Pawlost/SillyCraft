@@ -114,31 +114,21 @@ void UVoxelGeneratorComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 void UVoxelGeneratorComponent::Pick(const bool& hit, FVector location, const FVector& normal)
 {
 	if (hit) {
-
-		FVector position = location / Constants::ChunkLenght;
-		FVector lol = FVector(position.X, position.Y, position.Z);
-
-		FString out = location.ToString();
-		UE_LOG(LogTemp, Display, TEXT("id: %s"), *out);
-
-		out = normal.ToString();
-		UE_LOG(LogTemp, Display, TEXT("normal: %s"), *out);
-		
 		int x = location.X;
 		int y = location.Y;
 		int z = location.Z;
 
-		if (x < 0) 
+		if (x <= 0) 
 		{
 			x = x - Constants::ChunkLenght;
 		}
 
-		if (y < 0)
+		if (y <= 0)
 		{
 			y = y - Constants::ChunkLenght;
 		}
 
-		if (z < 0)
+		if (z <= 0)
 		{
 			z = z - Constants::ChunkLenght;
 		}
@@ -147,27 +137,17 @@ void UVoxelGeneratorComponent::Pick(const bool& hit, FVector location, const FVe
 		y = y / Constants::ChunkLenght;
 		z = z / Constants::ChunkLenght;
 
-		out = FString("chunk y: ");
-		out.AppendInt(y);
-
-		out.Append(", z: ");
-		out.AppendInt(z);
-
-		out.Append(", x: ");
-		out.AppendInt(x);
-		UE_LOG(LogTemp, Display, TEXT("id: %s"), *out);
-
-
 		AChunk* chunk = m_chunks[TTuple<int, int, int>(x, y, z)];
 
 		x = abs(abs(location.X / Constants::ChunkScale) - abs(x * Constants::ChunkSize));
 	    y = abs(abs(location.Y / Constants::ChunkScale) - abs(y * Constants::ChunkSize));
 		z = abs(abs(location.Z / Constants::ChunkScale) - abs(z * Constants::ChunkSize));
 
-		if (normal.X > 0)
+		if (normal.X > 0 )
 		{
 			x -= 1;
 		}
+
 
 		if (normal.Y > 0)
 		{
@@ -178,20 +158,6 @@ void UVoxelGeneratorComponent::Pick(const bool& hit, FVector location, const FVe
 		{
 			z -= 1;
 		}
-
-
-		out = FString("voxel y: ");
-		out.AppendInt(y);
-
-		out.Append(", z: ");
-		out.AppendInt(z);
-
-		out.Append(", x: ");
-		out.AppendInt(x);
-		UE_LOG(LogTemp, Display, TEXT("id: %s"), *out);
-
-		out = FString("-----------------");
-		UE_LOG(LogTemp, Display, TEXT("id: %s"), *out);
 
 		int index = Constants::MakeIndex(y, z, x);
 		int id = chunk->GetBlockID(index);
