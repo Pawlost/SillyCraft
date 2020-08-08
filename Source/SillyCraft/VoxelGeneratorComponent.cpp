@@ -4,7 +4,7 @@
 #include "VoxelGeneratorComponent.h"
 
 // Sets default values for this component's properties
-UVoxelGeneratorComponent::UVoxelGeneratorComponent() : m_registry(new BlockRegistry()), m_mesher(new ChunkMesher(m_registry)), m_owner(GetOwner()), m_block(nullptr)
+UVoxelGeneratorComponent::UVoxelGeneratorComponent() : m_registry(new BlockRegistry()), m_mesher(new ChunkMesher(m_registry)), m_owner(GetOwner())
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
@@ -164,7 +164,8 @@ void UVoxelGeneratorComponent::Pick(const bool& hit, FVector location, const FVe
 
 		m_mutex.lock();
 
-		if (m_block && block == m_block) {
+		if (m_damagedblock && block == m_damagedblock)
+		{
 
 			FRotator rotation(0.0f, 0.0f, 0.0f);
 			FActorSpawnParameters parameters;
@@ -177,21 +178,22 @@ void UVoxelGeneratorComponent::Pick(const bool& hit, FVector location, const FVe
 				GetWorld()->GetTimerManager().SetTimer(m_timer, this, &UVoxelGeneratorComponent::DestroyParticles, 1.0f, false);
 			}
 
-			if (m_block->LifeSpan < 0)
+			if (m_damagedblock->LifeSpan < 0)
 			{
 				chunk->ChangeBlockID(index, m_registry->AirID);
 				m_mesher->MeshChunk(*chunk);
-				m_block = nullptr;
+				m_holdingblock = m_damagedblock;
+				m_damagedblock = nullptr;
 			}
 			else
 			{
-				m_block->LifeSpan -= Constants::PickingSpeed;
+				m_damagedblock->LifeSpan -= Constants::PickingSpeed;
 			}
 		}
 		else
 		{
-			m_block = block;
-			m_block->LifeSpan = m_block->BlockHardness * Constants::PickingMultiplier;
+			m_damagedblock = block;
+			m_damagedblock->LifeSpan = m_damagedblock->BlockHardness * Constants::PickingMultiplier;
 		}
 
 		m_mutex.unlock();
@@ -200,8 +202,138 @@ void UVoxelGeneratorComponent::Pick(const bool& hit, FVector location, const FVe
 
 void UVoxelGeneratorComponent::Place(const bool& hit, const FVector& location, const FVector& normal)
 {
-	if (hit) {
+	if (hit && m_holdingblock) {
+		bool jump = false;
 
+		int x = location.X;
+		int y = location.Y;
+		int z = location.Z;
+
+		if (x <= 0)
+		{
+			x = x - Constants::ChunkLenght;
+		}
+
+		if (y <= 0)
+		{
+			y = y - Constants::ChunkLenght;
+		}
+
+		if (z <= 0)
+		{
+			z = z - Constants::ChunkLenght;
+		}
+
+		x = x / Constants::ChunkLenght;
+		y = y / Constants::ChunkLenght;
+		z = z / Constants::ChunkLenght;
+
+		AChunk* chunk = m_chunks[TTuple<int, int, int>(x, y, z)];
+
+		x = abs(abs(location.X / Constants::ChunkScale) - abs(x * Constants::ChunkSize));
+		y = abs(abs(location.Y / Constants::ChunkScale) - abs(y * Constants::ChunkSize));
+		z = abs(abs(location.Z / Constants::ChunkScale) - abs(z * Constants::ChunkSize));
+
+		if (normal.X < 0)
+		{
+			x += 1;
+		}
+
+		if (normal.Y < 0)
+		{
+			y += 1;
+		}
+
+		if (normal.Z < 0)
+		{
+			z += 1;
+		}
+
+		if (normal.Z > 0) 
+		{
+			jump = true;
+		}
+
+		int index = Constants::MakeIndex(y, z, x);
+		int id = chunk->GetBlockID(index);
+
+		if (id == m_registry->AirID) {
+			//setblockid
+			chunk->ChangeBlockID(index, m_holdingblock->ID);
+			if(jump)
+			{
+				FVector ownerLocation = m_owner->GetActorLocation();
+				ownerLocation.Z += Constants::ChunkScale;
+				m_owner->SetActorLocation(ownerLocation);
+			}
+			m_mesher->MeshChunk(*chunk);
+			m_holdingblock = nullptr;
+		}
+	}
+}
+
+void UVoxelGeneratorComponent::HighlightTargetBlock(const bool& hit, FVector location, const FVector& normal)
+{
+	if (hit) {
+		int x = (location.X/Chunk);
+		int y = (location.Y);
+		int z = (location.Z);
+
+		if (normal.X < 0)
+		{
+			x += ;
+		}
+
+		if (normal.Y < 0)
+		{
+			y += 1;
+		}
+
+		if (normal.Z < 0)
+		{
+			z += 1;
+		}
+
+		if (x <= 0)
+		{
+			x = x - Constants::ChunkLenght;
+		}
+
+		if (y <= 0)
+		{
+			y = y - Constants::ChunkLenght;
+		}
+
+		if (z <= 0)
+		{
+			z = z - Constants::ChunkLenght;
+		}
+
+		x = x / Constants::ChunkLenght;
+		y = y / Constants::ChunkLenght;
+		z = z / Constants::ChunkLenght;
+
+		AChunk* chunk = m_chunks[TTuple<int, int, int>(x, y, z)];
+
+		x = abs(abs(location.X / Constants::ChunkScale) - abs(x * Constants::ChunkSize));
+		y = abs(abs(location.Y / Constants::ChunkScale) - abs(y * Constants::ChunkSize));
+		z = abs(abs(location.Z / Constants::ChunkScale) - abs(z * Constants::ChunkSize));
+
+		ants::MakeIndex(y, z, x);
+		int id = chunk->GetBlockID(index);
+
+		if (id == m_registry->AirID) {
+			//setblockid
+			chunk->ChangeBlockID(index, m_holdingblock->ID);
+			if (jump)
+			{
+				FVector ownerLocation = m_owner->GetActorLocation();
+				ownerLocation.Z += Constants::ChunkScale;
+				m_owner->SetActorLocation(ownerLocation);
+			}
+			m_mesher->MeshChunk(*chunk);
+			m_holdingblock = nullptr;
+		}
 	}
 }
 
@@ -210,9 +342,3 @@ void UVoxelGeneratorComponent::DestroyParticles()
 	GetWorld()->DestroyActor(m_particles);
 	m_particles = nullptr;
 }
-
-void UVoxelGeneratorComponent::Refill()
-{
-
-}
-

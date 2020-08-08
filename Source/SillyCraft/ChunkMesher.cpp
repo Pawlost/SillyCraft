@@ -572,3 +572,8 @@ bool ChunkMesher::IntVector:: operator !=(const IntVector& a)
 {
 	return !(*this == a);
 }
+
+void ChunkMesher::CreateFastCube(UProceduralMeshComponent& mesh) const
+{
+
+}

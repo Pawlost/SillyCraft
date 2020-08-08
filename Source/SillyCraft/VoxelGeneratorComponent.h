@@ -28,6 +28,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Particles");
 	UParticleSystem* Particles;
 
+	UFUNCTION(BlueprintCallable, Category = "VoxelInteraction")
+	void HighlightTargetBlock(const bool& hit, FVector location, const FVector& normal);
+
+	UFUNCTION(BlueprintCallable, Category = "VoxelInteraction")
+	void DeactivateHighlight();
 
 	UFUNCTION(BlueprintCallable, Category = "VoxelInteraction")
 	void Pick(const bool& hit, FVector location, const FVector& normal);
@@ -50,12 +55,12 @@ private:
 	AChunk* m_currentChunk;
 	AActor* m_owner;
 	AInteractionParticles* m_particles;
-	Block* m_block;
+	Block* m_damagedblock;
+	Block* m_holdingblock;
 	FVector m_lastPosition;
 	std::mutex m_mutex;
 	FTimerHandle m_timer;
 	void DestroyParticles();
 
 	void ChangeZone(bool needspawn);
-	void Refill();
 };
