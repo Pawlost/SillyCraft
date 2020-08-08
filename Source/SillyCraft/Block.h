@@ -23,6 +23,7 @@ public:
 	const int MinElevation;
 	const int MaxElevation;
 	const int ID;
+	int LifeSpan;
 
 	Block(const FName& name, const int& id, const Hardness& hardness, const FLinearColor& color, const int& range, const int& maxElevation, const int& minElevation);
 	Block(const FName& name, const int& id, const Hardness& hardness);

@@ -4,7 +4,7 @@
 #include "VoxelGeneratorComponent.h"
 
 // Sets default values for this component's properties
-UVoxelGeneratorComponent::UVoxelGeneratorComponent() : m_registry(new BlockRegistry()), m_mesher(new ChunkMesher(m_registry)), m_owner(GetOwner())
+UVoxelGeneratorComponent::UVoxelGeneratorComponent() : m_registry(new BlockRegistry()), m_mesher(new ChunkMesher(m_registry)), m_owner(GetOwner()), m_block(nullptr)
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
@@ -118,7 +118,7 @@ void UVoxelGeneratorComponent::Pick(const bool& hit, FVector location, const FVe
 		int y = location.Y;
 		int z = location.Z;
 
-		if (x <= 0) 
+		if (x <= 0)
 		{
 			x = x - Constants::ChunkLenght;
 		}
@@ -140,14 +140,13 @@ void UVoxelGeneratorComponent::Pick(const bool& hit, FVector location, const FVe
 		AChunk* chunk = m_chunks[TTuple<int, int, int>(x, y, z)];
 
 		x = abs(abs(location.X / Constants::ChunkScale) - abs(x * Constants::ChunkSize));
-	    y = abs(abs(location.Y / Constants::ChunkScale) - abs(y * Constants::ChunkSize));
+		y = abs(abs(location.Y / Constants::ChunkScale) - abs(y * Constants::ChunkSize));
 		z = abs(abs(location.Z / Constants::ChunkScale) - abs(z * Constants::ChunkSize));
 
-		if (normal.X > 0 )
+		if (normal.X > 0)
 		{
 			x -= 1;
 		}
-
 
 		if (normal.Y > 0)
 		{
@@ -163,18 +162,39 @@ void UVoxelGeneratorComponent::Pick(const bool& hit, FVector location, const FVe
 		int id = chunk->GetBlockID(index);
 		Block* block = m_registry->GetBlock(id);
 
-		FRotator rotation(0.0f, 0.0f, 0.0f);
-		FActorSpawnParameters parameters;
-		if (m_particles == nullptr) {
-			m_particles = GetWorld()->SpawnActor<AInteractionParticles>(location + (normal * 20), rotation, parameters);
+		m_mutex.lock();
 
-			m_particles->Initialize(Particles, block->Color);
+		if (m_block && block == m_block) {
 
-			GetWorld()->GetTimerManager().SetTimer(m_timer, this, &UVoxelGeneratorComponent::DestroyParticles, 1.0f, false);
+			FRotator rotation(0.0f, 0.0f, 0.0f);
+			FActorSpawnParameters parameters;
+			if (m_particles == nullptr)
+			{
+				m_particles = GetWorld()->SpawnActor<AInteractionParticles>(location + (normal * 20), rotation, parameters);
+
+				m_particles->Initialize(Particles, block->Color);
+
+				GetWorld()->GetTimerManager().SetTimer(m_timer, this, &UVoxelGeneratorComponent::DestroyParticles, 1.0f, false);
+			}
+
+			if (m_block->LifeSpan < 0)
+			{
+				chunk->ChangeBlockID(index, m_registry->AirID);
+				m_mesher->MeshChunk(*chunk);
+				m_block = nullptr;
+			}
+			else
+			{
+				m_block->LifeSpan -= Constants::PickingSpeed;
+			}
+		}
+		else
+		{
+			m_block = block;
+			m_block->LifeSpan = m_block->BlockHardness * Constants::PickingMultiplier;
 		}
 
-		chunk->ChangeBlockID(index, m_registry->AirID);
-		m_mesher->MeshChunk(*chunk);
+		m_mutex.unlock();
 	}
 }
 

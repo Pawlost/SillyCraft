@@ -8,6 +8,7 @@
 #include "BlockRegistry.h"
 #include "CoreMinimal.h"
 #include "InteractionParticles.h"
+#include <mutex>
 #include "Components/ActorComponent.h"
 #include "VoxelGeneratorComponent.generated.h"
 
@@ -49,7 +50,9 @@ private:
 	AChunk* m_currentChunk;
 	AActor* m_owner;
 	AInteractionParticles* m_particles;
+	Block* m_block;
 	FVector m_lastPosition;
+	std::mutex m_mutex;
 	FTimerHandle m_timer;
 	void DestroyParticles();
 

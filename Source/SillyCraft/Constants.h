@@ -17,6 +17,10 @@ namespace Constants {
 	const static int ChunkSize2D = ChunkSize * ChunkSize;
 	const static int ChunkSize3D = ChunkSize * ChunkSize * ChunkSize;
 
+	//Picking
+	const static float PickingMultiplier = 100.0f;
+	const static float PickingSpeed = 1.0f;
+
 	//Zones
 	const static int Distance = 1;
 	const static int MeshZone = 2 * Distance + 1;
