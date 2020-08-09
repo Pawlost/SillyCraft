@@ -143,3 +143,13 @@ void AChunk::ChangeBlockID(const int& index, const int& id)
 {
 	(*m_blockIDs)[index] = id;
 }
+
+void AChunk::Show()
+{
+	m_mesh->SetVisibility(true);
+}
+
+void AChunk::Hide() 
+{
+	m_mesh->SetVisibility(false);
+}

@@ -43,16 +43,7 @@ void UVoxelGeneratorComponent::ChangeZone(bool needspawn)
 				if (!m_chunks.Contains(TTuple<int, int, int>(x, y, z))) {
 					FVector location(posX, posY, posZ);
 					FRotator rotation(0.0f, 0.0f, 0.0f);
-					FActorSpawnParameters parameters;
-					FString name("Chunk: x ");
-					name.AppendInt(x);
-					name.Append(" y ");
-					name.AppendInt(y);
-					name.Append(" z ");
-					name.AppendInt(z);
-
-					parameters.Name = FName(name);
-					AChunk* chunk = GetWorld()->SpawnActor<AChunk>(location, rotation, parameters);
+					AChunk* chunk = GetWorld()->SpawnActor<AChunk>(location, rotation);
 					chunk->Initialize(m_registry, Material);
 					chunk->BaseFill();
 					TArray<int> ids;
@@ -63,35 +54,56 @@ void UVoxelGeneratorComponent::ChangeZone(bool needspawn)
 					}
 					m_chunks.Add(TTuple<int, int, int>(x, y, z), chunk);
 				}
+
+				if ( x > ownerX - Constants::MeshZone &&  x < ownerX + Constants::MeshZone &&
+					 y > ownerY - Constants::MeshZone &&  y < ownerY + Constants::MeshZone &&
+					 z > ownerZ - Constants::MeshZone &&  z < ownerZ + Constants::MeshZone)
+				{
+					if (m_chunks.Contains(TTuple<int, int, int>(x, y, z))) {
+						AChunk* chunk = m_chunks[TTuple<int, int, int>(x, y, z)];
+						if (!chunk->Generated) {
+							FVector location = chunk->GetActorLocation();
+							if (!m_mesher->MeshChunk(*chunk)) {
+								if (needspawn && location.X == ownerLocation.X && location.Y == ownerLocation.Y)
+								{
+									location.X += Constants::ChunkScale;
+									location.Y += Constants::ChunkScale;
+									location.Z += Constants::ChunkScale;
+									needspawn = false;
+									m_owner->SetActorLocation(location);
+								}
+							}
+							chunk->Generated = true;
+						}
+						chunk->Show();
+					}
+				}
 			}
 		}
 	}
 
-	for (int x = ownerX - Constants::MeshZone; x < ownerX + Constants::MeshZone; x++)
-	{
-		for (int y = ownerY - Constants::MeshZone; y < ownerY + Constants::MeshZone; y++)
-		{
-			for (int z = ownerZ - Constants::MeshZone; z < ownerZ + Constants::MeshZone; z++)
-			{
+	TArray<TTuple<int, int, int>> keys;
+	m_chunks.GetKeys(keys);
 
-				if (m_chunks.Contains(TTuple<int, int, int>(x, y, z))) {
-					AChunk* chunk = m_chunks[TTuple<int, int, int>(x, y, z)];
-					if (chunk && !chunk->Generated && chunk->GetRootComponent()) {
-						FVector location = chunk->GetActorLocation();
-						if (!m_mesher->MeshChunk(*chunk)) {
-							if (needspawn && location.X == ownerLocation.X && location.Y == ownerLocation.Y)
-							{
-								location.X += Constants::ChunkScale;
-								location.Y += Constants::ChunkScale;
-								location.Z += Constants::ChunkScale;
-								needspawn = false;
-								m_owner->SetActorLocation(location);
-							}
-						}
-						chunk->Generated = true;
-					}
+	for (TTuple<int, int, int> key : keys)
+	{
+		AChunk* chunk = m_chunks[key];
+		FVector vector = chunk->GetActorLocation() / Constants::ChunkLenght;
+		if (vector.X < ownerX - Constants::MeshZone || vector.X > ownerX + Constants::MeshZone ||
+			vector.Y < ownerY - Constants::MeshZone || vector.Y > ownerY + Constants::MeshZone ||
+			vector.Z < ownerZ - Constants::MeshZone || vector.Z > ownerZ + Constants::MeshZone)
+		{
+			if (vector.X < ownerX - Constants::FillZone || vector.X > ownerX + Constants::FillZone ||
+				vector.Y < ownerY - Constants::FillZone || vector.Y > ownerY + Constants::FillZone ||
+				vector.Z < ownerZ - Constants::FillZone || vector.Z > ownerZ + Constants::FillZone)
+			{
+				if (GetWorld()->DestroyActor(chunk)) 
+				{
+					m_chunks.Remove(key);
 				}
 			}
+
+			chunk->Hide();
 		}
 	}
 }

@@ -37,6 +37,8 @@ public:
 	bool Generated = false;
 
 	void Activate();
+	void Show();
+	void Hide();
 	void Deactivate();
 
 	bool HasMesh();
