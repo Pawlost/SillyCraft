@@ -6,9 +6,12 @@
 #include "Chunk.h"
 #include <FastNoiseWrapper.h>
 #include "BlockRegistry.h"
+#include "Save.h"
+#include "GameFramework/SaveGame.h"
 #include "CoreMinimal.h"
 #include "InteractionParticles.h"
 #include "FastCube.h"
+#include "Kismet/GameplayStatics.h"
 #include <mutex>
 #include "Components/ActorComponent.h"
 #include "VoxelGeneratorComponent.generated.h"
@@ -22,6 +25,12 @@ class SILLYCRAFT_API UVoxelGeneratorComponent : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UVoxelGeneratorComponent();
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Save");
+	int UserIndex;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Save");
+	FString SlotName;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Materials");
 	UMaterial* Material;
@@ -41,6 +50,7 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type) override;
 
 public:	
 	// Called every frame
@@ -59,6 +69,7 @@ private:
 	std::mutex m_mutex;
 	FTimerHandle m_timer;
 	AFastCube* m_highlightCube;
+	USave* m_save;
 	void DestroyParticles();
 
 	void ChangeZone(bool needspawn);

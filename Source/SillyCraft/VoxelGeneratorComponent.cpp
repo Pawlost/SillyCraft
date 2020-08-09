@@ -18,9 +18,22 @@ UVoxelGeneratorComponent::UVoxelGeneratorComponent() : m_registry(new BlockRegis
 void UVoxelGeneratorComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	if(USave* loadedSave = Cast<USave>(UGameplayStatics::LoadGameFromSlot(SlotName, UserIndex)))
+	{
+		m_save = loadedSave;
+		m_owner->SetActorLocation(m_save->PlayerPosition);
+	}
+	else
+	{
+		m_save = Cast<USave>(UGameplayStatics::CreateSaveGameObject(USave::StaticClass()));
+	}
 	m_lastPosition = m_owner->GetActorLocation();
 	ChangeZone(true);
+}
+
+void UVoxelGeneratorComponent::EndPlay(const EEndPlayReason::Type)
+{
+	UGameplayStatics::SaveGameToSlot(m_save, SlotName, UserIndex);
 }
 
 void UVoxelGeneratorComponent::ChangeZone(bool needspawn)
@@ -113,6 +126,11 @@ void UVoxelGeneratorComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	FVector position = m_owner->GetActorLocation();
+	
+	if (m_save) 
+	{
+		m_save->PlayerPosition = position;
+	}
 
 	if (m_lastPosition != position) 
 	{
@@ -344,4 +362,4 @@ void UVoxelGeneratorComponent::DestroyParticles()
 		GetWorld()->DestroyActor(m_particles);
 		m_particles = nullptr;
 	}
-}
+}	
