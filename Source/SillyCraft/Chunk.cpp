@@ -31,18 +31,6 @@ void AChunk::BeginPlay()
 	
 }
 
-void AChunk::Activate()
-{
-	m_hasMesh = true;
-	m_mesh->Activate();
-}
-
-void AChunk::Deactivate()
-{
-	m_hasMesh = false;
-	m_mesh->Deactivate();
-}
-
 bool AChunk::HasMesh()
 {
 	return m_hasMesh;

@@ -3,9 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PrimitiveChunk.h"
 #include "Chunk.h"
 #include "GameFramework/SaveGame.h"
 #include "Save.generated.h"
+
 
 /**
  * 
@@ -16,9 +18,18 @@ class SILLYCRAFT_API USave : public USaveGame
 	GENERATED_BODY()
 	
 public:
-	//UPROPERTY();
-	//TArray<AChunk> SavedChunks;
 
-	UPROPERTY(VisibleAnywhere, Category = Basic)
+	UPROPERTY()
 	FVector PlayerPosition;
+
+	UPROPERTY()
+	FRotator PlayerRotation;
+
+	UPROPERTY()
+	TArray<FPrimitiveChunk> SavedChunks;
+
+	void Init();
+	void Deinit();
+
+	TMap<TTuple<int, int, int>, FPrimitiveChunk> ChunkMap;
 };

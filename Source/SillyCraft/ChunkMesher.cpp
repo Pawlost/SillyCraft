@@ -73,8 +73,6 @@ bool ChunkMesher::MeshChunk(AChunk& chunk) const
 			i++;
 		}
 
-		chunk.Activate();
-
 		delete vectorsMap;
 		delete indiceMap;
 		delete colorMap;

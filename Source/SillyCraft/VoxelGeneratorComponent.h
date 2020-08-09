@@ -6,6 +6,7 @@
 #include "Chunk.h"
 #include <FastNoiseWrapper.h>
 #include "BlockRegistry.h"
+#include "PrimitiveChunk.h"
 #include "Save.h"
 #include "GameFramework/SaveGame.h"
 #include "CoreMinimal.h"
@@ -71,6 +72,7 @@ private:
 	AFastCube* m_highlightCube;
 	USave* m_save;
 	void DestroyParticles();
+	void ChunkChanged(int index, int value, AChunk* chunk);
 
 	void ChangeZone(bool needspawn);
 };

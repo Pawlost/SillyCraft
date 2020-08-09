@@ -25,21 +25,20 @@ private:
 	bool m_hasMesh = false;
 
 public:	
+
 	// Sets default values for this actor's properties
 	AChunk();
 	~AChunk();
+	bool Generated = false;
 
 	int GetBlockID(const int& index) const;
 	void ChangeBlockID(const int& index, const int& id);
 	void BaseFill();
 	void Fill(const int& blockID);
 	void Initialize(BlockRegistry* registry, UMaterial* material);
-	bool Generated = false;
 
-	void Activate();
 	void Show();
 	void Hide();
-	void Deactivate();
 
 	bool HasMesh();
 

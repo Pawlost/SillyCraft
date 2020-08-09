@@ -18,21 +18,24 @@ UVoxelGeneratorComponent::UVoxelGeneratorComponent() : m_registry(new BlockRegis
 void UVoxelGeneratorComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	if(USave* loadedSave = Cast<USave>(UGameplayStatics::LoadGameFromSlot(SlotName, UserIndex)))
-	{
-		m_save = loadedSave;
-		m_owner->SetActorLocation(m_save->PlayerPosition);
-	}
-	else
+	m_save = Cast<USave>(UGameplayStatics::LoadGameFromSlot(SlotName, UserIndex));
+	
+	if(m_save == nullptr)
 	{
 		m_save = Cast<USave>(UGameplayStatics::CreateSaveGameObject(USave::StaticClass()));
 	}
+
+	m_owner->SetActorLocation(m_save->PlayerPosition);
+	m_owner->SetActorRotation(m_save->Rotation);
+
+	m_save->Init();
 	m_lastPosition = m_owner->GetActorLocation();
 	ChangeZone(true);
 }
 
 void UVoxelGeneratorComponent::EndPlay(const EEndPlayReason::Type)
 {
+	m_save->Deinit();
 	UGameplayStatics::SaveGameToSlot(m_save, SlotName, UserIndex);
 }
 
@@ -53,7 +56,9 @@ void UVoxelGeneratorComponent::ChangeZone(bool needspawn)
 				const int& posY = y * Constants::ChunkLenght;
 				const int& posZ = z * Constants::ChunkLenght;
 
-				if (!m_chunks.Contains(TTuple<int, int, int>(x, y, z))) {
+				TTuple<int, int, int> pos(x, y, z);
+
+				if (!m_chunks.Contains(pos)) {
 					FVector location(posX, posY, posZ);
 					FRotator rotation(0.0f, 0.0f, 0.0f);
 					AChunk* chunk = GetWorld()->SpawnActor<AChunk>(location, rotation);
@@ -65,7 +70,16 @@ void UVoxelGeneratorComponent::ChangeZone(bool needspawn)
 					{
 						chunk->Fill(id);
 					}
-					m_chunks.Add(TTuple<int, int, int>(x, y, z), chunk);
+					if (m_save->ChunkMap.Contains(pos))
+					{
+						FPrimitiveChunk& primitiveChunk = m_save->ChunkMap[pos];
+						for (TPair<int, int> change : primitiveChunk.ChangeIds)
+						{
+							chunk->ChangeBlockID(change.Key, change.Value);
+						}
+					}
+
+					m_chunks.Add(pos, chunk);
 				}
 
 				if ( x > ownerX - Constants::MeshZone &&  x < ownerX + Constants::MeshZone &&
@@ -126,10 +140,12 @@ void UVoxelGeneratorComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	FVector position = m_owner->GetActorLocation();
-	
+	FRotator rotator = m_owner->GetActorRotation();
+
 	if (m_save) 
 	{
 		m_save->PlayerPosition = position;
+		m_save->PlayerRotation = rotator;
 	}
 
 	if (m_lastPosition != position) 
@@ -204,8 +220,7 @@ void UVoxelGeneratorComponent::Pick(const bool& hit, FVector location, const FVe
 
 			if (m_damagedblock->LifeSpan < 0)
 			{
-				chunk->ChangeBlockID(index, m_registry->AirID);
-				m_mesher->MeshChunk(*chunk);
+				ChunkChanged(index, m_registry->AirID, chunk);
 				m_holdingblock = m_damagedblock;
 				m_damagedblock = nullptr;
 			}
@@ -274,8 +289,7 @@ void UVoxelGeneratorComponent::Place(const bool& hit, const FVector& location, c
 
 		if (id == m_registry->AirID) {
 			//setblockid
-			chunk->ChangeBlockID(index, m_holdingblock->ID);
-			m_mesher->MeshChunk(*chunk);
+			ChunkChanged(index, m_holdingblock->ID, chunk);
 			m_holdingblock = nullptr;
 		}
 	}
@@ -306,9 +320,9 @@ void UVoxelGeneratorComponent::HighlightTargetBlock(const bool& hit, FVector loc
 			chunkZ -= 1;
 		}
 
-		int x = ceil(abs(floor(location.X / Constants::ChunkScale) - chunkX * Constants::ChunkSize));
-		int y = ceil(abs(floor(location.Y / Constants::ChunkScale) - chunkY * Constants::ChunkSize));
-		int z = ceil(abs(floor(location.Z / Constants::ChunkScale) - chunkZ * Constants::ChunkSize));
+		int x = abs(location.X / Constants::ChunkScale - chunkX * Constants::ChunkSize);
+		int y = abs(location.Y / Constants::ChunkScale - chunkY * Constants::ChunkSize);
+		int z = abs(location.Z / Constants::ChunkScale - chunkZ * Constants::ChunkSize);
 
 		if (normal.X < 0)
 		{
@@ -352,6 +366,40 @@ void UVoxelGeneratorComponent::HighlightTargetBlock(const bool& hit, FVector loc
 	{
 		GetWorld()->DestroyActor(m_highlightCube);
 		m_highlightCube = nullptr;
+	}
+}
+
+void UVoxelGeneratorComponent::ChunkChanged(int index, int value, AChunk* chunk) 
+{
+	chunk->ChangeBlockID(index, value);
+	m_mesher->MeshChunk(*chunk);
+	FVector chunkPos = chunk->GetActorLocation() / Constants::ChunkLenght;
+	int x = (int)chunkPos.X;
+	int y = (int)chunkPos.Y;
+	int z = (int)chunkPos.Z;
+
+	TTuple<int, int, int> pos(x, y, z);
+
+	if (m_save->ChunkMap.Contains(pos))
+	{
+		FPrimitiveChunk& primitiveChunk = m_save->ChunkMap[pos];
+
+		if (primitiveChunk.ChangeIds.Contains(index))
+		{
+			primitiveChunk.ChangeIds.Remove(index);
+		}
+
+		primitiveChunk.ChangeIds.Add(index, value);
+	}
+	else 
+	{
+		FPrimitiveChunk primitiveChunk;
+		primitiveChunk.X = x;
+		primitiveChunk.Y = y;
+		primitiveChunk.Z = z;
+		primitiveChunk.ChangeIds.Add(index, value);
+		m_save->ChunkMap.Add(pos, primitiveChunk);
+		m_save->SavedChunks.Add(primitiveChunk);
 	}
 }
 
