@@ -6,6 +6,7 @@
 // Sets default values for this component's properties
 UVoxelGeneratorComponent::UVoxelGeneratorComponent() : m_registry(new BlockRegistry()), m_mesher(new ChunkMesher(m_registry)), m_owner(GetOwner())
 {
+
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
@@ -18,12 +19,9 @@ void UVoxelGeneratorComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-
 	m_lastPosition = m_owner->GetActorLocation();
 	ChangeZone(true);
 }
-
-
 
 void UVoxelGeneratorComponent::ChangeZone(bool needspawn)
 {
@@ -114,34 +112,28 @@ void UVoxelGeneratorComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 void UVoxelGeneratorComponent::Pick(const bool& hit, FVector location, const FVector& normal)
 {
 	if (hit) {
-		int x = location.X;
-		int y = location.Y;
-		int z = location.Z;
+		int chunkX = location.X / Constants::ChunkLenght;
+		int chunkY = location.Y / Constants::ChunkLenght;
+		int chunkZ = location.Z / Constants::ChunkLenght;
 
-		if (x <= 0)
+		if (((int)location.X) < 0)
 		{
-			x = x - Constants::ChunkLenght;
+			chunkX -= 1;
 		}
 
-		if (y <= 0)
+		if (((int)location.Y) < 0)
 		{
-			y = y - Constants::ChunkLenght;
+			chunkY -= 1;
 		}
 
-		if (z <= 0)
+		if (((int)location.Z) < 0)
 		{
-			z = z - Constants::ChunkLenght;
+			chunkZ -= 1;
 		}
 
-		x = x / Constants::ChunkLenght;
-		y = y / Constants::ChunkLenght;
-		z = z / Constants::ChunkLenght;
-
-		AChunk* chunk = m_chunks[TTuple<int, int, int>(x, y, z)];
-
-		x = abs(abs(location.X / Constants::ChunkScale) - abs(x * Constants::ChunkSize));
-		y = abs(abs(location.Y / Constants::ChunkScale) - abs(y * Constants::ChunkSize));
-		z = abs(abs(location.Z / Constants::ChunkScale) - abs(z * Constants::ChunkSize));
+		int x = abs(location.X / Constants::ChunkScale - chunkX * Constants::ChunkSize);
+		int y = abs(location.Y / Constants::ChunkScale - chunkY * Constants::ChunkSize);
+		int z = abs(location.Z / Constants::ChunkScale - chunkZ * Constants::ChunkSize);
 
 		if (normal.X > 0)
 		{
@@ -157,6 +149,8 @@ void UVoxelGeneratorComponent::Pick(const bool& hit, FVector location, const FVe
 		{
 			z -= 1;
 		}
+
+		AChunk* chunk = m_chunks[TTuple<int, int, int>(chunkX, chunkY, chunkZ)];
 
 		int index = Constants::MakeIndex(y, z, x);
 		int id = chunk->GetBlockID(index);
@@ -202,70 +196,55 @@ void UVoxelGeneratorComponent::Pick(const bool& hit, FVector location, const FVe
 
 void UVoxelGeneratorComponent::Place(const bool& hit, const FVector& location, const FVector& normal)
 {
-	if (hit && m_holdingblock) {
-		bool jump = false;
+	if (hit && m_highlightCube) {
+		GetWorld()->DestroyActor(m_highlightCube);
+		m_highlightCube = nullptr;
 
-		int x = location.X;
-		int y = location.Y;
-		int z = location.Z;
+		int chunkX = location.X / Constants::ChunkLenght;
+		int chunkY = location.Y / Constants::ChunkLenght;
+		int chunkZ = location.Z / Constants::ChunkLenght;
 
-		if (x <= 0)
+		if (((int)location.X) < 0)
 		{
-			x = x - Constants::ChunkLenght;
+			chunkX -= 1;
 		}
 
-		if (y <= 0)
+		if (((int)location.Y) < 0)
 		{
-			y = y - Constants::ChunkLenght;
+			chunkY -= 1;
 		}
 
-		if (z <= 0)
+		if (((int)location.Z) < 0)
 		{
-			z = z - Constants::ChunkLenght;
+			chunkZ -= 1;
 		}
 
-		x = x / Constants::ChunkLenght;
-		y = y / Constants::ChunkLenght;
-		z = z / Constants::ChunkLenght;
-
-		AChunk* chunk = m_chunks[TTuple<int, int, int>(x, y, z)];
-
-		x = abs(abs(location.X / Constants::ChunkScale) - abs(x * Constants::ChunkSize));
-		y = abs(abs(location.Y / Constants::ChunkScale) - abs(y * Constants::ChunkSize));
-		z = abs(abs(location.Z / Constants::ChunkScale) - abs(z * Constants::ChunkSize));
+		int x = abs(location.X / Constants::ChunkScale - chunkX * Constants::ChunkSize);
+		int y = abs(location.Y / Constants::ChunkScale - chunkY * Constants::ChunkSize);
+		int z = abs(location.Z / Constants::ChunkScale - chunkZ * Constants::ChunkSize);
 
 		if (normal.X < 0)
 		{
-			x += 1;
+			x -= 1;
 		}
 
 		if (normal.Y < 0)
 		{
-			y += 1;
+			y -= 1;
 		}
 
 		if (normal.Z < 0)
 		{
-			z += 1;
+			z -= 1;
 		}
 
-		if (normal.Z > 0) 
-		{
-			jump = true;
-		}
-
+		AChunk* chunk = m_chunks[TTuple<int, int, int>(chunkX, chunkY, chunkZ)];
 		int index = Constants::MakeIndex(y, z, x);
 		int id = chunk->GetBlockID(index);
 
 		if (id == m_registry->AirID) {
 			//setblockid
 			chunk->ChangeBlockID(index, m_holdingblock->ID);
-			if(jump)
-			{
-				FVector ownerLocation = m_owner->GetActorLocation();
-				ownerLocation.Z += Constants::ChunkScale;
-				m_owner->SetActorLocation(ownerLocation);
-			}
 			m_mesher->MeshChunk(*chunk);
 			m_holdingblock = nullptr;
 		}
@@ -274,71 +253,83 @@ void UVoxelGeneratorComponent::Place(const bool& hit, const FVector& location, c
 
 void UVoxelGeneratorComponent::HighlightTargetBlock(const bool& hit, FVector location, const FVector& normal)
 {
-	if (hit) {
-		int x = (location.X/Chunk);
-		int y = (location.Y);
-		int z = (location.Z);
+	if (hit && m_holdingblock) {
+		FVector playerLocation = m_owner->GetActorLocation();
+
+		int chunkX = location.X / Constants::ChunkLenght;
+		int chunkY = location.Y / Constants::ChunkLenght;
+		int chunkZ = location.Z / Constants::ChunkLenght;
+
+
+		if (((int)location.X) < 0)
+		{
+			chunkX -= 1;
+		}
+
+		if (((int)location.Y) < 0)
+		{
+			chunkY -= 1;
+		}
+
+		if (((int)location.Z) < 0)
+		{
+			chunkZ -= 1;
+		}
+
+		int x = ceil(abs(floor(location.X / Constants::ChunkScale) - chunkX * Constants::ChunkSize));
+		int y = ceil(abs(floor(location.Y / Constants::ChunkScale) - chunkY * Constants::ChunkSize));
+		int z = ceil(abs(floor(location.Z / Constants::ChunkScale) - chunkZ * Constants::ChunkSize));
 
 		if (normal.X < 0)
 		{
-			x += ;
+			x -= 1;
 		}
 
 		if (normal.Y < 0)
 		{
-			y += 1;
+			y -= 1;
 		}
 
 		if (normal.Z < 0)
 		{
-			z += 1;
+			z -= 1;
 		}
 
-		if (x <= 0)
+		playerLocation = FVector((int)(playerLocation.X / Constants::ChunkScale) * Constants::ChunkScale, (int)(playerLocation.Y / Constants::ChunkScale) * Constants::ChunkScale, (int)(playerLocation.Z / Constants::ChunkScale) * Constants::ChunkScale);
+
+		FVector pos(x * Constants::ChunkScale + chunkX * Constants::ChunkLenght, y * Constants::ChunkScale + chunkY * Constants::ChunkLenght, z * Constants::ChunkScale + chunkZ * Constants::ChunkLenght);
+
+		if (pos.X < playerLocation.X - Constants::ChunkScale || pos.X > playerLocation.X + Constants::ChunkScale ||
+			pos.Y < playerLocation.Y - Constants::ChunkScale || pos.Y > playerLocation.Y + Constants::ChunkScale ||
+			pos.Z < playerLocation.Z - Constants::ChunkScale || pos.Z > playerLocation.Z + Constants::ChunkScale)
 		{
-			x = x - Constants::ChunkLenght;
-		}
-
-		if (y <= 0)
-		{
-			y = y - Constants::ChunkLenght;
-		}
-
-		if (z <= 0)
-		{
-			z = z - Constants::ChunkLenght;
-		}
-
-		x = x / Constants::ChunkLenght;
-		y = y / Constants::ChunkLenght;
-		z = z / Constants::ChunkLenght;
-
-		AChunk* chunk = m_chunks[TTuple<int, int, int>(x, y, z)];
-
-		x = abs(abs(location.X / Constants::ChunkScale) - abs(x * Constants::ChunkSize));
-		y = abs(abs(location.Y / Constants::ChunkScale) - abs(y * Constants::ChunkSize));
-		z = abs(abs(location.Z / Constants::ChunkScale) - abs(z * Constants::ChunkSize));
-
-		ants::MakeIndex(y, z, x);
-		int id = chunk->GetBlockID(index);
-
-		if (id == m_registry->AirID) {
-			//setblockid
-			chunk->ChangeBlockID(index, m_holdingblock->ID);
-			if (jump)
+			if (m_highlightCube)
 			{
-				FVector ownerLocation = m_owner->GetActorLocation();
-				ownerLocation.Z += Constants::ChunkScale;
-				m_owner->SetActorLocation(ownerLocation);
+				m_highlightCube->SetActorLocation(pos);
 			}
-			m_mesher->MeshChunk(*chunk);
-			m_holdingblock = nullptr;
+			else
+			{
+				m_highlightCube = GetWorld()->SpawnActor<AFastCube>(pos, FRotator(0, 0, 0));
+				m_highlightCube->Initialize(Material);
+				m_mesher->CreateFastCube(*m_highlightCube, m_holdingblock->Color);
+			}
+
+			return;
 		}
+	}
+
+	if (m_highlightCube)
+	{
+		GetWorld()->DestroyActor(m_highlightCube);
+		m_highlightCube = nullptr;
 	}
 }
 
 void UVoxelGeneratorComponent::DestroyParticles() 
 {
-	GetWorld()->DestroyActor(m_particles);
-	m_particles = nullptr;
+	if (m_particles)
+	{
+		GetWorld()->DestroyActor(m_particles);
+		m_particles = nullptr;
+	}
 }

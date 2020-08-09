@@ -6,7 +6,7 @@
 #include "Chunk.h"
 #include "Constants.h"
 #include "BlockRegistry.h"
-#include <ProceduralMeshComponent.h>
+#include "FastCube.h"
 #include <array>
 
 /**
@@ -60,5 +60,5 @@ public:
 
 	bool MeshChunk(AChunk& chunk) const;
 
-	void CreateFastCube(UProceduralMeshComponent& mesh) const;
+	void CreateFastCube(AFastCube& cube, FLinearColor color) const;
 };

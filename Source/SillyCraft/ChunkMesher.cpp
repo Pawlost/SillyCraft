@@ -573,7 +573,96 @@ bool ChunkMesher::IntVector:: operator !=(const IntVector& a)
 	return !(*this == a);
 }
 
-void ChunkMesher::CreateFastCube(UProceduralMeshComponent& mesh) const
+void ChunkMesher::CreateFastCube(AFastCube& cube, FLinearColor color) const
 {
+	color.A = Constants::HighlightTrasparency;
+	int index = 0;
+	TArray<FVector> vectors;
+	TArray<int32> indice;
+	TArray<FLinearColor> colors;
+	//Front
+	vectors.Add(FVector(0, 0, 0));
+	vectors.Add(FVector(Constants::ChunkScale, 0, 0));
+	vectors.Add(FVector(Constants::ChunkScale, Constants::ChunkScale, 0));
+	vectors.Add(FVector(0, Constants::ChunkScale, 0));
 
+	AddIndice(index, indice);
+	index += 4;
+
+	for (int c = 0; c < 4; c++)
+	{
+		colors.Add(color);
+	}
+
+	//Back
+	vectors.Add(FVector(Constants::ChunkScale, 0, Constants::ChunkScale));
+	vectors.Add(FVector(0, 0, Constants::ChunkScale));
+	vectors.Add(FVector(0, Constants::ChunkScale, Constants::ChunkScale));
+	vectors.Add(FVector(Constants::ChunkScale, Constants::ChunkScale, Constants::ChunkScale));
+
+	AddIndice(index, indice);
+	index += 4;
+
+	for (int c = 0; c < 4; c++)
+	{
+		colors.Add(color);
+	}
+
+	//Left
+	vectors.Add(FVector(0, 0, Constants::ChunkScale));
+	vectors.Add(FVector(0, 0, 0));
+	vectors.Add(FVector(0, Constants::ChunkScale, 0));
+	vectors.Add(FVector(0, Constants::ChunkScale, Constants::ChunkScale));
+
+	AddIndice(index, indice);
+	index += 4;
+
+	for (int c = 0; c < 4; c++)
+	{
+		colors.Add(color);
+	}
+
+	//Right
+	vectors.Add(FVector(Constants::ChunkScale, 0, 0));
+	vectors.Add(FVector(Constants::ChunkScale, 0, Constants::ChunkScale));
+	vectors.Add(FVector(Constants::ChunkScale, Constants::ChunkScale, Constants::ChunkScale));
+	vectors.Add(FVector(Constants::ChunkScale, Constants::ChunkScale, 0));
+
+	AddIndice(index, indice);
+	index += 4;
+
+	for (int c = 0; c < 4; c++)
+	{
+		colors.Add(color);
+	}
+
+	//Bottom
+	vectors.Add(FVector(Constants::ChunkScale, 0, 0));
+	vectors.Add(FVector(0, 0, 0));
+	vectors.Add(FVector(0, 0, Constants::ChunkScale));
+	vectors.Add(FVector(Constants::ChunkScale, 0, Constants::ChunkScale));
+
+	AddIndice(index, indice);
+	index += 4;
+
+	for (int c = 0; c < 4; c++)
+	{
+		colors.Add(color);
+	}
+
+	//Top
+	vectors.Add(FVector(0, Constants::ChunkScale, 0));
+	vectors.Add(FVector(Constants::ChunkScale, Constants::ChunkScale, 0));
+	vectors.Add(FVector(Constants::ChunkScale, Constants::ChunkScale, Constants::ChunkScale));
+	vectors.Add(FVector(0, Constants::ChunkScale, Constants::ChunkScale));
+
+	AddIndice(index, indice);
+	index += 4;
+
+	for (int c = 0; c < 4; c++)
+	{
+		colors.Add(color);
+	}
+
+	cube.SetMesh(0, vectors, indice, colors);
 }

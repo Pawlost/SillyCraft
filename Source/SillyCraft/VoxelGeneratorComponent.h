@@ -8,6 +8,7 @@
 #include "BlockRegistry.h"
 #include "CoreMinimal.h"
 #include "InteractionParticles.h"
+#include "FastCube.h"
 #include <mutex>
 #include "Components/ActorComponent.h"
 #include "VoxelGeneratorComponent.generated.h"
@@ -30,9 +31,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "VoxelInteraction")
 	void HighlightTargetBlock(const bool& hit, FVector location, const FVector& normal);
-
-	UFUNCTION(BlueprintCallable, Category = "VoxelInteraction")
-	void DeactivateHighlight();
 
 	UFUNCTION(BlueprintCallable, Category = "VoxelInteraction")
 	void Pick(const bool& hit, FVector location, const FVector& normal);
@@ -60,6 +58,7 @@ private:
 	FVector m_lastPosition;
 	std::mutex m_mutex;
 	FTimerHandle m_timer;
+	AFastCube* m_highlightCube;
 	void DestroyParticles();
 
 	void ChangeZone(bool needspawn);

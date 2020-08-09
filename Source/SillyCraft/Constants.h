@@ -20,6 +20,7 @@ namespace Constants {
 	//Picking
 	const static float PickingMultiplier = 100.0f;
 	const static float PickingSpeed = 1.0f;
+	const static float HighlightTrasparency = 0.1f;
 
 	//Zones
 	const static int Distance = 1;
