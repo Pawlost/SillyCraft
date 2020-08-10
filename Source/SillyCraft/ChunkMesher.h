@@ -36,6 +36,7 @@ private:
 		IntVector v3;
 		IntVector v4;
 
+		bool placed;
 		bool visible;
 		Face* prevFace;
 	};

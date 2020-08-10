@@ -55,15 +55,38 @@ bool ChunkMesher::MeshChunk(AChunk& chunk) const
 				AddIndice(*index, *indice);
 				*index += 4;
 
-				color->Add(currentBlock->Color);
-				color->Add(currentBlock->Color);
-				color->Add(currentBlock->Color);
-				color->Add(currentBlock->Color);
+				FLinearColor blockColor = currentBlock->Color;
+				if (!face->placed)
+				{
+					FVector chunkPos = chunk.GetActorLocation();
+
+					float r = (chunkPos.Z + v3->Z * Constants::ChunkScale) / (Constants::ChunkLenght + Constants::MaxElevation);
+					float g = (chunkPos.Z + v3->Z * Constants::ChunkScale) / (Constants::ChunkLenght + Constants::MaxElevation);
+					float b = (chunkPos.Z + v3->Z * Constants::ChunkScale) / (Constants::ChunkLenght + Constants::MaxElevation);
+
+					r = std::max(std::min(blockColor.R + r, 1.0f), 0.0f);
+					g = std::max(std::min(blockColor.G + g, 1.0f), 0.0f);
+					b = std::max(std::min(blockColor.B + b, 1.0f), 0.0f);
+
+					FLinearColor newColor = FLinearColor(r, g, b);
+
+					color->Add(newColor);
+					color->Add(newColor);
+					color->Add(newColor);
+					color->Add(newColor);
+				}
+				else
+				{
+					color->Add(blockColor);
+					color->Add(blockColor);
+					color->Add(blockColor);
+					color->Add(blockColor);
+				}
 			}
 		}
 
 		int i = 0;
-		for (TPair<int, TArray<FVector>> pair : *vectorsMap) 
+		for (TPair<int, TArray<FVector>> pair : *vectorsMap)
 		{
 			vectors = &pair.Value;
 			indice = &(*indiceMap)[pair.Key];
@@ -113,6 +136,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 	for (int i = 0; i < Constants::ChunkSize3D; i++)
 	{
 		int id = chunk.GetBlockID(i);
+		bool placed = chunk.IsPlaceByPlayer(i);
 		Block* currentBlock = m_registry->GetBlock(id);
 		Voxel* voxel = &voxels[i];
 		voxel->ID = id;
@@ -125,6 +149,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 
 			//Front
 			face = &voxel->face[Faces::Front];
+			face->placed = placed;
 			otherBlock = m_registry->GetBlock(m_registry->AirID);
 
 			if (x > 0) {
@@ -157,7 +182,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 
 				prevface = &voxels[index].face[Faces::Front];
 
-				if (id == voxel->ID && prevface->visible)
+				if (id == voxel->ID && prevface->visible && face->placed == prevface->placed)
 				{
 					ChunkMesher::Join(face, prevface);
 				}
@@ -179,6 +204,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 
 			//Back
 			face = &voxel->face[Faces::Back];
+			face->placed = placed;
 			otherBlock = m_registry->GetBlock(m_registry->AirID);
 
 			if (x < Constants::ChunkSize - 1) {
@@ -211,7 +237,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 
 				prevface = &voxels[index].face[Faces::Back];
 
-				if (id == voxel->ID && prevface->visible)
+				if (id == voxel->ID && prevface->visible && face->placed == prevface->placed)
 				{
 					ChunkMesher::JoinReversed(face, prevface);
 				}
@@ -233,6 +259,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 
 			//Left
 			face = &voxel->face[Faces::Left];
+			face->placed = placed;
 			otherBlock = m_registry->GetBlock(m_registry->AirID);
 
 			if (y > 0) {
@@ -265,7 +292,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 
 				prevface = &voxels[index].face[Faces::Left];
 
-				if (id == voxel->ID && prevface->visible)
+				if (id == voxel->ID && prevface->visible && face->placed == prevface->placed)
 				{
 					ChunkMesher::JoinReversed(face, prevface);
 				}
@@ -287,6 +314,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 
 			//Right
 			face = &voxel->face[Faces::Right];
+			face->placed = placed;
 			otherBlock = m_registry->GetBlock(m_registry->AirID);
 
 			if (y < Constants::ChunkSize - 1) {
@@ -320,7 +348,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 
 				prevface = &voxels[index].face[Faces::Right];
 
-				if (id == voxel->ID && prevface->visible)
+				if (id == voxel->ID && prevface->visible && face->placed == prevface->placed)
 				{
 					ChunkMesher::Join(face, prevface);
 				}
@@ -342,6 +370,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 
 			//Bottom
 			face = &voxel->face[Faces::Bottom];
+			face->placed = placed;
 			otherBlock = m_registry->GetBlock(m_registry->AirID);
 
 			if (z > 0) {
@@ -374,7 +403,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 
 				prevface = &voxels[index].face[Faces::Bottom];
 
-				if (id == voxel->ID && prevface->visible)
+				if (id == voxel->ID && prevface->visible && face->placed == prevface->placed)
 				{
 					ChunkMesher::JoinReversed(face, prevface);
 				}
@@ -396,6 +425,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 
 			//Top
 			face = &voxel->face[Faces::Top];
+			face->placed = placed;
 			otherBlock = m_registry->GetBlock(m_registry->AirID);
 
 			if (z < Constants::ChunkSize - 1) {
@@ -429,7 +459,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 
 				prevface = &voxels[index].face[Faces::Top];
 
-				if (id == voxel->ID && prevface->visible)
+				if (id == voxel->ID && prevface->visible && face->placed == prevface->placed)
 				{
 					ChunkMesher::Join(face, prevface);
 				}
@@ -468,6 +498,11 @@ void ChunkMesher::GreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& voxel
 		for (int f = 0; f < 6; f++) 
 		{
 			Face* face = &voxel->face[f];
+			if (face->placed)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Placed"));
+			}
+
 			if(face->visible){
 				switch (f)
 				{
@@ -475,7 +510,7 @@ void ChunkMesher::GreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& voxel
 				case Faces::Back:
 				case Faces::Right:
 				case Faces::Left:
-					if (z < Constants::ChunkSize - 1) {
+				/*	if (z < Constants::ChunkSize - 1) {
 						index = i + Constants::MakeIndex(0, 1, 0);
 						otherVoxel = &voxels[index];
 						Face* otherface = &otherVoxel->face[f];
@@ -484,7 +519,7 @@ void ChunkMesher::GreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& voxel
 							continue;
 						}
 					}
-					break;
+					break;*/
 				case Faces::Top:
 				case Faces::Bottom:
 					if (x < Constants::ChunkSize - 1) {

@@ -4,7 +4,7 @@
 #include "Chunk.h"
 
 // Sets default values
-AChunk::AChunk() : m_blockIDs(new std::array<int, Constants::ChunkSize3D>), m_noise(CreateDefaultSubobject<UFastNoiseWrapper>("Noise")), m_mesh(CreateDefaultSubobject<UProceduralMeshComponent>("CustomMesh")), m_material(CreateDefaultSubobject<UMaterial>("DefaultMaterial"))
+AChunk::AChunk() : m_blockIDs(new std::array<FBlockID, Constants::ChunkSize3D>), m_noise(CreateDefaultSubobject<UFastNoiseWrapper>("Noise")), m_mesh(CreateDefaultSubobject<UProceduralMeshComponent>("CustomMesh")), m_material(CreateDefaultSubobject<UMaterial>("DefaultMaterial"))
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -53,8 +53,12 @@ void AChunk::Tick(float DeltaTime)
 
 int AChunk::GetBlockID(const int& index) const
 {
+	return (*m_blockIDs)[index].BlockID;
+}
 
-	return (*m_blockIDs)[index];
+bool AChunk::IsPlaceByPlayer(const int& index) const
+{
+	return (*m_blockIDs)[index].PlacedByPlayer;
 }
 
 void  AChunk::BaseFill()
@@ -71,12 +75,13 @@ void  AChunk::BaseFill()
 			int origin = m_noise->GetNoise2D(y + chunkY, x + chunkX) * Constants::MaxElevation;
 			for (int z = 0; z < Constants::ChunkSize; z++) 
 			{
+				(*m_blockIDs)[Constants::MakeIndex(y, z, x)].PlacedByPlayer = false;
 				if (chunkZ + z <= origin) 
 				{
-						(*m_blockIDs)[Constants::MakeIndex(y, z, x)] = m_registry->BaseBlockID;
+						(*m_blockIDs)[Constants::MakeIndex(y, z, x)].BlockID = m_registry->BaseBlockID;
 						continue;
 				}
-				(*m_blockIDs)[Constants::MakeIndex(y, z, x)] = m_registry->AirID;
+				(*m_blockIDs)[Constants::MakeIndex(y, z, x)].BlockID = m_registry->AirID;
 			}
 		}
 	}
@@ -100,22 +105,22 @@ void AChunk::Fill(const int& blockID)
 			for (int x = 0; x < Constants::ChunkSize; x++) {
 				for (int y = 0; y < Constants::ChunkSize; y++) {
 					for (int z = 0; z < Constants::ChunkSize; z++) {
-						int id = (*m_blockIDs)[Constants::MakeIndex(y, z, x)];
+						int id = (*m_blockIDs)[Constants::MakeIndex(y, z, x)].BlockID;
 						Block* otherBlock = m_registry->GetBlock(id);
 						if (otherBlock->BlockHardness != Block::Hardness::Empty)
 						{
-							id = (*m_blockIDs)[Constants::MakeIndex(y, z + 1, x)];
+							id = (*m_blockIDs)[Constants::MakeIndex(y, z + 1, x)].BlockID;
 							if (id == m_registry->AirID && z < Constants::ChunkSize - 1)
 							{
 								if (block->Range > 0) {
 									int range = abs(m_noise->GetNoise2D(x, y)) * block->Range;
 									for (int r = 0; r < range; r++)
 										if (z - r > 0)
-											(*m_blockIDs)[Constants::MakeIndex(y, z - r, x)] = block->ID;
+											(*m_blockIDs)[Constants::MakeIndex(y, z - r, x)].BlockID = block->ID;
 								}
 								else 
 								{
-									(*m_blockIDs)[Constants::MakeIndex(y, z, x)] = block->ID;
+									(*m_blockIDs)[Constants::MakeIndex(y, z, x)].BlockID = block->ID;
 								}
 							}
 						}
@@ -127,9 +132,10 @@ void AChunk::Fill(const int& blockID)
 	}
 }
 
-void AChunk::ChangeBlockID(const int& index, const int& id) 
+void AChunk::ChangeBlockID(const int& index, const int& id, bool changedByPlayer)
 {
-	(*m_blockIDs)[index] = id;
+	(*m_blockIDs)[index].BlockID = id;
+	(*m_blockIDs)[index].PlacedByPlayer = changedByPlayer;
 }
 
 void AChunk::Show()

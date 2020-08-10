@@ -6,6 +6,7 @@
 #include "Block.h"
 #include "Constants.h"
 #include "BlockRegistry.h"
+#include "BlockID.h"
 #include <array>
 #include "GameFramework/Actor.h"
 #include <ProceduralMeshComponent.h>
@@ -17,7 +18,7 @@ class SILLYCRAFT_API AChunk : public AActor
 	GENERATED_BODY()
 		
 private:
-	std::array<int, Constants::ChunkSize3D>* m_blockIDs;
+	std::array<FBlockID, Constants::ChunkSize3D>* m_blockIDs;
 	UFastNoiseWrapper* m_noise;
 	BlockRegistry* m_registry;
 	UProceduralMeshComponent* m_mesh;
@@ -32,7 +33,8 @@ public:
 	bool Generated = false;
 
 	int GetBlockID(const int& index) const;
-	void ChangeBlockID(const int& index, const int& id);
+	bool IsPlaceByPlayer(const int& index) const;
+	void ChangeBlockID(const int& index, const int& id, bool changedByPlayer);
 	void BaseFill();
 	void Fill(const int& blockID);
 	void Initialize(BlockRegistry* registry, UMaterial* material);

@@ -74,7 +74,7 @@ void UVoxelGeneratorComponent::ChangeZone(bool needspawn)
 						FPrimitiveChunk& primitiveChunk = m_save->ChunkMap[pos];
 						for (TPair<int, int> change : primitiveChunk.ChangeIds)
 						{
-							chunk->ChangeBlockID(change.Key, change.Value);
+							chunk->ChangeBlockID(change.Key, change.Value, true);
 						}
 					}
 
@@ -176,9 +176,9 @@ void UVoxelGeneratorComponent::Pick(const bool& hit, FVector location, const FVe
 			chunkZ -= 1;
 		}
 
-		int x = abs(location.X / Constants::ChunkScale - chunkX * Constants::ChunkSize);
-		int y = abs(location.Y / Constants::ChunkScale - chunkY * Constants::ChunkSize);
-		int z = abs(location.Z / Constants::ChunkScale - chunkZ * Constants::ChunkSize);
+		int x = abs(abs(location.X / Constants::ChunkScale) - abs(chunkX * Constants::ChunkSize));
+		int y = abs(abs(location.Y / Constants::ChunkScale) - abs(chunkY * Constants::ChunkSize));
+		int z = abs(abs(location.Z / Constants::ChunkScale) - abs(chunkZ * Constants::ChunkSize));
 
 		if (normal.X > 0)
 		{
@@ -263,9 +263,9 @@ void UVoxelGeneratorComponent::Place(const bool& hit, const FVector& location, c
 			chunkZ -= 1;
 		}
 
-		int x = abs(location.X / Constants::ChunkScale - chunkX * Constants::ChunkSize);
-		int y = abs(location.Y / Constants::ChunkScale - chunkY * Constants::ChunkSize);
-		int z = abs(location.Z / Constants::ChunkScale - chunkZ * Constants::ChunkSize);
+		int x = abs(abs(location.X / Constants::ChunkScale) - abs(chunkX * Constants::ChunkSize));
+		int y = abs(abs(location.Y / Constants::ChunkScale) - abs(chunkY * Constants::ChunkSize));
+		int z = abs(abs(location.Z / Constants::ChunkScale) - abs(chunkZ * Constants::ChunkSize));
 
 		if (normal.X < 0)
 		{
@@ -319,9 +319,9 @@ void UVoxelGeneratorComponent::HighlightTargetBlock(const bool& hit, FVector loc
 			chunkZ -= 1;
 		}
 
-		int x = abs(location.X / Constants::ChunkScale - chunkX * Constants::ChunkSize);
-		int y = abs(location.Y / Constants::ChunkScale - chunkY * Constants::ChunkSize);
-		int z = abs(location.Z / Constants::ChunkScale - chunkZ * Constants::ChunkSize);
+		int x = abs(abs(location.X / Constants::ChunkScale) - abs(chunkX * Constants::ChunkSize));
+		int y = abs(abs(location.Y / Constants::ChunkScale) - abs(chunkY * Constants::ChunkSize));
+		int z = abs(abs(location.Z / Constants::ChunkScale) - abs(chunkZ * Constants::ChunkSize));
 
 		if (normal.X < 0)
 		{
@@ -370,7 +370,7 @@ void UVoxelGeneratorComponent::HighlightTargetBlock(const bool& hit, FVector loc
 
 void UVoxelGeneratorComponent::ChunkChanged(int index, int value, AChunk* chunk) 
 {
-	chunk->ChangeBlockID(index, value);
+	chunk->ChangeBlockID(index, value, true);
 	m_mesher->MeshChunk(*chunk);
 	FVector chunkPos = chunk->GetActorLocation() / Constants::ChunkLenght;
 	int x = (int)chunkPos.X;
