@@ -20,7 +20,7 @@ class SILLYCRAFT_API AChunk : public AActor
 private:
 	std::array<FBlockID, Constants::ChunkSize3D>* m_blockIDs;
 	UFastNoiseWrapper* m_noise;
-	BlockRegistry* m_registry;
+	std::shared_ptr<BlockRegistry> m_registry;
 	UProceduralMeshComponent* m_mesh;
 	UMaterial* m_material;
 	bool m_hasMesh = false;
@@ -37,7 +37,7 @@ public:
 	void ChangeBlockID(const int& index, const int& id, bool changedByPlayer);
 	void BaseFill();
 	void Fill(const int& blockID);
-	void Initialize(BlockRegistry* registry, UMaterial* material);
+	void Initialize(std::shared_ptr<BlockRegistry> registry, UMaterial* material);
 
 	void Show();
 	void Hide();

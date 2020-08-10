@@ -18,7 +18,7 @@ AChunk::~AChunk()
 {
 }
 
-void AChunk::Initialize(BlockRegistry* registry, UMaterial* material)
+void AChunk::Initialize(std::shared_ptr<BlockRegistry> registry, UMaterial* material)
 {
 	m_material = material;
 	m_registry = registry;
@@ -90,8 +90,8 @@ void  AChunk::BaseFill()
 
 void AChunk::Fill(const int& blockID)
 {
-	Block* block = m_registry->GetBlock(blockID);
-	if (block->BlockHardness != Block::Hardness::Empty)
+	FBlock block = m_registry->GetBlock(blockID);
+	if (block.BlockHardness != FBlock::Hardness::Empty)
 	{
 		int seed = m_noise->GetSeed();
 		m_noise->SetSeed(seed + blockID);
@@ -101,26 +101,26 @@ void AChunk::Fill(const int& blockID)
 		int chunkY = actorLocation.Y / Constants::ChunkScale;
 		int chunkZ = actorLocation.Z / Constants::ChunkScale;
 
-		if (chunkZ >= block->MinElevation && chunkZ <= block->MaxElevation) {
+		if (chunkZ >= block.MinElevation && chunkZ <= block.MaxElevation) {
 			for (int x = 0; x < Constants::ChunkSize; x++) {
 				for (int y = 0; y < Constants::ChunkSize; y++) {
 					for (int z = 0; z < Constants::ChunkSize; z++) {
 						int id = (*m_blockIDs)[Constants::MakeIndex(y, z, x)].BlockID;
-						Block* otherBlock = m_registry->GetBlock(id);
-						if (otherBlock->BlockHardness != Block::Hardness::Empty)
+						FBlock otherBlock = m_registry->GetBlock(id);
+						if (otherBlock.BlockHardness != FBlock::Hardness::Empty)
 						{
 							id = (*m_blockIDs)[Constants::MakeIndex(y, z + 1, x)].BlockID;
 							if (id == m_registry->AirID && z < Constants::ChunkSize - 1)
 							{
-								if (block->Range > 0) {
-									int range = abs(m_noise->GetNoise2D(x, y)) * block->Range;
+								if (block.Range > 0) {
+									int range = abs(m_noise->GetNoise2D(x, y)) * block.Range;
 									for (int r = 0; r < range; r++)
 										if (z - r > 0)
-											(*m_blockIDs)[Constants::MakeIndex(y, z - r, x)].BlockID = block->ID;
+											(*m_blockIDs)[Constants::MakeIndex(y, z - r, x)].BlockID = block.ID;
 								}
 								else 
 								{
-									(*m_blockIDs)[Constants::MakeIndex(y, z, x)].BlockID = block->ID;
+									(*m_blockIDs)[Constants::MakeIndex(y, z, x)].BlockID = block.ID;
 								}
 							}
 						}

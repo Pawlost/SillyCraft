@@ -13,15 +13,16 @@ struct SILLYCRAFT_API FPrimitiveChunk
 	GENERATED_USTRUCT_BODY()
 
 public:
-	UPROPERTY()
+	
+	UPROPERTY(SaveGame)
 	int X;
 
-	UPROPERTY()
+	UPROPERTY(SaveGame)
 	int Y;
 
-	UPROPERTY()
+	UPROPERTY(SaveGame)
 	int Z;
 
-	UPROPERTY()
+	UPROPERTY(SaveGame)
 	TMap<int, int> ChangeIds;
 };

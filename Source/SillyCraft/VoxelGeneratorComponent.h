@@ -4,7 +4,6 @@
 
 #include "ChunkMesher.h"
 #include "Chunk.h"
-#include <FastNoiseWrapper.h>
 #include "BlockRegistry.h"
 #include "PrimitiveChunk.h"
 #include "Save.h"
@@ -13,7 +12,6 @@
 #include "InteractionParticles.h"
 #include "FastCube.h"
 #include "Kismet/GameplayStatics.h"
-#include <mutex>
 #include "Components/ActorComponent.h"
 #include "VoxelGeneratorComponent.generated.h"
 
@@ -40,16 +38,22 @@ public:
 	UParticleSystem* Particles;
 
 	UFUNCTION(BlueprintCallable, Category = "VoxelInteraction")
-	void HighlightTargetBlock(const bool& hit, FVector location, const FVector& normal);
+	void HighlightTargetBlock(const bool& hit, const FVector& hitLocation, const FVector& hitNormal);
 
 	UFUNCTION(BlueprintCallable, Category = "VoxelInteraction")
-	void Pick(const bool& hit, FVector location, const FVector& normal);
+	void Pick(const bool& hit, const FVector& hitLocation, const FVector& hitNormal);
 
 	UFUNCTION(BlueprintCallable, Category = "VoxelInteraction")
-	void Place(const bool& hit, const FVector& location, const FVector& normal);
+	void Place(const bool& hit, const FVector& hitLocation, const FVector& hitNormal);
 
-	UFUNCTION(BlueprintCallable, Category = "VoxelInteraction")
-	FRotator GetSavedRotation();
+	UFUNCTION(BlueprintCallable, Category = "Save")
+	FVector GetSavedLocation() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Save")
+	FRotator GetSavedRotation() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Save")
+	void SavePosition(const FVector& location, const FRotator& rotation);
 
 protected:
 	// Called when the game starts
@@ -61,21 +65,36 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 private:
-	TMap<TTuple<int, int, int>, AChunk*> m_chunks;
-	BlockRegistry* m_registry;
-	ChunkMesher* m_mesher;
-	AChunk* m_currentChunk;
-	AActor* m_owner;
-	AInteractionParticles* m_particles;
-	Block* m_damagedblock;
-	Block* m_holdingblock;
-	FVector m_lastPosition;
-	std::mutex m_mutex;
-	FTimerHandle m_timer;
-	AFastCube* m_highlightCube;
-	USave* m_save;
-	void DestroyParticles();
-	void ChunkChanged(int index, int value, AChunk* chunk);
 
-	void ChangeZone(bool needspawn);
+	const std::shared_ptr<BlockRegistry> m_registry;
+	const std::shared_ptr<ChunkMesher> m_mesher;
+	
+	FTimerHandle m_timer;
+	AActor* m_owner;
+	TMap<TTuple<int, int, int>, AChunk*> m_chunks;
+	AInteractionParticles* m_particles;
+	FBlock m_damagedblock;
+	FBlock m_holdingblock;
+	FVector m_lastPosition;
+	AFastCube* m_highlightCube;
+	TMap<TTuple<int, int, int>, FPrimitiveChunk> m_savedChanges;
+
+	UPROPERTY(SaveGame)
+	USave* m_save;
+
+	void DestroyParticles();
+
+	void ChunkChanged(const int& index, const int& value, AChunk& chunk);
+
+	void ChangeZone(bool needspawn, const FVector& position);
+
+	void FillZone(const int& x, const int& y, const int& z, const TTuple<int, int, int>& pos);
+
+	void GetChunkNeighbors(const int& x, const int& y, const int& z, std::array<AChunk*, 6>& outSideChunks) const;
+
+	void CalculateHitCoords(int& x, int& y, int& z, int& chunkX, int& chunkY, int& chunkZ, const FVector& hitLocation) const;
+
+	bool InZone(const int& posX, const int& posY, const int& posZ,const int& baseX, const int& baseY, const int& baseZ, const int& size) const;
+
+	bool OutZone(const int& posX, const int& posY, const int& posZ, const int& baseX, const int& baseY, const int& baseZ, const int& size) const;
 };

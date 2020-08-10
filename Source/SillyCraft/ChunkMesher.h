@@ -43,7 +43,7 @@ private:
 		int ID;
 	};
 
-	BlockRegistry* m_registry;
+	std::shared_ptr<BlockRegistry> m_registry;
 	void AddIndice(const int& index, TArray<int>& indice) const;
 	void NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& voxels, const AChunk& chunk, std::array<AChunk*, 6> chunkArray) const;
 	void GreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& voxels, TMultiMap<int, Face*>& meshedFaces) const;
@@ -56,7 +56,7 @@ public:
 		Front = 0, Back = 1, Right = 2, Left = 3, Top = 4, Bottom = 5
 	};
 
-	ChunkMesher(BlockRegistry* generator);
+	ChunkMesher(std::shared_ptr<BlockRegistry> registry);
 	~ChunkMesher();
 
 	bool MeshChunk(AChunk& meshchunk, std::array<AChunk*, 6> chunkArray) const;

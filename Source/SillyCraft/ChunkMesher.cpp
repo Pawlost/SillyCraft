@@ -2,7 +2,7 @@
 
 #include "ChunkMesher.h"
 
-ChunkMesher::ChunkMesher(BlockRegistry* registry) : m_registry(registry)
+ChunkMesher::ChunkMesher(std::shared_ptr<BlockRegistry> registry) : m_registry(registry)
 {
 }
 
@@ -25,7 +25,7 @@ bool ChunkMesher::MeshChunk(AChunk& meshchunk, std::array<AChunk*, 6> chunkArray
 
 	if (meshedFaces.Num() > 0) {
 		for (TPair<int, Face*> pair : meshedFaces) {
-			Block* currentBlock = m_registry->GetBlock(pair.Key);
+			FBlock currentBlock = m_registry->GetBlock(pair.Key);
 			Face* face = pair.Value;
 			if (face->visible) {
 
@@ -55,7 +55,7 @@ bool ChunkMesher::MeshChunk(AChunk& meshchunk, std::array<AChunk*, 6> chunkArray
 				AddIndice(*index, *indice);
 				*index += 4;
 
-				FLinearColor blockColor = currentBlock->Color;
+				FLinearColor blockColor = currentBlock.Color;
 				if (!face->placed)
 				{
 					FVector chunkPos = meshchunk.GetActorLocation();
@@ -129,18 +129,18 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 	IntVector* v4 = nullptr;
 	Face* face = nullptr;
 	Face* prevface = nullptr;
-	Block* otherBlock = nullptr;
+	FBlock otherBlock;
 	int index = 0;
 
 	for (int i = 0; i < Constants::ChunkSize3D; i++)
 	{
 		int id = chunk.GetBlockID(i);
 		bool placed = chunk.IsPlaceByPlayer(i);
-		Block* currentBlock = m_registry->GetBlock(id);
+		FBlock currentBlock = m_registry->GetBlock(id);
 		Voxel* voxel = &voxels[i];
 		voxel->ID = id;
 
-		if (currentBlock->BlockHardness != Block::Hardness::Empty)
+		if (currentBlock.BlockHardness != FBlock::Hardness::Empty)
 		{
 			int y = i % Constants::ChunkSize;
 			int z = (i / Constants::ChunkSize) % Constants::ChunkSize;
@@ -161,7 +161,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 				otherBlock = m_registry->GetBlock(chunkArray[Faces::Front]->GetBlockID(index));
 			}
 
-			if (otherBlock->BlockHardness == Block::Hardness::Empty)
+			if (otherBlock.BlockHardness == FBlock::Hardness::Empty)
 			{
 				face->visible = true;
 
@@ -221,7 +221,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 				otherBlock = m_registry->GetBlock(chunkArray[Faces::Back]->GetBlockID(index));
 			}
 
-			if (otherBlock->BlockHardness == Block::Hardness::Empty)
+			if (otherBlock.BlockHardness == FBlock::Hardness::Empty)
 			{
 				face->visible = true;
 
@@ -281,7 +281,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 				otherBlock = m_registry->GetBlock(chunkArray[Faces::Left]->GetBlockID(index));
 			}
 
-			if (otherBlock->BlockHardness == Block::Hardness::Empty)
+			if (otherBlock.BlockHardness == FBlock::Hardness::Empty)
 			{
 				face->visible = true;
 
@@ -341,7 +341,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 				otherBlock = m_registry->GetBlock(chunkArray[Faces::Right]->GetBlockID(index));
 			}
 
-			if (otherBlock->BlockHardness == Block::Hardness::Empty)
+			if (otherBlock.BlockHardness == FBlock::Hardness::Empty)
 			{
 				face->visible = true;
 
@@ -402,7 +402,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 				otherBlock = m_registry->GetBlock(chunkArray[Faces::Bottom]->GetBlockID(index));
 			}
 
-			if (otherBlock->BlockHardness == Block::Hardness::Empty)
+			if (otherBlock.BlockHardness == FBlock::Hardness::Empty)
 			{
 				face->visible = true;
 
@@ -462,7 +462,7 @@ void ChunkMesher::NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& 
 				otherBlock = m_registry->GetBlock(chunkArray[Faces::Top]->GetBlockID(index));
 			}
 
-			if (otherBlock->BlockHardness == Block::Hardness::Empty)
+			if (otherBlock.BlockHardness == FBlock::Hardness::Empty)
 			{
 				face->visible = true;
 

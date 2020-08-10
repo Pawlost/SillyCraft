@@ -3,30 +3,48 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Block.generated.h"
 
-/**
- * 
- */
-
-
-class SILLYCRAFT_API Block
+USTRUCT(BlueprintType)
+struct SILLYCRAFT_API FBlock
 {
+	GENERATED_USTRUCT_BODY()
 public:
 	static enum Hardness {
 		Empty, Soft, Medium, Hard
 	};
 
-	const FName Name;
-	const Hardness BlockHardness;
-	const FLinearColor Color;
-	const int Range;
-	const int MinElevation;
-	const int MaxElevation;
-	const int ID;
+	FName Name;
+	Hardness BlockHardness;
+	FLinearColor Color;
+	int Range;
+	int MinElevation;
+	int MaxElevation;
+	int ID;
 	int LifeSpan;
+	bool null;
+	
+	FBlock() 
+	{
+		null = true;
+	}
+	
+	FBlock(const FName& name, const int& id, Hardness blockHardness, FLinearColor color, int range, int maxElevation, int minElevation)
+	{
+		Name = name;
+		ID = id;
+		BlockHardness = blockHardness;
+		Color = color;
+		Range = range;
+		MaxElevation = maxElevation;
+		MinElevation = minElevation;
+		null = false;
+	}
 
-	Block(const FName& name, const int& id, const Hardness& hardness, const FLinearColor& color, const int& range, const int& maxElevation, const int& minElevation);
-	Block(const FName& name, const int& id, const Hardness& hardness);
-
-	~Block();
+	FBlock(const FName& name, const int& id, Hardness blockHardness)
+	{
+		Name = name;
+		ID = id;
+		BlockHardness = blockHardness;
+	}
 };

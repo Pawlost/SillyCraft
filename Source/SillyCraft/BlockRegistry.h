@@ -11,11 +11,11 @@
 class SILLYCRAFT_API BlockRegistry
 {
 private:
-	TMap<int, Block*> m_blocks;
+	TMap<int, FBlock> m_blocks;
 public:
-	void AddBlock(Block* block);
-	Block* GetBlock(const int& id) const;
-	Block* GetBaseBlock() const;
+	void AddBlock(FBlock block);
+	FBlock GetBlock(const int& id) const;
+	FBlock GetBaseBlock() const;
 	int BaseBlockID;
 	const int AirID;
 	void GetIDs(TArray<int>& outIDs) const;

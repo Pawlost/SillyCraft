@@ -8,7 +8,6 @@
 #include "GameFramework/SaveGame.h"
 #include "Save.generated.h"
 
-
 /**
  * 
  */
@@ -19,17 +18,12 @@ class SILLYCRAFT_API USave : public USaveGame
 	
 public:
 
-	UPROPERTY()
+	UPROPERTY(SaveGame)
 	FVector PlayerPosition;
 
-	UPROPERTY()
+	UPROPERTY(SaveGame)
 	FRotator PlayerRotation;
 
-	UPROPERTY()
+	UPROPERTY(SaveGame)
 	TArray<FPrimitiveChunk> SavedChunks;
-
-	void Init();
-	void Deinit();
-
-	TMap<TTuple<int, int, int>, FPrimitiveChunk> ChunkMap;
 };
