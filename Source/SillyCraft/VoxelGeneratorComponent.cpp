@@ -26,7 +26,6 @@ void UVoxelGeneratorComponent::BeginPlay()
 	}
 
 	m_owner->SetActorLocation(m_save->PlayerPosition);
-	m_owner->SetActorRotation(m_save->Rotation);
 
 	m_save->Init();
 	m_lastPosition = m_owner->GetActorLocation();
@@ -411,3 +410,13 @@ void UVoxelGeneratorComponent::DestroyParticles()
 		m_particles = nullptr;
 	}
 }	
+
+FRotator UVoxelGeneratorComponent::GetSavedRotation()
+{
+	if (m_save) 
+	{
+		return m_save->PlayerRotation;
+	}
+
+	return FRotator();
+}

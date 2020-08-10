@@ -48,6 +48,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "VoxelInteraction")
 	void Place(const bool& hit, const FVector& location, const FVector& normal);
 
+	UFUNCTION(BlueprintCallable, Category = "VoxelInteraction")
+	FRotator GetSavedRotation();
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
