@@ -14,15 +14,15 @@ struct SILLYCRAFT_API FPrimitiveChunk
 
 public:
 	
-	UPROPERTY(SaveGame)
-	int X;
+	UPROPERTY(VisibleAnywhere, Category = Basic)
+	int32 X;
 
-	UPROPERTY(SaveGame)
-	int Y;
+	UPROPERTY(VisibleAnywhere, Category = Basic)
+	int32 Y;
 
-	UPROPERTY(SaveGame)
-	int Z;
+	UPROPERTY(VisibleAnywhere, Category = Basic)
+	int32 Z;
 
-	UPROPERTY(SaveGame)
-	TMap<int, int> ChangeIds;
+	UPROPERTY(VisibleAnywhere, Category = Basic)
+	TMap<int32, int32> ChangeIds;
 };

@@ -33,11 +33,11 @@ void UVoxelGeneratorComponent::BeginPlay()
 		m_savedChanges.Add(TTuple<int, int, int>(chunk.X, chunk.Y, chunk.Z), chunk);
 	}
 
-	m_lastPosition = m_owner->GetActorLocation() / Constants::ChunkLenght;
+	m_lastPosition = m_owner->GetActorLocation();
 
-	const int ownerX = m_lastPosition.X;
-	const int ownerY = m_lastPosition.Y;
-	const int ownerZ = m_lastPosition.Z;
+	const int ownerX = m_lastPosition.X / Constants::ChunkLenght;
+	const int ownerY = m_lastPosition.Y / Constants::ChunkLenght;
+	const int ownerZ = m_lastPosition.Z / Constants::ChunkLenght;
 
 	for (int x = ownerX - Constants::MeshZone - 1; x < ownerX + Constants::MeshZone + 1; x++)
 	{
@@ -56,11 +56,10 @@ void UVoxelGeneratorComponent::BeginPlay()
 void UVoxelGeneratorComponent::EndPlay(const EEndPlayReason::Type)
 {
 	m_save->SavedChunks.Empty();
-	for (const TPair<TTuple<int, int, int>, FPrimitiveChunk>& chunk : m_savedChanges)
+	for (TPair<TTuple<int, int, int>, FPrimitiveChunk> chunk : m_savedChanges)
 	{
 		m_save->SavedChunks.Add(chunk.Value);
 	}
-	m_savedChanges.Empty();
 
 	UGameplayStatics::SaveGameToSlot(m_save, SlotName, UserIndex);
 }
@@ -72,7 +71,7 @@ void UVoxelGeneratorComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 	const FVector position = m_owner->GetActorLocation();
 
-	if (InZone(position.X, position.Y, position.Z, m_lastPosition.X, m_lastPosition.Y, m_lastPosition.Z, Constants::ChunkLenght))
+	if (OutZone(position.X, position.Y, position.Z, m_lastPosition.X, m_lastPosition.Y, m_lastPosition.Z, Constants::ChunkLenght))
 	{
 		m_lastPosition = position;
 		ChangeZone(false, m_lastPosition);
@@ -106,9 +105,9 @@ void UVoxelGeneratorComponent::ChangeZone(bool needspawn, const FVector& positio
 							const FVector chunkLocation = chunk->GetActorLocation();
 							std::array<AChunk*, 6> sideChunks;
 							GetChunkNeighbors(x, y, z, sideChunks);
-							m_mesher->MeshChunk(*chunk, sideChunks);
 
-							if (needspawn && chunkLocation.X == position.X && chunkLocation.Y == position.Y)
+							//TODO remove chunkLocation.Z > 0
+							if (!m_mesher->MeshChunk(*chunk, sideChunks) && needspawn && chunkLocation.X == position.X && chunkLocation.Y == position.Y && chunkLocation.Z > 0)
 							{
 								needspawn = false;
 								m_owner->SetActorLocation(chunkLocation + Constants::ChunkScale);
@@ -423,9 +422,9 @@ void UVoxelGeneratorComponent::GetChunkNeighbors(const int& x, const int& y, con
 
 bool UVoxelGeneratorComponent::InZone(const int& posX, const int& posY, const int& posZ, const int& baseX, const int& baseY, const int& baseZ, const int& size) const
 {
-	return posX > baseX - size || posX < baseX + size ||
-		posY > baseY - size || posY < baseY + size ||
-		posZ > baseZ - size || posZ < baseZ + size;
+	return posX > baseX - size && posX < baseX + size &&
+		posY > baseY - size && posY < baseY + size &&
+		posZ > baseZ - size && posZ < baseZ + size;
 }
 
 bool UVoxelGeneratorComponent::OutZone(const int& posX, const int& posY, const int& posZ, const int& baseX, const int& baseY, const int& baseZ, const int& size) const

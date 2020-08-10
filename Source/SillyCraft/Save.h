@@ -18,12 +18,12 @@ class SILLYCRAFT_API USave : public USaveGame
 	
 public:
 
-	UPROPERTY(SaveGame)
+	UPROPERTY(VisibleAnywhere, Category = Basic)
 	FVector PlayerPosition;
 
-	UPROPERTY(SaveGame)
+	UPROPERTY(VisibleAnywhere, Category = Basic)
 	FRotator PlayerRotation;
 
-	UPROPERTY(SaveGame)
+	UPROPERTY(VisibleAnywhere, Category = Basic)
 	TArray<FPrimitiveChunk> SavedChunks;
 };
