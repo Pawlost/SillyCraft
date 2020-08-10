@@ -15,10 +15,6 @@
 class SILLYCRAFT_API ChunkMesher
 {
 private:
-	enum Faces {
-		Front = 0, Back = 1, Right = 2, Left = 3, Top = 4, Bottom = 5
-	};
-
 	struct IntVector {
 		int X;
 		int Y;
@@ -49,17 +45,21 @@ private:
 
 	BlockRegistry* m_registry;
 	void AddIndice(const int& index, TArray<int>& indice) const;
-	void NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& voxels, const AChunk& chunk) const;
+	void NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& voxels, const AChunk& chunk, std::array<AChunk*, 6> chunkArray) const;
 	void GreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& voxels, TMultiMap<int, Face*>& meshedFaces) const;
 	static void Join(Face* face, Face* prevFace);
 	static void JoinReversed(Face* face, Face* prevFace);
 	static bool GreedyJoin(Face* face, Face* prevFace);
 
 public:
+	enum Faces {
+		Front = 0, Back = 1, Right = 2, Left = 3, Top = 4, Bottom = 5
+	};
+
 	ChunkMesher(BlockRegistry* generator);
 	~ChunkMesher();
 
-	bool MeshChunk(AChunk& chunk) const;
+	bool MeshChunk(AChunk& meshchunk, std::array<AChunk*, 6> chunkArray) const;
 
 	void CreateFastCube(AFastCube& cube, FLinearColor color) const;
 };

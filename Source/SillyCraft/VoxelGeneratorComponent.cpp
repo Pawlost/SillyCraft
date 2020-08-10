@@ -29,6 +29,48 @@ void UVoxelGeneratorComponent::BeginPlay()
 
 	m_save->Init();
 	m_lastPosition = m_owner->GetActorLocation();
+
+	int ownerX = m_lastPosition.X / Constants::ChunkLenght;
+	int ownerY = m_lastPosition.Y / Constants::ChunkLenght;
+	int ownerZ = m_lastPosition.Z / Constants::ChunkLenght;
+
+	for (int x = ownerX - Constants::MeshZone - 1; x < ownerX + Constants::MeshZone + 1; x++)
+	{
+		for (int y = ownerY - Constants::MeshZone - 1; y < ownerY + Constants::MeshZone + 1; y++)
+		{
+			for (int z = ownerZ - Constants::MeshZone - 1; z < ownerZ + Constants::MeshZone + 1; z++)
+			{
+
+				const int& posX = x * Constants::ChunkLenght;
+				const int& posY = y * Constants::ChunkLenght;
+				const int& posZ = z * Constants::ChunkLenght;
+				TTuple<int, int, int> pos(x, y, z);
+
+				FVector location(posX, posY, posZ);
+				FRotator rotation(0.0f, 0.0f, 0.0f);
+				AChunk* chunk = GetWorld()->SpawnActor<AChunk>(location, rotation);
+				chunk->Initialize(m_registry, Material);
+				chunk->BaseFill();
+				TArray<int> ids;
+				m_registry->GetIDs(ids);
+				for (int id : ids)
+				{
+					chunk->Fill(id);
+				}
+				if (m_save->ChunkMap.Contains(pos))
+				{
+					FPrimitiveChunk& primitiveChunk = m_save->ChunkMap[pos];
+					for (TPair<int, int> change : primitiveChunk.ChangeIds)
+					{
+						chunk->ChangeBlockID(change.Key, change.Value, true);
+					}
+				}
+
+				m_chunks.Add(pos, chunk);
+			}
+		}
+	}
+
 	ChangeZone(true);
 }
 
@@ -89,7 +131,16 @@ void UVoxelGeneratorComponent::ChangeZone(bool needspawn)
 						AChunk* chunk = m_chunks[TTuple<int, int, int>(x, y, z)];
 						if (!chunk->Generated) {
 							FVector location = chunk->GetActorLocation();
-							if (!m_mesher->MeshChunk(*chunk)) {
+							std::array<AChunk*, 6> sideChunks;
+
+							sideChunks[ChunkMesher::Faces::Front] = m_chunks[TTuple<int, int, int>(x + 1, y, z - 1)],
+							sideChunks[ChunkMesher::Faces::Back] = m_chunks[TTuple<int, int, int>(x - 1, y, z + 1)];
+							sideChunks[ChunkMesher::Faces::Right] = m_chunks[TTuple<int, int, int>(x, y + 1, z)];
+							sideChunks[ChunkMesher::Faces::Left] = m_chunks[TTuple<int, int, int>(x, y - 1, z)];
+							sideChunks[ChunkMesher::Faces::Bottom] = m_chunks[TTuple<int, int, int>(x, y, z - 1)];
+							sideChunks[ChunkMesher::Faces::Top] = m_chunks[TTuple<int, int, int>(x, y, z + 1)];
+							
+							if (!m_mesher->MeshChunk(*chunk, sideChunks)) {
 								if (needspawn && location.X == ownerLocation.X && location.Y == ownerLocation.Y)
 								{
 									location.X += Constants::ChunkScale;
@@ -371,11 +422,21 @@ void UVoxelGeneratorComponent::HighlightTargetBlock(const bool& hit, FVector loc
 void UVoxelGeneratorComponent::ChunkChanged(int index, int value, AChunk* chunk) 
 {
 	chunk->ChangeBlockID(index, value, true);
-	m_mesher->MeshChunk(*chunk);
+	std::array<AChunk*, 6> sideChunks;
+
 	FVector chunkPos = chunk->GetActorLocation() / Constants::ChunkLenght;
 	int x = (int)chunkPos.X;
 	int y = (int)chunkPos.Y;
 	int z = (int)chunkPos.Z;
+
+	sideChunks[ChunkMesher::Faces::Front] = m_chunks[TTuple<int, int, int>(x + 1, y, z - 1)],
+	sideChunks[ChunkMesher::Faces::Back] = m_chunks[TTuple<int, int, int>(x - 1, y, z + 1)];
+	sideChunks[ChunkMesher::Faces::Right] = m_chunks[TTuple<int, int, int>(x, y + 1, z)];
+	sideChunks[ChunkMesher::Faces::Left] = m_chunks[TTuple<int, int, int>(x, y - 1, z)];
+	sideChunks[ChunkMesher::Faces::Bottom] = m_chunks[TTuple<int, int, int>(x, y, z - 1)];
+	sideChunks[ChunkMesher::Faces::Top] = m_chunks[TTuple<int, int, int>(x, y, z + 1)];
+
+	m_mesher->MeshChunk(*chunk, sideChunks);
 
 	TTuple<int, int, int> pos(x, y, z);
 
