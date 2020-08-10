@@ -73,8 +73,8 @@ private:
 	AActor* m_owner;
 	TMap<TTuple<int, int, int>, AChunk*> m_chunks;
 	AInteractionParticles* m_particles;
-	FBlock m_damagedblock;
-	FBlock m_holdingblock;
+	std::shared_ptr<Block> m_damagedblock;
+	std::shared_ptr<Block> m_holdingblock;
 	FVector m_lastPosition;
 	AFastCube* m_highlightCube;
 	TMap<TTuple<int, int, int>, FPrimitiveChunk> m_savedChanges;

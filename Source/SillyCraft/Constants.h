@@ -23,7 +23,7 @@ namespace Constants {
 	const static float HighlightTrasparency = 0.1f;
 
 	//Zones
-	const static int Distance = 1;
+	const static int Distance = 3;
 	const static int MeshZone = 2 * Distance + 1;
 	const static int FillZone = MeshZone + 2;
 

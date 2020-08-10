@@ -3,48 +3,34 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Block.generated.h"
 
-USTRUCT(BlueprintType)
-struct SILLYCRAFT_API FBlock
+/**
+ * 
+ */
+
+class SILLYCRAFT_API Block
 {
-	GENERATED_USTRUCT_BODY()
+private:
+	int m_lifeSpan;
+
 public:
 	static enum Hardness {
 		Empty, Soft, Medium, Hard
 	};
 
-	FName Name;
-	Hardness BlockHardness;
-	FLinearColor Color;
-	int Range;
-	int MinElevation;
-	int MaxElevation;
-	int ID;
-	int LifeSpan;
-	bool null;
+	const FName Name;
+	const Hardness BlockHardness;
+	const int ID;
+	const int Range;
+	const FLinearColor Color;
+	const int MinElevation;
+	const int MaxElevation;
 	
-	FBlock() 
-	{
-		null = true;
-	}
-	
-	FBlock(const FName& name, const int& id, Hardness blockHardness, FLinearColor color, int range, int maxElevation, int minElevation)
-	{
-		Name = name;
-		ID = id;
-		BlockHardness = blockHardness;
-		Color = color;
-		Range = range;
-		MaxElevation = maxElevation;
-		MinElevation = minElevation;
-		null = false;
-	}
 
-	FBlock(const FName& name, const int& id, Hardness blockHardness)
-	{
-		Name = name;
-		ID = id;
-		BlockHardness = blockHardness;
-	}
+	Block(const FName& name, const int& id, const Hardness& hardness, const FLinearColor& color, const int& range, const int& maxElevation, const int& minElevation);
+	Block(const FName& name, const int& id, const Hardness& hardness);
+
+	void DecreaseLifeSpan(const int& decrease);
+	void SetLifeSpan(const int& lifeSpan);
+	int GetLifeSpan();
 };

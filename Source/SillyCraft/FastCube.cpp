@@ -33,13 +33,3 @@ void AFastCube::Initialize(UMaterial* material)
 {
 	m_material = material;
 }
-
-void AFastCube::Activate()
-{
-	m_mesh->Activate();
-}
-
-void AFastCube::Deactivate()
-{
-	m_mesh->Deactivate();
-}

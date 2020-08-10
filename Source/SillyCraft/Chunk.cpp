@@ -4,7 +4,7 @@
 #include "Chunk.h"
 
 // Sets default values
-AChunk::AChunk() : m_blockIDs(new std::array<FBlockID, Constants::ChunkSize3D>), m_noise(CreateDefaultSubobject<UFastNoiseWrapper>("Noise")), m_mesh(CreateDefaultSubobject<UProceduralMeshComponent>("CustomMesh")), m_material(CreateDefaultSubobject<UMaterial>("DefaultMaterial"))
+AChunk::AChunk() : m_blockIDs(std::make_unique<std::array<FBlockID, Constants::ChunkSize3D>>()), m_noise(CreateDefaultSubobject<UFastNoiseWrapper>("Noise")), m_mesh(CreateDefaultSubobject<UProceduralMeshComponent>("CustomMesh")), m_material(CreateDefaultSubobject<UMaterial>("DefaultMaterial"))
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -16,6 +16,7 @@ AChunk::AChunk() : m_blockIDs(new std::array<FBlockID, Constants::ChunkSize3D>),
 
 AChunk::~AChunk()
 {
+	DestroyConstructedComponents();
 }
 
 void AChunk::Initialize(std::shared_ptr<BlockRegistry> registry, UMaterial* material)
@@ -31,7 +32,7 @@ void AChunk::BeginPlay()
 	
 }
 
-bool AChunk::HasMesh()
+bool AChunk::HasMesh() const
 {
 	return m_hasMesh;
 }
@@ -63,6 +64,7 @@ bool AChunk::IsPlaceByPlayer(const int& index) const
 
 void  AChunk::BaseFill()
 {
+	int origin, index;
 	FVector actorLocation = GetActorLocation();
 	int chunkX = actorLocation.X / Constants::ChunkScale;
 	int chunkY = actorLocation.Y / Constants::ChunkScale;
@@ -72,16 +74,17 @@ void  AChunk::BaseFill()
 	{
 		for (int y = 0; y < Constants::ChunkSize; y++) 
 		{
-			int origin = m_noise->GetNoise2D(y + chunkY, x + chunkX) * Constants::MaxElevation;
+			origin = m_noise->GetNoise2D(y + chunkY, x + chunkX) * Constants::MaxElevation;
 			for (int z = 0; z < Constants::ChunkSize; z++) 
 			{
-				(*m_blockIDs)[Constants::MakeIndex(y, z, x)].PlacedByPlayer = false;
+				index = Constants::MakeIndex(y, z, x);
+				(*m_blockIDs)[index].PlacedByPlayer = false;
 				if (chunkZ + z <= origin) 
 				{
-						(*m_blockIDs)[Constants::MakeIndex(y, z, x)].BlockID = m_registry->BaseBlockID;
+					(*m_blockIDs)[index].BlockID = m_registry->BaseBlockID;
 						continue;
 				}
-				(*m_blockIDs)[Constants::MakeIndex(y, z, x)].BlockID = m_registry->AirID;
+				(*m_blockIDs)[index].BlockID = m_registry->AirID;
 			}
 		}
 	}
@@ -90,9 +93,10 @@ void  AChunk::BaseFill()
 
 void AChunk::Fill(const int& blockID)
 {
-	FBlock block = m_registry->GetBlock(blockID);
-	if (block.BlockHardness != FBlock::Hardness::Empty)
+	std::shared_ptr<Block> block = m_registry->GetBlock(blockID);
+	if ((*block).BlockHardness != Block::Hardness::Empty)
 	{
+		int id, index;
 		int seed = m_noise->GetSeed();
 		m_noise->SetSeed(seed + blockID);
 
@@ -101,26 +105,27 @@ void AChunk::Fill(const int& blockID)
 		int chunkY = actorLocation.Y / Constants::ChunkScale;
 		int chunkZ = actorLocation.Z / Constants::ChunkScale;
 
-		if (chunkZ >= block.MinElevation && chunkZ <= block.MaxElevation) {
+		if (chunkZ >= (*block).MinElevation && chunkZ <= (*block).MaxElevation) {
 			for (int x = 0; x < Constants::ChunkSize; x++) {
 				for (int y = 0; y < Constants::ChunkSize; y++) {
 					for (int z = 0; z < Constants::ChunkSize; z++) {
-						int id = (*m_blockIDs)[Constants::MakeIndex(y, z, x)].BlockID;
-						FBlock otherBlock = m_registry->GetBlock(id);
-						if (otherBlock.BlockHardness != FBlock::Hardness::Empty)
+						index = Constants::MakeIndex(y, z, x);
+						id = (*m_blockIDs)[index].BlockID;
+						std::shared_ptr<Block> otherBlock = m_registry->GetBlock(id);
+						if ((*otherBlock).BlockHardness != Block::Hardness::Empty)
 						{
 							id = (*m_blockIDs)[Constants::MakeIndex(y, z + 1, x)].BlockID;
 							if (id == m_registry->AirID && z < Constants::ChunkSize - 1)
 							{
-								if (block.Range > 0) {
-									int range = abs(m_noise->GetNoise2D(x, y)) * block.Range;
+								if (block->Range > 0) {
+									int range = abs(m_noise->GetNoise2D(x, y)) * block->Range;
 									for (int r = 0; r < range; r++)
 										if (z - r > 0)
-											(*m_blockIDs)[Constants::MakeIndex(y, z - r, x)].BlockID = block.ID;
+											(*m_blockIDs)[Constants::MakeIndex(y, z - r, x)].BlockID = block->ID;
 								}
 								else 
 								{
-									(*m_blockIDs)[Constants::MakeIndex(y, z, x)].BlockID = block.ID;
+									(*m_blockIDs)[index].BlockID = block->ID;
 								}
 							}
 						}
@@ -135,7 +140,6 @@ void AChunk::Fill(const int& blockID)
 void AChunk::ChangeBlockID(const int& index, const int& id, bool changedByPlayer)
 {
 	(*m_blockIDs)[index].BlockID = id;
-	(*m_blockIDs)[index].PlacedByPlayer = changedByPlayer;
 }
 
 void AChunk::Show()

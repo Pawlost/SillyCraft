@@ -44,8 +44,9 @@ private:
 	};
 
 	std::shared_ptr<BlockRegistry> m_registry;
+
 	void AddIndice(const int& index, TArray<int>& indice) const;
-	void NaiveGreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& voxels, const AChunk& chunk, std::array<AChunk*, 6> chunkArray) const;
+	bool NaiveGreedyMeshing(const std::unique_ptr<std::array<Voxel, Constants::ChunkSize3D>>& voxels, const AChunk& chunk, std::array<AChunk*, 6> chunkArray) const;
 	void GreedyMeshing(std::array<Voxel, Constants::ChunkSize3D>& voxels, TMultiMap<int, Face*>& meshedFaces) const;
 	static void Join(Face* face, Face* prevFace);
 	static void JoinReversed(Face* face, Face* prevFace);

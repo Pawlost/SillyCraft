@@ -18,12 +18,17 @@ class SILLYCRAFT_API AChunk : public AActor
 	GENERATED_BODY()
 		
 private:
-	std::array<FBlockID, Constants::ChunkSize3D>* m_blockIDs;
-	UFastNoiseWrapper* m_noise;
+	std::unique_ptr<std::array<FBlockID, Constants::ChunkSize3D>> m_blockIDs;
 	std::shared_ptr<BlockRegistry> m_registry;
-	UProceduralMeshComponent* m_mesh;
+
 	UMaterial* m_material;
 	bool m_hasMesh = false;
+
+	UPROPERTY()
+	UFastNoiseWrapper* m_noise;
+
+	UPROPERTY()
+	UProceduralMeshComponent* m_mesh;
 
 public:	
 
@@ -42,7 +47,7 @@ public:
 	void Show();
 	void Hide();
 
-	bool HasMesh();
+	bool HasMesh() const;
 
 	void SetMesh(const int& index, const TArray<FVector>& vectors, const TArray<int32>& indice, const TArray<FLinearColor>& color);
 

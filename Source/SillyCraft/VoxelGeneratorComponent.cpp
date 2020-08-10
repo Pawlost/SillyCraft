@@ -106,8 +106,7 @@ void UVoxelGeneratorComponent::ChangeZone(bool needspawn, const FVector& positio
 							std::array<AChunk*, 6> sideChunks;
 							GetChunkNeighbors(x, y, z, sideChunks);
 
-							//TODO remove chunkLocation.Z > 0
-							if (!m_mesher->MeshChunk(*chunk, sideChunks) && needspawn && chunkLocation.X == position.X && chunkLocation.Y == position.Y && chunkLocation.Z > 0)
+							if (!m_mesher->MeshChunk(*chunk, sideChunks) && needspawn && chunkLocation.X == position.X && chunkLocation.Y == position.Y)
 							{
 								needspawn = false;
 								m_owner->SetActorLocation(chunkLocation + Constants::ChunkScale);
@@ -204,9 +203,9 @@ void UVoxelGeneratorComponent::Pick(const bool& hit, const FVector& hitLocation,
 
 		const int index = Constants::MakeIndex(y, z, x);
 		const int id = chunk->GetBlockID(index);
-		const FBlock block = m_registry->GetBlock(id);
+		std::shared_ptr<Block> block = m_registry->GetBlock(id);
 
-		if (!m_damagedblock.null && block.ID == m_damagedblock.ID)
+		if (m_damagedblock && block->ID == m_damagedblock->ID)
 		{
 			if (m_particles == nullptr)
 			{
@@ -214,26 +213,26 @@ void UVoxelGeneratorComponent::Pick(const bool& hit, const FVector& hitLocation,
 				const FActorSpawnParameters parameters;
 				m_particles = GetWorld()->SpawnActor<AInteractionParticles>(hitLocation + (hitNormal * 20), rotation, parameters);
 
-				m_particles->Initialize(Particles, block.Color);
+				m_particles->Initialize(Particles, block->Color);
 
 				GetWorld()->GetTimerManager().SetTimer(m_timer, this, &UVoxelGeneratorComponent::DestroyParticles, 1.0f, false);
 			}
 
-			if (m_damagedblock.LifeSpan < 0)
+			if (m_damagedblock->GetLifeSpan() < 0)
 			{
 				ChunkChanged(index, m_registry->AirID, *chunk);
 				m_holdingblock = m_damagedblock;
-				m_damagedblock = FBlock();
+				m_damagedblock = nullptr;
 			}
 			else
 			{
-				m_damagedblock.LifeSpan -= Constants::PickingSpeed;
+				m_damagedblock->DecreaseLifeSpan(Constants::PickingSpeed);
 			}
 		}
 		else
 		{
 			m_damagedblock = block;
-			m_damagedblock.LifeSpan = m_damagedblock.BlockHardness * Constants::PickingMultiplier;
+			m_damagedblock->SetLifeSpan(m_damagedblock->BlockHardness * Constants::PickingMultiplier);
 		}
 	}
 }
@@ -270,15 +269,15 @@ void UVoxelGeneratorComponent::Place(const bool& hit, const FVector& hitLocation
 		const int id = chunk->GetBlockID(index);
 
 		if (id == m_registry->AirID) {
-			ChunkChanged(index, m_holdingblock.ID, *chunk);
-			m_holdingblock = FBlock();
+			ChunkChanged(index, m_holdingblock->ID, *chunk);
+			m_holdingblock = nullptr;
 		}
 	}
 }
 
 void UVoxelGeneratorComponent::HighlightTargetBlock(const bool& hit, const FVector& hitLocation, const FVector& hitNormal)
 {
-	if (hit && !m_holdingblock.null) {
+	if (hit && m_holdingblock) {
 
 		int x, y, z, chunkX, chunkY, chunkZ;
 
@@ -317,7 +316,7 @@ void UVoxelGeneratorComponent::HighlightTargetBlock(const bool& hit, const FVect
 			{
 				m_highlightCube = GetWorld()->SpawnActor<AFastCube>(pos, FRotator(0, 0, 0));
 				m_highlightCube->Initialize(Material);
-				m_mesher->CreateFastCube(*m_highlightCube, m_holdingblock.Color);
+				m_mesher->CreateFastCube(*m_highlightCube, m_holdingblock->Color);
 			}
 
 			return;
@@ -412,8 +411,8 @@ FVector UVoxelGeneratorComponent::GetSavedLocation() const
 //Utils
 void UVoxelGeneratorComponent::GetChunkNeighbors(const int& x, const int& y, const int& z, std::array<AChunk*, 6>& outSideChunks) const
 {
-	outSideChunks[ChunkMesher::Faces::Front] = m_chunks[TTuple<int, int, int>(x + 1, y, z)],
-	outSideChunks[ChunkMesher::Faces::Back] = m_chunks[TTuple<int, int, int>(x - 1, y, z)];
+	outSideChunks[ChunkMesher::Faces::Front] = m_chunks[TTuple<int, int, int>(x - 1, y, z)],
+	outSideChunks[ChunkMesher::Faces::Back] = m_chunks[TTuple<int, int, int>(x + 1, y, z)];
 	outSideChunks[ChunkMesher::Faces::Right] = m_chunks[TTuple<int, int, int>(x, y + 1, z)];
 	outSideChunks[ChunkMesher::Faces::Left] = m_chunks[TTuple<int, int, int>(x, y - 1, z)];
 	outSideChunks[ChunkMesher::Faces::Bottom] = m_chunks[TTuple<int, int, int>(x, y, z - 1)];

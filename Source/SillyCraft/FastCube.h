@@ -12,7 +12,10 @@ class SILLYCRAFT_API AFastCube : public AActor
 {
 	GENERATED_BODY()
 private:
+	UPROPERTY()
 	UProceduralMeshComponent* m_mesh;	
+	
+	UPROPERTY()
 	UMaterial* m_material;
 
 public:	
@@ -28,7 +31,4 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	void SetMesh(const int& index, const TArray<FVector>& vectors, const TArray<int32>& indice, const TArray<FLinearColor>& color);
 	void Initialize(UMaterial* material);
-
-	void Activate();
-	void Deactivate();
 };
