@@ -144,6 +144,7 @@ void AChunk::Fill(const int& blockID)
 void AChunk::ChangeBlockID(const int& index, const int& id, bool changedByPlayer)
 {
 	(*m_blockIDs)[index].BlockID = id;
+	(*m_blockIDs)[index].PlacedByPlayer = changedByPlayer;
 }
 
 void AChunk::Show()

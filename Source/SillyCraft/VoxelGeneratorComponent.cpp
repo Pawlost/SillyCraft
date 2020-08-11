@@ -202,6 +202,7 @@ void UVoxelGeneratorComponent::Pick(const bool& hit, const FVector& hitLocation,
 			z -= 1;
 		}
 
+
 		AChunk* chunk = m_chunks[TTuple<int, int, int>(chunkX, chunkY, chunkZ)];
 
 		const int index = Constants::MakeIndex(y, z, x);
@@ -303,9 +304,9 @@ void UVoxelGeneratorComponent::HighlightTargetBlock(const bool& hit, const FVect
 			z -= 1;
 		}
 
-		x *= Constants::ChunkScale + (chunkX * Constants::ChunkLenght);
-		y *= Constants::ChunkScale + (chunkY * Constants::ChunkLenght);
-		z *= Constants::ChunkScale + (chunkZ * Constants::ChunkLenght);
+		x = x * Constants::ChunkScale + (chunkX * Constants::ChunkLenght);
+		y = y * Constants::ChunkScale + (chunkY * Constants::ChunkLenght);
+		z = z * Constants::ChunkScale + (chunkZ * Constants::ChunkLenght);
 
 		FVector pos(x, y, z);
 
@@ -321,7 +322,7 @@ void UVoxelGeneratorComponent::HighlightTargetBlock(const bool& hit, const FVect
 				m_highlightCube->Initialize(Material);
 				FLinearColor color = m_holdingblock->Color;
 				color.A = HighlightTrasparency;
-				m_mesher->CreateFastCube(*m_highlightCube, color);
+ 				m_mesher->CreateFastCube(*m_highlightCube, color);
 			}
 
 			return;
@@ -340,14 +341,31 @@ void UVoxelGeneratorComponent::ChunkChanged(const int& index, const int& value, 
 	chunk.ChangeBlockID(index, value, true);
 
 	FVector chunkPos = chunk.GetActorLocation() / Constants::ChunkLenght;
-	const int x = (int)chunkPos.X;
-	const int y = (int)chunkPos.Y;
-	const int z = (int)chunkPos.Z;
+	int x = (int)chunkPos.X;
+	int y = (int)chunkPos.Y;
+	int z = (int)chunkPos.Z;
 
+	std::array<AChunk*, 6> otherChunks;
 	std::array<AChunk*, 6> sideChunks;
+
 	GetChunkNeighbors(x, y, z, sideChunks);
 
 	m_mesher->MeshChunk(chunk, sideChunks);
+
+	for (int s = 0; s < 6; s ++) 
+	{
+		AChunk* otherChunk = sideChunks[s];
+
+		FVector otherPos = otherChunk->GetActorLocation() / Constants::ChunkLenght;
+
+		int otherX = (int)otherPos.X;
+		int otherY = (int)otherPos.Y;
+		int otherZ = (int)otherPos.Z;
+
+		GetChunkNeighbors(otherX, otherY, otherZ, otherChunks);
+
+		m_mesher->MeshChunk(*otherChunk, otherChunks);
+	}
 
 	TTuple<int, int, int> pos(x, y, z);
 
@@ -445,17 +463,17 @@ void UVoxelGeneratorComponent::CalculateHitCoords(int& x, int& y, int& z, int& c
 	chunkZ = hitLocation.Z / Constants::ChunkLenght;
 
 
-	if (((int)hitLocation.X) < 0)
+	if (((int)hitLocation.X) <= 0)
 	{
 		chunkX -= 1;
 	}
 
-	if (((int)hitLocation.Y) < 0)
+	if (((int)hitLocation.Y) <= 0)
 	{
 		chunkY -= 1;
 	}
 
-	if (((int)hitLocation.Z) < 0)
+	if (((int)hitLocation.Z) <= 0)
 	{
 		chunkZ -= 1;
 	}
