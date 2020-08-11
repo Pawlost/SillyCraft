@@ -9,7 +9,7 @@ AChunk::AChunk() : m_blockIDs(std::make_unique<std::array<FBlockID, Constants::C
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	SetRootComponent(m_mesh);
-	m_noise->SetupFastNoise(Constants::NoiseType, Constants::Seed, Constants::NoiseFrequency);
+	m_noise->SetupFastNoise(NoiseType, Seed, NoiseFrequency);
 	m_mesh->bUseAsyncCooking = true;
 	m_mesh->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
 }
@@ -19,10 +19,14 @@ AChunk::~AChunk()
 	DestroyConstructedComponents();
 }
 
-void AChunk::Initialize(std::shared_ptr<BlockRegistry> registry, UMaterial* material)
+void AChunk::Initialize(std::shared_ptr<BlockRegistry> registry, UMaterial* material, const int& seed, const EFastNoise_NoiseType& noiseType, const float& noiseFrequency, const int& maxElevation)
 {
 	m_material = material;
 	m_registry = registry;
+	Seed = seed;
+	NoiseType = noiseType;
+	NoiseFrequency = noiseFrequency;
+	MaxElevation = maxElevation;
 }
 
 // Called when the game starts or when spawned
@@ -74,7 +78,7 @@ void  AChunk::BaseFill()
 	{
 		for (int y = 0; y < Constants::ChunkSize; y++) 
 		{
-			origin = m_noise->GetNoise2D(y + chunkY, x + chunkX) * Constants::MaxElevation;
+			origin = m_noise->GetNoise2D(y + chunkY, x + chunkX) * MaxElevation;
 			for (int z = 0; z < Constants::ChunkSize; z++) 
 			{
 				index = Constants::MakeIndex(y, z, x);

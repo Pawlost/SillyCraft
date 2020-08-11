@@ -2,7 +2,7 @@
 
 
 #include "VoxelGeneratorComponent.h"
-UVoxelGeneratorComponent::UVoxelGeneratorComponent() : m_registry(std::make_shared<BlockRegistry>()), m_mesher(std::make_shared<ChunkMesher>(m_registry)), m_owner(GetOwner())
+UVoxelGeneratorComponent::UVoxelGeneratorComponent() : m_registry(std::make_shared<BlockRegistry>()), m_mesher(std::make_shared<ChunkMesher>(m_registry, MaxElevation)), m_owner(GetOwner())
 {
 	PrimaryComponentTick.bCanEverTick = true;
 }
@@ -12,9 +12,12 @@ UVoxelGeneratorComponent::UVoxelGeneratorComponent() : m_registry(std::make_shar
 // Called when the game starts
 void UVoxelGeneratorComponent::BeginPlay()
 {
+	Super::BeginPlay();
+
+	m_meshZone = 2 * GenerationDistance + 1;
+	m_fillZone = m_meshZone + 2;
 
 	bool needspawn = false;
-	Super::BeginPlay();
 
 	m_save = Cast<USave>(UGameplayStatics::LoadGameFromSlot(SlotName, UserIndex));
 	
@@ -39,11 +42,11 @@ void UVoxelGeneratorComponent::BeginPlay()
 	const int ownerY = m_lastPosition.Y / Constants::ChunkLenght;
 	const int ownerZ = m_lastPosition.Z / Constants::ChunkLenght;
 
-	for (int x = ownerX - Constants::MeshZone - 1; x < ownerX + Constants::MeshZone + 1; x++)
+	for (int x = ownerX - m_meshZone - 1; x < ownerX + m_meshZone + 1; x++)
 	{
-		for (int y = ownerY - Constants::MeshZone - 1; y < ownerY + Constants::MeshZone + 1; y++)
+		for (int y = ownerY - m_meshZone - 1; y < ownerY + m_meshZone + 1; y++)
 		{
-			for (int z = ownerZ - Constants::MeshZone - 1; z < ownerZ + Constants::MeshZone + 1; z++)
+			for (int z = ownerZ - m_meshZone - 1; z < ownerZ + m_meshZone + 1; z++)
 			{
 				FillZone(x, y, z, TTuple<int, int, int>(x, y, z));
 			}
@@ -85,11 +88,11 @@ void UVoxelGeneratorComponent::ChangeZone(bool needspawn, const FVector& positio
 	const int ownerY = position.Y / Constants::ChunkLenght;
 	const int ownerZ = position.Z / Constants::ChunkLenght;
 
-	for (int x = ownerX - Constants::FillZone; x < ownerX + Constants::FillZone; x++)
+	for (int x = ownerX - m_fillZone; x < ownerX + m_fillZone; x++)
 	{
-		for (int y = ownerY - Constants::FillZone; y < ownerY + Constants::FillZone; y++)
+		for (int y = ownerY - m_fillZone; y < ownerY + m_fillZone; y++)
 		{
-			for (int z = ownerZ - Constants::FillZone; z < ownerZ + Constants::FillZone; z++)
+			for (int z = ownerZ - m_fillZone; z < ownerZ + m_fillZone; z++)
 			{
 				const TTuple<int, int, int> pos(x, y, z);
 
@@ -97,7 +100,7 @@ void UVoxelGeneratorComponent::ChangeZone(bool needspawn, const FVector& positio
 					FillZone(x, y, z, pos);
 				}
 
-				if (InZone(x, y, z, ownerX, ownerY, ownerZ, Constants::MeshZone))
+				if (InZone(x, y, z, ownerX, ownerY, ownerZ, m_meshZone))
 				{
 					if (m_chunks.Contains(pos)) {
 						AChunk* chunk = m_chunks[pos];
@@ -127,9 +130,9 @@ void UVoxelGeneratorComponent::ChangeZone(bool needspawn, const FVector& positio
 	{
 		AChunk* chunk = m_chunks[key];
 		const FVector chunkLocation = chunk->GetActorLocation() / Constants::ChunkLenght;
-		if (OutZone(chunkLocation.X, chunkLocation.Y, chunkLocation.Z, ownerX, ownerY, ownerZ, Constants::FillZone))
+		if (OutZone(chunkLocation.X, chunkLocation.Y, chunkLocation.Z, ownerX, ownerY, ownerZ, m_fillZone))
 		{
-			if (OutZone(chunkLocation.X, chunkLocation.Y, chunkLocation.Z, ownerX, ownerY, ownerZ, Constants::MeshZone))
+			if (OutZone(chunkLocation.X, chunkLocation.Y, chunkLocation.Z, ownerX, ownerY, ownerZ, m_meshZone))
 			{
 				if (GetWorld()->DestroyActor(chunk)) 
 				{
@@ -151,7 +154,7 @@ void UVoxelGeneratorComponent::FillZone(const int& x, const int& y, const int& z
 	const FVector location(posX, posY, posZ);
 	const FRotator rotation(0.0f, 0.0f, 0.0f);
 	AChunk* chunk = GetWorld()->SpawnActor<AChunk>(location, rotation);
-	chunk->Initialize(m_registry, Material);
+	chunk->Initialize(m_registry, Material, Seed, NoiseType, NoiseFrequency, MaxElevation);
 	chunk->BaseFill();
 
 	TArray<int> ids;
@@ -226,13 +229,13 @@ void UVoxelGeneratorComponent::Pick(const bool& hit, const FVector& hitLocation,
 			}
 			else
 			{
-				m_damagedblock->DecreaseLifeSpan(Constants::PickingSpeed);
+				m_damagedblock->DecreaseLifeSpan(PickingSpeed);
 			}
 		}
 		else
 		{
 			m_damagedblock = block;
-			m_damagedblock->SetLifeSpan(m_damagedblock->BlockHardness * Constants::PickingMultiplier);
+			m_damagedblock->SetLifeSpan(m_damagedblock->BlockHardness * PickingMultiplier);
 		}
 	}
 }
@@ -316,7 +319,9 @@ void UVoxelGeneratorComponent::HighlightTargetBlock(const bool& hit, const FVect
 			{
 				m_highlightCube = GetWorld()->SpawnActor<AFastCube>(pos, FRotator(0, 0, 0));
 				m_highlightCube->Initialize(Material);
-				m_mesher->CreateFastCube(*m_highlightCube, m_holdingblock->Color);
+				FLinearColor color = m_holdingblock->Color;
+				color.A = HighlightTrasparency;
+				m_mesher->CreateFastCube(*m_highlightCube, color);
 			}
 
 			return;

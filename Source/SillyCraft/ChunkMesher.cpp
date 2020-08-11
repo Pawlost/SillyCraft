@@ -2,7 +2,7 @@
 
 #include "ChunkMesher.h"
 
-ChunkMesher::ChunkMesher(std::shared_ptr<BlockRegistry> registry) : m_registry(registry)
+ChunkMesher::ChunkMesher(const std::shared_ptr<BlockRegistry>& registry, const int& maxElevation) : m_registry(registry), m_maxElevation(maxElevation)
 {
 }
 
@@ -64,9 +64,9 @@ bool ChunkMesher::MeshChunk(AChunk& meshchunk, std::array<AChunk*, 6> chunkArray
 					{
 						FVector chunkPos = meshchunk.GetActorLocation();
 
-						float r = (chunkPos.Z + v3->Z * Constants::ChunkScale) / (Constants::ChunkLenght + Constants::MaxElevation);
-						float g = (chunkPos.Z + v3->Z * Constants::ChunkScale) / (Constants::ChunkLenght + Constants::MaxElevation);
-						float b = (chunkPos.Z + v3->Z * Constants::ChunkScale) / (Constants::ChunkLenght + Constants::MaxElevation);
+						float r = (chunkPos.Z + v3->Z * Constants::ChunkScale) / (Constants::ChunkLenght + m_maxElevation);
+						float g = (chunkPos.Z + v3->Z * Constants::ChunkScale) / (Constants::ChunkLenght + m_maxElevation);
+						float b = (chunkPos.Z + v3->Z * Constants::ChunkScale) / (Constants::ChunkLenght + m_maxElevation);
 
 						r = std::max(std::min(blockColor.R + r, 1.0f), 0.0f);
 						g = std::max(std::min(blockColor.G + g, 1.0f), 0.0f);
@@ -628,9 +628,8 @@ bool ChunkMesher::IntVector:: operator !=(const IntVector& a)
 	return !(*this == a);
 }
 
-void ChunkMesher::CreateFastCube(AFastCube& cube, FLinearColor color) const
+void ChunkMesher::CreateFastCube(AFastCube& cube, const FLinearColor& color) const
 {
-	color.A = Constants::HighlightTrasparency;
 	int index = 0;
 	TArray<FVector> vectors;
 	TArray<int32> indice;

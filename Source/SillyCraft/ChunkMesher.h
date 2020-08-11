@@ -43,6 +43,7 @@ private:
 		int ID;
 	};
 
+	int m_maxElevation;;
 	std::shared_ptr<BlockRegistry> m_registry;
 
 	void AddIndice(const int& index, TArray<int>& indice) const;
@@ -57,10 +58,10 @@ public:
 		Front = 0, Back = 1, Right = 2, Left = 3, Top = 4, Bottom = 5
 	};
 
-	ChunkMesher(std::shared_ptr<BlockRegistry> registry);
+	ChunkMesher(const std::shared_ptr<BlockRegistry>& registry, const int& maxElevation);
 	~ChunkMesher();
 
 	bool MeshChunk(AChunk& meshchunk, std::array<AChunk*, 6> chunkArray) const;
 
-	void CreateFastCube(AFastCube& cube, FLinearColor color) const;
+	void CreateFastCube(AFastCube& cube, const FLinearColor& color) const;
 };

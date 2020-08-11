@@ -32,7 +32,19 @@ private:
 
 public:	
 
-	// Sets default values for this actor's properties
+	//Noise
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Configuration");
+	int Seed = 1334;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Configuration");
+	EFastNoise_NoiseType NoiseType = EFastNoise_NoiseType::PerlinFractal;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Configuration");
+	float NoiseFrequency = 0.1f;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Configuration");
+	int MaxElevation = 20;
+
 	AChunk();
 	~AChunk();
 	bool Generated = false;
@@ -42,7 +54,7 @@ public:
 	void ChangeBlockID(const int& index, const int& id, bool changedByPlayer);
 	void BaseFill();
 	void Fill(const int& blockID);
-	void Initialize(std::shared_ptr<BlockRegistry> registry, UMaterial* material);
+	void Initialize(std::shared_ptr<BlockRegistry> registry, UMaterial* material, const int& seed, const EFastNoise_NoiseType& noiseType, const float& noiseFrequency, const int& maxElevation);
 
 	void Show();
 	void Hide();

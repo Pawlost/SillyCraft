@@ -31,6 +31,32 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Save");
 	FString SlotName;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Configuration");
+	int Seed;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Configuration");
+	EFastNoise_NoiseType NoiseType;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Configuration");
+	float NoiseFrequency;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Configuration");
+	int MaxElevation;
+
+	//Picking
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Configuration");
+	float PickingMultiplier;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Configuration");
+	float PickingSpeed;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Configuration");
+	float HighlightTrasparency;
+
+	//Zones
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Configuration");
+	int GenerationDistance;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Materials");
 	UMaterial* Material;
 
@@ -79,10 +105,16 @@ private:
 	AFastCube* m_highlightCube;
 	TMap<TTuple<int, int, int>, FPrimitiveChunk> m_savedChanges;
 
+	//Zones
+	int m_meshZone;
+	int m_fillZone;
+
 	UPROPERTY(SaveGame)
 	USave* m_save;
 
 	void DestroyParticles();
+
+	void UpdateConfiguration();
 
 	void ChunkChanged(const int& index, const int& value, AChunk& chunk);
 
