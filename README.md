@@ -1,6 +1,8 @@
 # SillyCraft
 Silly attempt to create Minecraft v2 
 
+![SillyCraft](https://github.com/Pawlost/SillyCraft/blob/master/Screenshots/SillCraft.PNG)
+
 Voxel terrain generator made as a test for Grip Digital.
 This project has not sufficient quality for the company.
 
@@ -17,7 +19,7 @@ Minecraft functions:
 * think about optimizations and implement them
 
 ## Installation
-See releases to download exported project for PC.
+See [releases](https://github.com/Pawlost/SillyCraft/releases) to download exported project for PC.
 
 ## Contribution
 This project is not meant for contribution.

@@ -116,10 +116,10 @@ void AChunk::Fill(const int& blockID)
 						index = Constants::MakeIndex(y, z, x);
 						id = (*m_blockIDs)[index].BlockID;
 						std::shared_ptr<Block> otherBlock = m_registry->GetBlock(id);
-						if ((*otherBlock).BlockHardness != Block::Hardness::Empty)
+						if ((*otherBlock).BlockHardness != Block::Hardness::Empty && z < Constants::ChunkSize - 1)
 						{
 							id = (*m_blockIDs)[Constants::MakeIndex(y, z + 1, x)].BlockID;
-							if (id == m_registry->AirID && z < Constants::ChunkSize - 1)
+							if (id == m_registry->AirID)
 							{
 								if (block->Range > 0) {
 									int range = abs(m_noise->GetNoise2D(x, y)) * block->Range;

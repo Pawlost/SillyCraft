@@ -17,7 +17,7 @@ public:
 	std::shared_ptr<Block> GetBlock(const int& id) const;
 	std::shared_ptr<Block> GetBaseBlock() const;
 	int BaseBlockID;
-	const int AirID;
+	const int AirID = 0;
 	void GetIDs(TArray<int>& outIDs) const;
 	BlockRegistry();
 	~BlockRegistry();

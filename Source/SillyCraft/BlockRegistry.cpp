@@ -3,7 +3,7 @@
 
 #include "BlockRegistry.h"
 
-BlockRegistry::BlockRegistry() : AirID(0)
+BlockRegistry::BlockRegistry()
 {
 	std::shared_ptr<Block> air = std::make_shared<Block>("Air", AirID, Block::Empty);
 	AddBlock(air);
