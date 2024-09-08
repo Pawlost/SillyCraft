@@ -20,23 +20,20 @@ struct PRIMITIVEVOXELGENERATION_API FBlockType : public FTableRowBase
 	GENERATED_BODY()
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	FName Name;
+	FString BlockName;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	EHardness BlockHardness;
-
-	UPROPERTY()
-	int32 Id;
-
-	UPROPERTY()
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	int32 Range;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	TObjectPtr<UMaterial> Material;
 
-	UPROPERTY()
-	int32 MinElevation;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	int32 MinSpawnElevation;
 
-	UPROPERTY()
-	int32 MaxElevation;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	int32 MaxSpawnElevation;
 };
