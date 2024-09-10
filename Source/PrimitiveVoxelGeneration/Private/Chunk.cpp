@@ -3,19 +3,36 @@
 
 #include "Chunk.h"
 
-
-// Sets default values
 AChunk::AChunk()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	MeshComponent = CreateDefaultSubobject<UProceduralMeshComponent>("MeshComponent");
+}
+
+void AChunk::SetMesherClass(const TSubclassOf<UChunkMesherBase>& MesherClass)
+{
+	ChunkMesherClass = MesherClass;
+}
+
+TSubclassOf<UChunkMesherBase> AChunk::GetMesherClass()
+{
+	return ChunkMesherClass;
 }
 
 // Called when the game starts or when spawned
 void AChunk::BeginPlay()
 {
+	checkf(ChunkMesherClass, TEXT("You must provide a valid chunk mesher class."));
+
+	ChunkMesher = NewObject<UChunkMesherBase>(this, ChunkMesherClass);
+
+	AsyncTask(ENamedThreads::AnyThread, [this]()
+	{
+		ChunkMesher->GenerateMesh(MeshComponent);	
+	});
+
 	Super::BeginPlay();
-	
 }
 
 // Called every frame

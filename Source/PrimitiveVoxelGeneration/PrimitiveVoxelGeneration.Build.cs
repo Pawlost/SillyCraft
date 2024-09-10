@@ -10,6 +10,7 @@ public class PrimitiveVoxelGeneration : ModuleRules
             new string[]
             {
                 "Core",
+                "ProceduralMeshComponent"
             }
         );
 
