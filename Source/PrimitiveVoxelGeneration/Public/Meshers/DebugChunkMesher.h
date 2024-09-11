@@ -18,5 +18,5 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Mesh")
 	TObjectPtr<UStaticMesh> DebugMesh;
 
-	virtual void GenerateMesh(UProceduralMeshComponent* Actor) override;
+	virtual void GenerateMesh(UProceduralMeshComponent* procMesh) override;
 };

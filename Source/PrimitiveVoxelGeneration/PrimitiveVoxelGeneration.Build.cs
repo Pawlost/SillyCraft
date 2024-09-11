@@ -10,7 +10,9 @@ public class PrimitiveVoxelGeneration : ModuleRules
             new string[]
             {
                 "Core",
-                "ProceduralMeshComponent"
+                "ProceduralMeshComponent",
+                "FastNoiseGenerator",
+                "FastNoise"
             }
         );
 

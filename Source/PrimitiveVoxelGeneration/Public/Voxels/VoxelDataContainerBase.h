@@ -4,14 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "VoxelContainerBase.generated.h"
+#include "VoxelDataContainerBase.generated.h"
 
 
 /**
  * 
  */
 UCLASS(Abstract)
-class PRIMITIVEVOXELGENERATION_API UVoxelContainerBase : public UObject
+class PRIMITIVEVOXELGENERATION_API UVoxelDataContainerBase : public UObject
 {
 	GENERATED_BODY()
 

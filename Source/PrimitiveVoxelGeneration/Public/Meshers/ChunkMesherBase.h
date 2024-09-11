@@ -16,5 +16,5 @@ class PRIMITIVEVOXELGENERATION_API UChunkMesherBase : public UObject
 	GENERATED_BODY()
 
 public:
-	virtual void GenerateMesh(UProceduralMeshComponent* actor){}
+	virtual void GenerateMesh(UProceduralMeshComponent* procMesh){}
 };

@@ -35,7 +35,7 @@ void UVoxelGeneratorComponent::DespawnChunks(const FIntVector ChunkMinDistance, 
 	{
 		for (auto Element : SpawnedChunks)
 		{
-			if (Element.Key < ChunkMinDistance || Element.Key.X > ChunkMaxDistance.X)
+			if (Element.Key < ChunkMinDistance || Element.Key > ChunkMaxDistance)
 			{
 				AsyncTask(ENamedThreads::GameThread, [this, Element]()
 				{
@@ -77,7 +77,7 @@ void UVoxelGeneratorComponent::SpawnChunks(const FIntVector ChunkMinDistance, co
 								ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding);
 
 							chunk->SetMesherClass(DefaultChunkMesher);
-					//		chunk->SetLockLocation(true);
+							chunk->SetLockLocation(true);
 							SpawnedChunks.Add(vector, chunk);
 							UGameplayStatics::FinishSpawningActor(chunk, transform);
 						});
