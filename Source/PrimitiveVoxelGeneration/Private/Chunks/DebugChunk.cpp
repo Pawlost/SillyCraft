@@ -1,10 +1,10 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Meshers/DebugChunkMesher.h"
+#include "Chunks/DebugChunk.h"
 #include "ProceduralMeshComponent.h"
 
-void UDebugChunkMesher::GenerateMesh(UProceduralMeshComponent* ProcMesh)
+void UDebugChunk::GenerateMesh(UProceduralMeshComponent* ProcMesh)
 {
 	TSharedPtr<TArray<FVector>> Vertices = MakeShared<TArray<FVector>>();
 	Vertices.Get()->Add(FVector(-100, -100, 0));     // Front-left

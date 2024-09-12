@@ -4,31 +4,30 @@
 
 #include "CoreMinimal.h"
 #include "ProceduralMeshComponent.h"
+#include "Chunks/ChunkBase.h"
 #include "GameFramework/Actor.h"
-#include "Meshers/ChunkMesherBase.h"
-#include "Chunk.generated.h"
+#include "ChunkActor.generated.h"
 
 UCLASS()
-class PRIMITIVEVOXELGENERATION_API AChunk : public AActor
+class PRIMITIVEVOXELGENERATION_API AChunkActor : public AActor
 {
 GENERATED_BODY()
 	
 public:
 	// Sets default values for this actor's properties
-	AChunk();
+	AChunkActor();
 
-	void SetMesherClass(const TSubclassOf<UChunkMesherBase>& ChunkMesherClass);
-	TSubclassOf<UChunkMesherBase> GetMesherClass();
+	void SetChunkClass(const TSubclassOf<UChunkBase>& chunkClass);
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 private:
 	UPROPERTY()
-	TSubclassOf<UChunkMesherBase> ChunkMesherClass = nullptr;
+	TSubclassOf<UChunkBase> ChunkClass = nullptr;
 	
 	UPROPERTY()
-	TObjectPtr<UChunkMesherBase> ChunkMesher = nullptr;
+	TObjectPtr<UChunkBase> Chunk = nullptr;
 
 	UPROPERTY()
 	TObjectPtr<UProceduralMeshComponent> MeshComponent = nullptr;

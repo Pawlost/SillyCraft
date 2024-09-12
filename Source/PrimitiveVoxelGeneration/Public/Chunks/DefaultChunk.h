@@ -3,18 +3,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ChunkMesherBase.h"
-#include "DefaultChunkMesher.generated.h"
+#include "ChunkBase.h"
+#include "DefaultChunk.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PRIMITIVEVOXELGENERATION_API UDefaultChunkMesher : public UChunkMesherBase
+class PRIMITIVEVOXELGENERATION_API UDefaultChunk : public UChunkBase
 {
 	GENERATED_BODY()
 
 	public:
-		UDefaultChunkMesher(){}
+		UDefaultChunk(){}
 		virtual void GenerateMesh(UProceduralMeshComponent* procMesh) override;
 };

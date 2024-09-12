@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Chunk.h"
+#include "Chunks/ChunkActor.h"
 #include "Components/ActorComponent.h"
 #include "VoxelGeneratorComponent.generated.h"
 
@@ -19,12 +19,12 @@ public:
 	// Sets default values for this component's properties
 	UVoxelGeneratorComponent();
 	
-   	//if set will overide all chunk meshers
-   	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation");
-    TSubclassOf<UChunkMesherBase> DefaultChunkMesher = nullptr;
-
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation");
 	int64 Seed = 1234;
+	
+   	//if set will overide all chunk meshers
+   	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation");
+    TSubclassOf<UChunkBase> ChunkTemplate = nullptr;
 
 	// How many layers of chunks are generated around player
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation|Blocks");
@@ -35,10 +35,13 @@ public:
 	int32 ChunkWidthInBlocks = 4;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation|Blocks");
-    int32 BlockSize = 100;
+    int32 VoxelSize = 100;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Debug");
 	float DebugTime = 0.005f;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation");
+	FDataTableRowHandle VoxelTypes;
 	
 protected:
 	// Called when the game starts
@@ -53,7 +56,7 @@ private:
 	void ShowDebugVector(TVector<double>& vector, FColor color);
 	void UpdateCurrentChunkLocation();
 
-	const double ChunkSize = BlockSize * ChunkWidthInBlocks;
+	const double ChunkSize = VoxelSize * ChunkWidthInBlocks;
 	const double RenderDistanceBounds = ChunkSize * GenerationDistance;
 
 	struct CurrentChunkLocation
@@ -64,8 +67,9 @@ private:
 	};
 
 	CurrentChunkLocation CurrentChunkLocation;
-	
-	TMap<FIntVector, AChunk*> SpawnedChunks = TMap<FIntVector, AChunk*>();
+
+	UPROPERTY()
+	TMap<FIntVector, AChunkActor*> SpawnedChunks = TMap<FIntVector, AChunkActor*>();
 	
 public:
 	// Called every frame

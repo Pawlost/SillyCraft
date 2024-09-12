@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "BlockType.generated.h"
+#include "VoxelType.generated.h"
 
 /**
  * 
@@ -15,7 +15,7 @@ enum class EHardness : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PRIMITIVEVOXELGENERATION_API FBlockType : public FTableRowBase
+struct PRIMITIVEVOXELGENERATION_API FVoxelType : public FTableRowBase
 {
 	GENERATED_BODY()
 	

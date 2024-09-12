@@ -1,9 +1,9 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Meshers/DefaultChunkMesher.h"
+#include "Chunks/DefaultChunk.h"
 
-void UDefaultChunkMesher::GenerateMesh(UProceduralMeshComponent* procMesh)
+void UDefaultChunk::GenerateMesh(UProceduralMeshComponent* procMesh)
 {
 	Super::GenerateMesh(procMesh);
 }

@@ -31,18 +31,24 @@ bool UVoxelGeneratorComponent::IsPlayerInChunkBounds() const
 
 void UVoxelGeneratorComponent::DespawnChunks(const FIntVector ChunkMinDistance, const FIntVector ChunkMaxDistance)
 {
+	// Async check of every chunk outside bounds
 	AsyncTask(ENamedThreads::AnyThread, [this, ChunkMinDistance, ChunkMaxDistance]()
 	{
 		for (auto Element : SpawnedChunks)
 		{
 			if (Element.Key < ChunkMinDistance || Element.Key > ChunkMaxDistance)
 			{
+			    // Remove chunk actor on GameThread in order to prevent mutual thread access
 				AsyncTask(ENamedThreads::GameThread, [this, Element]()
 				{
+				    // Check if actor has not been garbage collected by UE
 					if (IsValid(Element.Value) && GetWorld()->ContainsActor(Element.Value))
 					{
+					    // If not than despawn it
 						Element.Value->Destroy();
 					}
+					
+					// Remove despawned element from map
 					SpawnedChunks.Remove(Element.Key);
 				});
 			}
@@ -72,11 +78,11 @@ void UVoxelGeneratorComponent::SpawnChunks(const FIntVector ChunkMinDistance, co
 								transform.SetLocation(spawnedChunkLocation);
 							}
 
-							auto chunk = GetWorld()->SpawnActorDeferred<AChunk>(AChunk::StaticClass(), transform,
+							auto chunk = GetWorld()->SpawnActorDeferred<AChunkActor>(AChunkActor::StaticClass(), transform,
 								nullptr, nullptr,
 								ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding);
 
-							chunk->SetMesherClass(DefaultChunkMesher);
+							chunk->SetChunkClass(ChunkTemplate);
 							chunk->SetLockLocation(true);
 							SpawnedChunks.Add(vector, chunk);
 							UGameplayStatics::FinishSpawningActor(chunk, transform);
@@ -140,9 +146,3 @@ void UVoxelGeneratorComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 		SpawnChunks(ChunkMinDistance, ChunkMaxDistance);
 	}
 }
-
-/*
-* 		TRACE_CPUPROFILER_EVENT_SCOPE(VoxelForLoop)
-		auto test = GetWorld()->SpawnActor(TestCube);
-		test->SetActorLocation(location);
- */

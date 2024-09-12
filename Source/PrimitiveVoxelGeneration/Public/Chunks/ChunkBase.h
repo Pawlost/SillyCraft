@@ -5,13 +5,13 @@
 #include "CoreMinimal.h"
 #include "ProceduralMeshComponent.h"
 #include "UObject/Object.h"
-#include "ChunkMesherBase.generated.h"
+#include "ChunkBase.generated.h"
 
 /**
  * 
  */
 UCLASS(Abstract)
-class PRIMITIVEVOXELGENERATION_API UChunkMesherBase : public UObject
+class PRIMITIVEVOXELGENERATION_API UChunkBase : public UObject
 {
 	GENERATED_BODY()
 
