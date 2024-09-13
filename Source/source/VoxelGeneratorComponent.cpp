@@ -442,20 +442,6 @@ void UVoxelGeneratorComponent::GetChunkNeighbors(const int& x, const int& y, con
 	outSideChunks[ChunkMesher::Faces::Top] = m_chunks[TTuple<int, int, int>(x, y, z + 1)];
 }
 
-bool UVoxelGeneratorComponent::InZone(const int& posX, const int& posY, const int& posZ, const int& baseX, const int& baseY, const int& baseZ, const int& size) const
-{
-	return posX > baseX - size && posX < baseX + size &&
-		posY > baseY - size && posY < baseY + size &&
-		posZ > baseZ - size && posZ < baseZ + size;
-}
-
-bool UVoxelGeneratorComponent::OutZone(const int& posX, const int& posY, const int& posZ, const int& baseX, const int& baseY, const int& baseZ, const int& size) const
-{
-	return posX < baseX - size || posX > baseX + size ||
-		posY < baseY - size || posY > baseY + size ||
-		posZ < baseZ - size || posZ > baseZ + size;
-}
-
 void UVoxelGeneratorComponent::CalculateHitCoords(int& x, int& y, int& z, int& chunkX, int& chunkY, int& chunkZ, const FVector& hitLocation) const
 {
 	chunkX = hitLocation.X / Constants::ChunkLenght;
