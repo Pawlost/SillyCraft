@@ -6,6 +6,16 @@
 #include "OperatorOverloads.h"
 #include "Kismet/GameplayStatics.h"
 
+void UVoxelGeneratorComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	for (auto Element : SpawnedChunks)
+	{
+		RemoveChunk(Element);
+	}
+	
+	Super::EndPlay(EndPlayReason);
+}
+
 // Sets default values for this component's properties
 UVoxelGeneratorComponent::UVoxelGeneratorComponent()
 {
@@ -20,6 +30,17 @@ void UVoxelGeneratorComponent::BeginPlay()
 {
 	UpdateCurrentChunkLocation();
 	SpawnChunks(CurrentChunkLocation.ChunkMinCoords, CurrentChunkLocation.ChunkMaxCoords);
+
+	ChunkSettingsPtr = MakeShared<FUChunkSettings>();
+
+	{
+		auto settings = ChunkSettingsPtr.Get();
+		settings->SetSeed(Seed);
+		settings->SetVoxelSize(VoxelSize);
+		settings->SetChunkWidthInBlocks(ChunkWidthInBlocks);
+		settings->SetVoxelTypes(VoxelTypeTable);
+	}
+	
 	Super::BeginPlay();
 }
 
@@ -27,6 +48,23 @@ bool UVoxelGeneratorComponent::IsPlayerInChunkBounds() const
 {
 	auto location = GetOwner()->GetActorTransform().GetLocation();
 	return TVector<double>::PointsAreNear(location, CurrentChunkLocation.Coords, RenderDistanceBounds);
+}
+
+void UVoxelGeneratorComponent::RemoveChunk(const TTuple<TIntVector3<int>, AChunkActor*>& Element)
+{
+	// Remove chunk actor on GameThread in order to prevent mutual thread access
+	AsyncTask(ENamedThreads::GameThread, [this, Element]()
+	{
+		// Check if actor has not been garbage collected by UE
+		if (IsValid(Element.Value) && GetWorld()->ContainsActor(Element.Value))
+		{
+			// If not than despawn it
+			Element.Value->Destroy();
+		}
+					
+		// Remove despawned element from map
+		SpawnedChunks.Remove(Element.Key);
+	});
 }
 
 void UVoxelGeneratorComponent::DespawnChunks(const FIntVector ChunkMinDistance, const FIntVector ChunkMaxDistance)
@@ -38,19 +76,7 @@ void UVoxelGeneratorComponent::DespawnChunks(const FIntVector ChunkMinDistance, 
 		{
 			if (Element.Key < ChunkMinDistance || Element.Key > ChunkMaxDistance)
 			{
-			    // Remove chunk actor on GameThread in order to prevent mutual thread access
-				AsyncTask(ENamedThreads::GameThread, [this, Element]()
-				{
-				    // Check if actor has not been garbage collected by UE
-					if (IsValid(Element.Value) && GetWorld()->ContainsActor(Element.Value))
-					{
-					    // If not than despawn it
-						Element.Value->Destroy();
-					}
-					
-					// Remove despawned element from map
-					SpawnedChunks.Remove(Element.Key);
-				});
+				RemoveChunk(Element);
 			}
 		}
 	});
@@ -82,7 +108,7 @@ void UVoxelGeneratorComponent::SpawnChunks(const FIntVector ChunkMinDistance, co
 								nullptr, nullptr,
 								ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding);
 
-							chunk->SetChunkClass(ChunkTemplate);
+							chunk->SetChunkSettings(ChunkTemplate, ChunkSettingsPtr);
 							chunk->SetLockLocation(true);
 							SpawnedChunks.Add(vector, chunk);
 							UGameplayStatics::FinishSpawningActor(chunk, transform);
@@ -92,14 +118,6 @@ void UVoxelGeneratorComponent::SpawnChunks(const FIntVector ChunkMinDistance, co
 			}
 		}
 	});
-}
-
-void UVoxelGeneratorComponent::ShowDebugVector(TVector<double>& vector, FColor color)
-{
-	GEngine->AddOnScreenDebugMessage(-1, 6.0f, color,
-	                                 *(FString::Printf(
-		                                 TEXT("New Chunk Location - X:%f | Y:%f | Z:%f"),
-		                                 vector.X, vector.Y, vector.Z)));
 }
 
 void UVoxelGeneratorComponent::UpdateCurrentChunkLocation()
@@ -145,4 +163,12 @@ void UVoxelGeneratorComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 		DespawnChunks(ChunkMinDistance, ChunkMaxDistance);
 		SpawnChunks(ChunkMinDistance, ChunkMaxDistance);
 	}
+}
+
+void UVoxelGeneratorComponent::ShowDebugVector(TVector<double>& vector, FColor color)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 6.0f, color,
+									 *(FString::Printf(
+										 TEXT("New Chunk Location - X:%f | Y:%f | Z:%f"),
+										 vector.X, vector.Y, vector.Z)));
 }

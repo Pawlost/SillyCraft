@@ -2,3 +2,8 @@
 
 
 #include "Chunks/ChunkBase.h"
+
+void UChunkBase::SetChunkSettings(const TSharedPtr<FUChunkSettings> chunkSettings)
+{
+	this->ChunkSettings = chunkSettings;
+}

@@ -28,9 +28,11 @@ void UDebugChunk::GenerateMesh(UProceduralMeshComponent* ProcMesh)
 	TSharedPtr<TArray<FLinearColor>> Colors = MakeShared<TArray<FLinearColor>>();
 	Colors.Get()->Append(TArray<FLinearColor>(&FLinearColor::Green, Vertices.Get()->Num()));
 	
-	AsyncTask(ENamedThreads::GameThread, [ProcMesh, Vertices, Triangles, Colors]()
+	AsyncTask(ENamedThreads::GameThread, [this, ProcMesh, Vertices, Triangles, Colors]()
 	{
 	 if(IsValid(ProcMesh) &&  Vertices.IsValid() && Triangles.IsValid() && Colors.IsValid()){
+	 		auto test = this->ChunkSettings.Get();
+	 		int32 test2 = test->GetSeed();
 			ProcMesh->CreateMeshSection_LinearColor(0, *Vertices.Get(), *Triangles.Get(), TArray<FVector>(), TArray<FVector2D>(), *Colors.Get(), TArray<FProcMeshTangent>(), true);
 			ProcMesh->SetMeshSectionVisible(0, true);
 	    }

@@ -17,7 +17,7 @@ public:
 	// Sets default values for this actor's properties
 	AChunkActor();
 
-	void SetChunkClass(const TSubclassOf<UChunkBase>& chunkClass);
+	void SetChunkSettings(const TSubclassOf<UChunkBase>& chunkClass, TSharedPtr<FUChunkSettings> chunkSettings);
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -31,6 +31,8 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UProceduralMeshComponent> MeshComponent = nullptr;
+
+	TSharedPtr<FUChunkSettings> ChunkSettings = nullptr;
 
 public:
 	// Called every frame

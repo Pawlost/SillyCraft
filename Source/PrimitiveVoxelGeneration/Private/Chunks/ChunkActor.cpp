@@ -10,11 +10,13 @@ AChunkActor::AChunkActor()
 	PrimaryActorTick.bCanEverTick = true;
 
 	MeshComponent = CreateDefaultSubobject<UProceduralMeshComponent>("MeshComponent");
+	SetRootComponent(MeshComponent);
 }
 
-void AChunkActor::SetChunkClass(const TSubclassOf<UChunkBase>& chunkClass)
+void AChunkActor::SetChunkSettings(const TSubclassOf<UChunkBase>& chunkClass, TSharedPtr<FUChunkSettings> chunkSettings)
 {
 	ChunkClass = chunkClass;
+	ChunkSettings = chunkSettings;
 }
 
 // Called when the game starts or when spawned
@@ -23,6 +25,7 @@ void AChunkActor::BeginPlay()
 	checkf(ChunkClass, TEXT("You must provide a valid chunk mesher class."));
 
 	Chunk = NewObject<UChunkBase>(this, ChunkClass);
+	Chunk->SetChunkSettings(ChunkSettings);
 
 	AsyncTask(ENamedThreads::AnyThread, [this]()
 	{
