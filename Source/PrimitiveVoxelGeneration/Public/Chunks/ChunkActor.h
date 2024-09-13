@@ -4,9 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "ProceduralMeshComponent.h"
-#include "Chunks/ChunkBase.h"
 #include "GameFramework/Actor.h"
 #include "ChunkActor.generated.h"
+
+struct FGenerationSettings;
+class UChunkBase;
 
 UCLASS()
 class PRIMITIVEVOXELGENERATION_API AChunkActor : public AActor
@@ -17,7 +19,7 @@ public:
 	// Sets default values for this actor's properties
 	AChunkActor();
 
-	void SetChunkSettings(const TSubclassOf<UChunkBase>& chunkClass, TSharedPtr<FUChunkSettings> chunkSettings);
+	void SetChunkSettings(const TSubclassOf<UChunkBase>& chunkClass, TSharedPtr<FGenerationSettings> chunkSettings);
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -32,7 +34,7 @@ private:
 	UPROPERTY()
 	TObjectPtr<UProceduralMeshComponent> MeshComponent = nullptr;
 
-	TSharedPtr<FUChunkSettings> ChunkSettings = nullptr;
+	TSharedPtr<FGenerationSettings> ChunkSettings = nullptr;
 
 public:
 	// Called every frame

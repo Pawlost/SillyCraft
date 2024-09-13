@@ -13,7 +13,7 @@ AChunkActor::AChunkActor()
 	SetRootComponent(MeshComponent);
 }
 
-void AChunkActor::SetChunkSettings(const TSubclassOf<UChunkBase>& chunkClass, TSharedPtr<FUChunkSettings> chunkSettings)
+void AChunkActor::SetChunkSettings(const TSubclassOf<UChunkBase>& chunkClass, TSharedPtr<FGenerationSettings> chunkSettings)
 {
 	ChunkClass = chunkClass;
 	ChunkSettings = chunkSettings;
@@ -27,10 +27,12 @@ void AChunkActor::BeginPlay()
 	Chunk = NewObject<UChunkBase>(this, ChunkClass);
 	Chunk->SetChunkSettings(ChunkSettings);
 
-	AsyncTask(ENamedThreads::AnyThread, [this]()
-	{
+	//AsyncTask(ENamedThreads::AnyThread, [this]()
+	//{
+		auto location = GetActorLocation();
+		Chunk->GenerateVoxels(location);
 		Chunk->GenerateMesh(MeshComponent);	
-	});
+//	});
 
 	Super::BeginPlay();
 }

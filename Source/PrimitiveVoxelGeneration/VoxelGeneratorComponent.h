@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Chunks/ChunkActor.h"
-#include "Chunks/ChunkSettings.h"
+#include "Chunks/GenerationSettings.h"
 #include "Components/ActorComponent.h"
 #include "VoxelGeneratorComponent.generated.h"
 
@@ -22,6 +22,12 @@ public:
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation");
 	int64 Seed = 1234;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation");
+	double MaximumElevation = 2000.0;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation");
+	double Frequency = 2000.0;
 	
    	//if set will overide all chunk meshers
    	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation");
@@ -33,7 +39,7 @@ public:
 
 	//Height is same in as Width
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation|Blocks");
-	int32 ChunkWidthInBlocks = 4;
+	int32 ChunkSideSizeInVoxels = 4;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation|Blocks");
     int32 VoxelSize = 100;
@@ -54,11 +60,11 @@ protected:
     virtual void SpawnChunks(const FIntVector ChunkMinDistance, const FIntVector ChunkMaxDistance);
 	
 private:
-	void RemoveChunk(const TTuple<TIntVector3<int>, AChunkActor*>& Element);
+	void RemoveChunk(const TTuple<TIntVector3<int>, AChunkActor*>& Element) const;
 	void ShowDebugVector(TVector<double>& vector, FColor color);
 	void UpdateCurrentChunkLocation();
 
-	const double ChunkSize = VoxelSize * ChunkWidthInBlocks;
+	const double ChunkSize = VoxelSize * ChunkSideSizeInVoxels;
 	const double RenderDistanceBounds = ChunkSize * GenerationDistance;
 
 	struct CurrentChunkLocation
@@ -71,10 +77,9 @@ private:
 	CurrentChunkLocation CurrentChunkLocation;
 	
 	// The reason why shared pointer is used instead of game instance is so multiple moving  voxel generating actors can exist in a same scene with different settings.
-	TSharedPtr<FUChunkSettings> ChunkSettingsPtr;
+	TSharedPtr<FGenerationSettings> ChunkSettingsPtr;
 	
-	UPROPERTY()
-	TMap<FIntVector, AChunkActor*> SpawnedChunks = TMap<FIntVector, AChunkActor*>();
+	TSharedPtr<TMap<FIntVector, AChunkActor*>> SpawnedChunks;
 	
 public:
 	// Called every frame

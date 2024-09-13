@@ -30,10 +30,4 @@ struct PRIMITIVEVOXELGENERATION_API FVoxelType : public FTableRowBase
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	TObjectPtr<UMaterial> Material;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	int32 MinSpawnElevation;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	int32 MaxSpawnElevation;
 };

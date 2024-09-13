@@ -1,25 +1,26 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "ChunkSettings.h"
+#include "GenerationSettings.h"
 #include "ProceduralMeshComponent.h"
 #include "UObject/Object.h"
 #include "ChunkBase.generated.h"
 
 /**
- * 
- */
+ 
+*/
 UCLASS(Abstract)
 class PRIMITIVEVOXELGENERATION_API UChunkBase : public UObject
 {
 	GENERATED_BODY()
-	
+
 public:
-	void SetChunkSettings(const TSharedPtr<FUChunkSettings> ChunkSettings);
+	virtual void SetChunkSettings(const TSharedPtr<FGenerationSettings> ChunkSettings);
+
 	virtual void GenerateMesh(UProceduralMeshComponent* procMesh){}
+	virtual void GenerateVoxels(FVector& origin){}
+	virtual int32 VoxelAt(int32 index){return 0;}
 
 protected:
-	TSharedPtr<FUChunkSettings> ChunkSettings = nullptr;
+	TSharedPtr<FGenerationSettings> ChunkSettings = nullptr;
 };
