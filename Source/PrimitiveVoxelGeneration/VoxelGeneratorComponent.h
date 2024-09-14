@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Chunks/ChunkActor.h"
-#include "Chunks/GenerationSettings.h"
+#include "Chunks/ChunkGridData.h"
 #include "Components/ActorComponent.h"
 #include "VoxelGeneratorComponent.generated.h"
 
@@ -23,11 +23,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation");
 	int64 Seed = 1234;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation");
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation|Noise");
 	double MaximumElevation = 2000.0;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation");
-	double Frequency = 2000.0;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation|Noise");
+	double NoiseFrequency = 0.001;
 	
    	//if set will overide all chunk meshers
    	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation");
@@ -35,14 +35,14 @@ public:
 
 	// How many layers of chunks are generated around player
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation|Blocks");
-	int32 GenerationDistance = 1;
+	int32 GenerationDistance = 2;
 
 	//Height is same in as Width
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation|Blocks");
-	int32 ChunkSideSizeInVoxels = 4;
+	int32 ChunkSideSizeInVoxels = 32;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation|Blocks");
-    int32 VoxelSize = 100;
+    int32 VoxelSize = 20;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Debug");
 	float DebugTime = 0.005f;
@@ -64,8 +64,8 @@ private:
 	void ShowDebugVector(TVector<double>& vector, FColor color);
 	void UpdateCurrentChunkLocation();
 
-	const double ChunkSize = VoxelSize * ChunkSideSizeInVoxels;
-	const double RenderDistanceBounds = ChunkSize * GenerationDistance;
+	double ChunkSize = 0;
+	double RenderDistanceBounds = 0;
 
 	struct CurrentChunkLocation
 	{
@@ -77,8 +77,7 @@ private:
 	CurrentChunkLocation CurrentChunkLocation;
 	
 	// The reason why shared pointer is used instead of game instance is so multiple moving  voxel generating actors can exist in a same scene with different settings.
-	TSharedPtr<FGenerationSettings> ChunkSettingsPtr;
-	
+	TSharedPtr<FChunkGridData> ChunkGridPtr;
 	TSharedPtr<TMap<FIntVector, AChunkActor*>> SpawnedChunks;
 	
 public:

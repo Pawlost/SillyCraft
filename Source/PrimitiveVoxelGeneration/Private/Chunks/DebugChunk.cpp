@@ -4,7 +4,7 @@
 #include "Chunks/DebugChunk.h"
 #include "ProceduralMeshComponent.h"
 
-void UDebugChunk::GenerateMesh(UProceduralMeshComponent* ProcMesh)
+void UDebugChunk::GenerateMesh(UProceduralMeshComponent* ProcMesh, FIntVector& chunkGridPos)
 {
 	TSharedPtr<TArray<FVector>> Vertice = MakeShared<TArray<FVector>>();
 	Vertice->Add(FVector(-100, -100, 0));     // Front-left
@@ -35,6 +35,4 @@ void UDebugChunk::GenerateMesh(UProceduralMeshComponent* ProcMesh)
 			ProcMesh->SetMeshSectionVisible(0, true);
 		}
 	});
-
-	Super::GenerateMesh(ProcMesh);
 }

@@ -3,7 +3,7 @@
 
 #include "Chunks/ChunkBase.h"
 
-void UChunkBase::SetChunkSettings(const TSharedPtr<FGenerationSettings> chunkSettings)
+void UChunkBase::SetChunkSettings(const TSharedPtr<FChunkSettings> chunkSettings)
 {
 	this->ChunkSettings = chunkSettings;
 }

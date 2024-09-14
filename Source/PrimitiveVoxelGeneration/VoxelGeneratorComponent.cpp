@@ -4,6 +4,8 @@
 #include "VoxelGeneratorComponent.h"
 
 #include "OperatorOverloads.h"
+#include "Chunks/ChunkGridData.h"
+#include "Chunks/ChunkSettings.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values for this component's properties
@@ -18,21 +20,28 @@ UVoxelGeneratorComponent::UVoxelGeneratorComponent()
 // Called when the game starts
 void UVoxelGeneratorComponent::BeginPlay()
 {
-	UpdateCurrentChunkLocation();
-	SpawnChunks(CurrentChunkLocation.ChunkMinCoords, CurrentChunkLocation.ChunkMaxCoords);
+	ChunkSize = VoxelSize * ChunkSideSizeInVoxels;
+	RenderDistanceBounds = ChunkSize * GenerationDistance;
 
-	ChunkSettingsPtr = MakeShared<FGenerationSettings>();
 	SpawnedChunks = MakeShared<TMap<FIntVector, AChunkActor*>>();
 
+	auto settings = MakeShared<FChunkSettings>();
 	{
-		auto settings = ChunkSettingsPtr.Get();
 		settings->SetSeed(Seed);
 		settings->SetVoxelSize(VoxelSize);
 		settings->SetChunkSizeInVoxels(ChunkSideSizeInVoxels);
 		settings->SetVoxelTypes(VoxelTypeTable);
 		settings->SetMaximumElevation(MaximumElevation);
-		settings->SetSpawnedChunks(SpawnedChunks);
+		settings->SetNoiseFrequency(NoiseFrequency);
 	}
+	
+	ChunkGridPtr = MakeShared<FChunkGridData>();
+	ChunkGridPtr->SetSpawnedChunks(SpawnedChunks);
+	ChunkGridPtr->SetChunkClass(ChunkTemplate);
+	ChunkGridPtr->SetChunkSettings(settings);
+	
+	UpdateCurrentChunkLocation();
+	SpawnChunks(CurrentChunkLocation.ChunkMinCoords, CurrentChunkLocation.ChunkMaxCoords);
 	
 	Super::BeginPlay();
 }
@@ -51,7 +60,7 @@ void UVoxelGeneratorComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 bool UVoxelGeneratorComponent::IsPlayerInChunkBounds() const
 {
 	auto location = GetOwner()->GetActorTransform().GetLocation();
-	return TVector<double>::PointsAreNear(location, CurrentChunkLocation.Coords, RenderDistanceBounds);
+	return TVector<double>::PointsAreNear(location, CurrentChunkLocation.Coords, VoxelSize * ChunkSideSizeInVoxels * GenerationDistance);
 }
 
 void UVoxelGeneratorComponent::RemoveChunk(const TTuple<TIntVector3<int>, AChunkActor*>& Chunk) const
@@ -67,7 +76,7 @@ void UVoxelGeneratorComponent::RemoveChunk(const TTuple<TIntVector3<int>, AChunk
 		}
 
 		// Remove despawned element from map
-		SpawnedChunks->Remove(Chunk.Key);
+		ChunkGridPtr->RemoveChunkFromGrid(Chunk.Key);
 	});
 }
 
@@ -90,31 +99,32 @@ void UVoxelGeneratorComponent::SpawnChunks(const FIntVector ChunkMinDistance, co
 {
 	AsyncTask(ENamedThreads::AnyThread, [this, ChunkMinDistance, ChunkMaxDistance]()
 	{
-		for (int x = ChunkMinDistance.X; x <= ChunkMaxDistance.X; x++)
+		for (int x = ChunkMinDistance.X; x < ChunkMaxDistance.X; x++)
 		{
-			for (int y = ChunkMinDistance.Y; y <= ChunkMaxDistance.Y; y++)
+			for (int y = ChunkMinDistance.Y; y < ChunkMaxDistance.Y; y++)
 			{
-				for (int z = ChunkMinDistance.Z; z <= ChunkMaxDistance.Z; z++)
+				for (int z = ChunkMinDistance.Z; z < ChunkMaxDistance.Z; z++)
 				{
-					auto vector = FIntVector(x, y, z);
-					if (!SpawnedChunks->Contains(vector))
+					auto gridCoords = FIntVector(x, y, z);
+					
+					if (!ChunkGridPtr->IsChunkInGrid(gridCoords))
 					{
-						AsyncTask(ENamedThreads::GameThread, [this, vector]()
+						auto transform = FTransform::Identity;
+
 						{
-							auto transform = FTransform::Identity;
-
-							{
-								auto spawnedChunkLocation = FVector(vector.X, vector.Y, vector.Z) * ChunkSize;
-								transform.SetLocation(spawnedChunkLocation);
-							}
-
+							auto spawnedChunkLocation = FVector(gridCoords.X, gridCoords.Y, gridCoords.Z) * ChunkSize;
+							transform.SetLocation(spawnedChunkLocation);
+						}
+						
+						AsyncTask(ENamedThreads::GameThread, [this, gridCoords, transform]()
+						{
 							auto chunk = GetWorld()->SpawnActorDeferred<AChunkActor>(AChunkActor::StaticClass(), transform,
 								nullptr, nullptr,
 								ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding);
 
-							chunk->SetChunkSettings(ChunkTemplate, ChunkSettingsPtr);
+							chunk->SetChunkSettings(ChunkGridPtr, gridCoords);
 							chunk->SetLockLocation(true);
-							SpawnedChunks->Add(vector, chunk);
+							ChunkGridPtr->AddChunkToGrid(gridCoords, chunk);
 							UGameplayStatics::FinishSpawningActor(chunk, transform);
 						});
 					}

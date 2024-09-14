@@ -7,7 +7,7 @@
 #include "FastNoiseWrapper.h"
 #include "DefaultChunk.generated.h"
 
-struct FVoxelFace;
+struct FChunkFace;
 /**
  * 
  */
@@ -18,15 +18,18 @@ class PRIMITIVEVOXELGENERATION_API UDefaultChunk : public UChunkBase
 
 public:
 	UDefaultChunk();
-	void NaiveMeshing(int voxelChunk, int prevIndexDifference, int32 frontIndex,
-		FVoxelFace& face, TArray<FVoxelFace>& faces);
-	
-	virtual void GenerateVoxels(FVector& origin) override;
-	virtual void GenerateMesh(UProceduralMeshComponent* procMesh) override;
-	virtual void SetChunkSettings(const TSharedPtr<FGenerationSettings> ChunkSettings) override;
+	virtual void GenerateVoxels(FIntVector& chunkGridPos) override;
+	virtual void GenerateMesh(UProceduralMeshComponent* procMesh, FIntVector& chunkGridPos) override;
+	virtual void SetChunkSettings(const TSharedPtr<FChunkSettings> ChunkSettings) override;
 	virtual int32 VoxelAt(int32 index) override;
 
 private:
+	void AddNaiveMeshedFace(int32 frontVoxelPos,
+		FChunkFace& face, TArray<FChunkFace>& faces);
+
+	bool CheckBorderMin(int min, int32 forwardChunkIndex);
+	bool CheckBorderMax(int max, int32 forwardChunkIndex);
+	
 	UPROPERTY()
 	TObjectPtr<UFastNoiseWrapper> Noise;
 	TArray<int32> Voxels;
