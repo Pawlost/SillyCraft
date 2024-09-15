@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ChunkBase.h"
+#include "ChunkGridData.h"
 #include "FastNoiseWrapper.h"
 #include "DefaultChunk.generated.h"
 
@@ -20,17 +21,22 @@ public:
 	UDefaultChunk();
 	virtual void GenerateVoxels(FIntVector& chunkGridPos) override;
 	virtual void GenerateMesh(UProceduralMeshComponent* procMesh, FIntVector& chunkGridPos) override;
-	virtual void SetChunkSettings(const TSharedPtr<FChunkSettings> ChunkSettings) override;
+	virtual void SetChunkGridData(const TSharedPtr<FChunkGridData> chunkGridData) override;
 	virtual int32 VoxelAt(int32 index) override;
 
 private:
-	void AddNaiveMeshedFace(int32 frontVoxelPos,
-		FChunkFace& face, TArray<FChunkFace>& faces);
+	void AddNaiveMeshedFace(FChunkFace& face, TArray<FChunkFace>& faces);
 
-	bool CheckBorderMin(int min, int32 forwardChunkIndex);
-	bool CheckBorderMax(int max, int32 forwardChunkIndex);
+	bool ChunkCull(int32 chunkIndex, FIntVector& neigborChunkCoords);
+	bool VoxelCull(int32 forwardVoxelIndex);
+
+	bool CrossChunkCullMin(int min, int32 forwardVoxelIndex, int32 chunkIndex, FIntVector& neighborChunkCoords);
+	bool CrossChunkCullMax(int max, int32 forwardVoxelIndex, int32 chunkIndex, FIntVector& neighborChunkCoords);
 	
 	UPROPERTY()
 	TObjectPtr<UFastNoiseWrapper> Noise;
 	TArray<int32> Voxels;
+
+	TSharedPtr<FChunkGridData> ChunkGridData;
+	TSharedPtr<FChunkSettings> ChunkSettings;
 };

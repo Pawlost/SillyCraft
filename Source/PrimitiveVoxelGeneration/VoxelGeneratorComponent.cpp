@@ -122,7 +122,7 @@ void UVoxelGeneratorComponent::SpawnChunks(const FIntVector ChunkMinDistance, co
 								nullptr, nullptr,
 								ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding);
 
-							chunk->SetChunkSettings(ChunkGridPtr, gridCoords);
+							chunk->SetChunkGridData(ChunkGridPtr, gridCoords);
 							chunk->SetLockLocation(true);
 							ChunkGridPtr->AddChunkToGrid(gridCoords, chunk);
 							UGameplayStatics::FinishSpawningActor(chunk, transform);

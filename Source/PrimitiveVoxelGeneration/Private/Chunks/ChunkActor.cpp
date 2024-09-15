@@ -13,27 +13,33 @@ AChunkActor::AChunkActor()
 	SetRootComponent(MeshComponent);
 }
 
-void AChunkActor::SetChunkSettings(const TSharedPtr<FChunkGridData>& chunkGridData, const FIntVector& chunkGridPos)
+void AChunkActor::SetChunkGridData(const TSharedPtr<FChunkGridData>& chunkGridData, const FIntVector& chunkGridPos)
 {
 	ChunkGridPos = chunkGridPos;
 	ChunkGridData = chunkGridData;
+	
+	// TODO: add checkf
+	auto chunkClass = ChunkGridData->GetChunkClass();
+	Chunk = NewObject<UChunkBase>(this, chunkClass);
+	
+	Chunk->SetChunkGridData(ChunkGridData);
+
+//	AsyncTask(ENamedThreads::AnyThread, [this]()
+//	{
+		Chunk->GenerateVoxels(ChunkGridPos);
+//	});
+}
+
+int AChunkActor::VoxelIdAt(const int index) const
+{
+	return Chunk->VoxelAt(index);
 }
 
 // Called when the game starts or when spawned
 void AChunkActor::BeginPlay()
 {
-	// TODO: add checkf
-	auto chunkClass = ChunkGridData->GetChunkClass();
-	Chunk = NewObject<UChunkBase>(this, chunkClass);
-	
-	Chunk->SetChunkSettings(ChunkGridData->GetChunkSettings());
 
-	AsyncTask(ENamedThreads::AnyThread, [this]()
-	{
-		Chunk->GenerateVoxels(ChunkGridPos);
-		Chunk->GenerateMesh(MeshComponent, ChunkGridPos);	
-	});
-
+	Chunk->GenerateMesh(MeshComponent, ChunkGridPos);	
 	Super::BeginPlay();
 }
 

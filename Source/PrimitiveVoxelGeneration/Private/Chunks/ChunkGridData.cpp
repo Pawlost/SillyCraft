@@ -18,8 +18,18 @@ void FChunkGridData::RemoveChunkFromGrid(const FIntVector& gridPos) const
 
 bool FChunkGridData::IsChunkInGrid(const FIntVector& gridPos) const
 {
-	//FScopeLock Lock(&DataGuard);
-	return  SpawnedChunks->Contains(gridPos);
+	return SpawnedChunks->Contains(gridPos);
+}
+
+AChunkActor* FChunkGridData::GetChunkPtr(const FIntVector& gridPos) const
+{
+	auto chunk = SpawnedChunks->Find(gridPos);
+	if(chunk != nullptr)
+	{
+		return *chunk;
+	}
+
+	return nullptr;
 }
 
 void FChunkGridData::SetSpawnedChunks(const TSharedPtr<TMap<FIntVector, AChunkActor*>>& spawnedChunks)

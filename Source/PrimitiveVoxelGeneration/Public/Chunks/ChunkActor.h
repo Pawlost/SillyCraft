@@ -20,7 +20,9 @@ public:
 	// Sets default values for this actor's properties
 	AChunkActor();
 
-	void SetChunkSettings(const TSharedPtr<FChunkGridData>& chunkGridData, const FIntVector& chunkGridPos);
+	void SetChunkGridData(const TSharedPtr<FChunkGridData>& chunkGridData, const FIntVector& chunkGridPos);
+	int VoxelIdAt(int index) const;
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
