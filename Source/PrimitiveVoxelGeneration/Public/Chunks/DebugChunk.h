@@ -16,5 +16,5 @@ class PRIMITIVEVOXELGENERATION_API UDebugChunk : public UChunkBase
 public:
 	UDebugChunk(){}
 
-	virtual void GenerateMesh(UProceduralMeshComponent* procMesh, FIntVector& chunkGridPos) override;
+	virtual void GenerateMesh() override;
 };

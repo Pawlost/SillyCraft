@@ -4,7 +4,7 @@
 #include "Chunks/DebugChunk.h"
 #include "ProceduralMeshComponent.h"
 
-void UDebugChunk::GenerateMesh(UProceduralMeshComponent* ProcMesh, FIntVector& chunkGridPos)
+void UDebugChunk::GenerateMesh()
 {
 	TSharedPtr<TArray<FVector>> Vertice = MakeShared<TArray<FVector>>();
 	Vertice->Add(FVector(-100, -100, 0));     // Front-left
@@ -28,11 +28,12 @@ void UDebugChunk::GenerateMesh(UProceduralMeshComponent* ProcMesh, FIntVector& c
 	TSharedPtr<TArray<FLinearColor>> Colors = MakeShared<TArray<FLinearColor>>();
 //	Colors.Get()->Append(TArray<FLinearColor>(&FLinearColor::Green, vertice->Num()*3));
 
-	AsyncTask(ENamedThreads::GameThread, [this, &ProcMesh, Vertice, Triangles, Colors]()
+	AsyncTask(ENamedThreads::GameThread, [this, Vertice, Triangles, Colors]()
 	{
-	 if(IsValid(ProcMesh) &&  Vertice.IsValid() && Triangles.IsValid() && Colors.IsValid()){
-			ProcMesh->CreateMeshSection_LinearColor(0,*Vertice.Get(), *Triangles.Get(), TArray<FVector>(), TArray<FVector2D>(),*Colors.Get(), TArray<FProcMeshTangent>(), true);
-			ProcMesh->SetMeshSectionVisible(0, true);
+		auto procMesh= ChunkActor->GetProceduralMeshComponent();
+	 if(procMesh.IsValid(false,true) &&  Vertice.IsValid() && Triangles.IsValid() && Colors.IsValid()){
+			procMesh->CreateMeshSection_LinearColor(0,*Vertice.Get(), *Triangles.Get(), TArray<FVector>(), TArray<FVector2D>(),*Colors.Get(), TArray<FProcMeshTangent>(), true);
+			procMesh->SetMeshSectionVisible(0, true);
 		}
 	});
 }

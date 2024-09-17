@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ChunkGridData.h"
 #include "ProceduralMeshComponent.h"
 #include "GameFramework/Actor.h"
 #include "ChunkActor.generated.h"
@@ -14,14 +13,15 @@ class UChunkBase;
 UCLASS()
 class PRIMITIVEVOXELGENERATION_API AChunkActor : public AActor
 {
-GENERATED_BODY()
-	
+public:
+	TWeakObjectPtr<UProceduralMeshComponent> GetProceduralMeshComponent() const;
+
+private:
+	GENERATED_BODY()
+
 public:
 	// Sets default values for this actor's properties
 	AChunkActor();
-
-	void SetChunkGridData(const TSharedPtr<FChunkGridData>& chunkGridData, const FIntVector& chunkGridPos);
-	int VoxelIdAt(int index) const;
 	
 protected:
 	// Called when the game starts or when spawned
@@ -29,16 +29,8 @@ protected:
 
 private:
 	UPROPERTY()
-	TObjectPtr<UChunkBase> Chunk = nullptr;
-
-	UPROPERTY()
-	TObjectPtr<UProceduralMeshComponent> MeshComponent = nullptr;
-
-	UPROPERTY()
-	FIntVector ChunkGridPos;
-
-	TSharedPtr<FChunkGridData> ChunkGridData = nullptr;
-
+	TWeakObjectPtr<UProceduralMeshComponent> ProceduralMeshComponent = nullptr;
+	
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

@@ -19,21 +19,16 @@ struct PRIMITIVEVOXELGENERATION_API FChunkGridData
 	GENERATED_BODY()
 	
 	//TODO: naming conventions
-	void AddChunkToGrid(const FIntVector& gridPos, AChunkActor* actor) const;
+	void AddChunkToGrid(UChunkBase* chunk, const FIntVector& gridPos) const;
 	void RemoveChunkFromGrid(const FIntVector& gridPos) const;
 	bool IsChunkInGrid(const FIntVector& gridPos) const;
-	AChunkActor* GetChunkPtr(const FIntVector& gridPos) const;
+	UChunkBase* GetChunkPtr(const FIntVector& gridPos) const;
 	
-	void SetSpawnedChunks(const TSharedPtr<TMap<FIntVector, AChunkActor*>>& spawnedChunks);
-	TSubclassOf<UChunkBase> GetChunkClass() const;
-	void SetChunkClass(const TSubclassOf<UChunkBase>& chunkClass);
+	void SetSpawnedChunks(const TSharedPtr<TMap<FIntVector, UChunkBase*>>& spawnedChunks);
 	void SetChunkSettings(const TSharedPtr<FChunkSettings>& chunKSettings);
 	TSharedPtr<FChunkSettings> GetChunkSettings() const;
 	
 private:
-	UPROPERTY()
-	TSubclassOf<UChunkBase> ChunkClass = nullptr;
-	
-	TSharedPtr<TMap<FIntVector, AChunkActor*>> SpawnedChunks;
+	TSharedPtr<TMap<FIntVector, UChunkBase*>> SpawnedChunks;
 	TSharedPtr<FChunkSettings> ChunkSettings;
 };

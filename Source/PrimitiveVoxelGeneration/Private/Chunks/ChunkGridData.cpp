@@ -3,11 +3,10 @@
 
 #include "Chunks/ChunkGridData.h"
 
-
-void FChunkGridData::AddChunkToGrid(const FIntVector& gridPos, AChunkActor* actor) const
+void FChunkGridData::AddChunkToGrid(UChunkBase* chunk, const FIntVector& gridPos) const
 {
 	//FScopeLock Lock(&DataGuard);
-	SpawnedChunks->Add(gridPos, actor);
+	SpawnedChunks->Add(gridPos, chunk);
 }
 
 void FChunkGridData::RemoveChunkFromGrid(const FIntVector& gridPos) const
@@ -21,7 +20,7 @@ bool FChunkGridData::IsChunkInGrid(const FIntVector& gridPos) const
 	return SpawnedChunks->Contains(gridPos);
 }
 
-AChunkActor* FChunkGridData::GetChunkPtr(const FIntVector& gridPos) const
+UChunkBase* FChunkGridData::GetChunkPtr(const FIntVector& gridPos) const
 {
 	auto chunk = SpawnedChunks->Find(gridPos);
 	if(chunk != nullptr)
@@ -32,24 +31,15 @@ AChunkActor* FChunkGridData::GetChunkPtr(const FIntVector& gridPos) const
 	return nullptr;
 }
 
-void FChunkGridData::SetSpawnedChunks(const TSharedPtr<TMap<FIntVector, AChunkActor*>>& spawnedChunks)
+void FChunkGridData::SetSpawnedChunks(const TSharedPtr<TMap<FIntVector, UChunkBase*>>& spawnedChunks)
 {
 	this->SpawnedChunks = spawnedChunks;
 }
 
+
 TSharedPtr<FChunkSettings> FChunkGridData::GetChunkSettings() const
 {
 	return ChunkSettings;
-}
-
-TSubclassOf<UChunkBase> FChunkGridData::GetChunkClass() const
-{
-	return ChunkClass;
-}
-
-void FChunkGridData::SetChunkClass(const TSubclassOf<UChunkBase>& chunkClass)
-{
-	this->ChunkClass = chunkClass;
 }
 
 void FChunkGridData::SetChunkSettings(const TSharedPtr<FChunkSettings>& chunKSettings)

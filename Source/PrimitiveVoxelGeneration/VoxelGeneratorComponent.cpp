@@ -3,10 +3,10 @@
 
 #include "VoxelGeneratorComponent.h"
 
-#include "OperatorOverloads.h"
+#include "Chunks/ChunkBase.h"
 #include "Chunks/ChunkGridData.h"
 #include "Chunks/ChunkSettings.h"
-#include "Kismet/GameplayStatics.h"
+#include "OperatorOverloads.h"
 
 // Sets default values for this component's properties
 UVoxelGeneratorComponent::UVoxelGeneratorComponent()
@@ -23,7 +23,7 @@ void UVoxelGeneratorComponent::BeginPlay()
 	ChunkSize = VoxelSize * ChunkSideSizeInVoxels;
 	RenderDistanceBounds = ChunkSize * GenerationDistance;
 
-	SpawnedChunks = MakeShared<TMap<FIntVector, AChunkActor*>>();
+	SpawnedChunks = MakeShared<TMap<FIntVector, UChunkBase*>>();
 
 	auto settings = MakeShared<FChunkSettings>();
 	{
@@ -36,8 +36,8 @@ void UVoxelGeneratorComponent::BeginPlay()
 	}
 	
 	ChunkGridPtr = MakeShared<FChunkGridData>();
+	//TODO: get enumerator and set grid in chunk grid
 	ChunkGridPtr->SetSpawnedChunks(SpawnedChunks);
-	ChunkGridPtr->SetChunkClass(ChunkTemplate);
 	ChunkGridPtr->SetChunkSettings(settings);
 	
 	UpdateCurrentChunkLocation();
@@ -50,7 +50,7 @@ void UVoxelGeneratorComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	for (auto Element : *SpawnedChunks.Get())
 	{
-		RemoveChunk(Element);
+		Element.Value->Despawn();
 	}
 	
 	Super::EndPlay(EndPlayReason);
@@ -79,48 +79,58 @@ bool UVoxelGeneratorComponent::IsPlayerInChunkBounds() const
 								 CurrentChunkLocation.Coords.X, CurrentChunkLocation.Coords.Y,
 								 CurrentChunkLocation.Coords.Z)));
 	
-	return TVector<double>::PointsAreNear(location, CurrentChunkLocation.Coords, distance);
+	return UE::Math::TVector<double>::PointsAreNear(location, CurrentChunkLocation.Coords, distance);
 }
 
-void UVoxelGeneratorComponent::RemoveChunk(const TTuple<TIntVector3<int>, AChunkActor*>& Chunk) const
-{
-	// Remove chunk actor on GameThread in order to prevent mutual thread access
-	AsyncTask(ENamedThreads::GameThread, [this, Chunk]()
-	{
-		// Check if actor has not been garbage collected by UE
-		if (IsValid(Chunk.Value) && GetWorld()->ContainsActor(Chunk.Value))
-		{
-			// If not than despawn it
-			Chunk.Value->Destroy();
-		}
-
-		// Remove despawned element from map
-		ChunkGridPtr->RemoveChunkFromGrid(Chunk.Key);
-	});
-}
-
-void UVoxelGeneratorComponent::DespawnChunks(const FIntVector ChunkMinDistance, const FIntVector ChunkMaxDistance)
+void UVoxelGeneratorComponent::DespawnChunks(const FIntVector& ChunkMinDistance, const FIntVector& ChunkMaxDistance)
 {
 	// Async check of every chunk outside bounds
-/*	auto result = Async(EAsyncExecution::Thread, [this, ChunkMinDistance, ChunkMaxDistance]()
+	AsyncTask(ENamedThreads::AnyThread, [this, ChunkMinDistance, ChunkMaxDistance]()
 	{
-		for (auto Element : *SpawnedChunks.Get())
+		auto identity = FIntVector(1, 1, 1);
+		auto minDistancePlus = ChunkMinDistance + identity;
+		auto maxDistancePlus = ChunkMaxDistance + identity;
+
+		TArray<FIntVector> ChunkCoords;	
+		SpawnedChunks->GetKeys(ChunkCoords);
+		for (auto Coord : ChunkCoords)
 		{
-			if (Element.Key <= ChunkMinDistance || Element.Key >= ChunkMaxDistance)
+			if (Coord < minDistancePlus || Coord > maxDistancePlus)
 			{
-				RemoveChunk(Element);
+				SpawnedChunks.Get()->FindChecked(Coord)->Despawn();
+			}else if (Coord < ChunkMinDistance || Coord > ChunkMaxDistance)
+			{
+				SpawnedChunks.Get()->FindChecked(Coord)->RemoveMesh();
 			}
 		}
-	});
-
-	result.Wait();*/
+	}); 
 }
 
 void UVoxelGeneratorComponent::SpawnChunks(const FIntVector ChunkMinDistance, const FIntVector ChunkMaxDistance)
 {
-//	AsyncTask(ENamedThreads::AnyThread, [this, ChunkMinDistance, ChunkMaxDistance]()
+	AsyncTask(ENamedThreads::AnyThread, [this, ChunkMinDistance, ChunkMaxDistance]()
 	{
-		TArray<TTuple<AChunkActor*, FTransform>> ChunkHandles = TArray<TTuple<AChunkActor*, FTransform>>();
+		for (int x = ChunkMinDistance.X - 1; x <= ChunkMaxDistance.X; x++)
+		{
+			for (int y = ChunkMinDistance.Y - 1; y <= ChunkMaxDistance.Y; y++)
+			{
+				for (int z = ChunkMinDistance.Z - 1; z <= ChunkMaxDistance.Z; z++)
+				{
+					auto gridCoords = FIntVector(x, y, z);
+					
+					if (!ChunkGridPtr->IsChunkInGrid(gridCoords))
+					{
+					//	AsyncTask(ENamedThreads::GameThread, [this, gridCoords, transform]()
+						{
+							auto Chunk = NewObject<UChunkBase>(this, ChunkTemplate);
+							Chunk->AddToGrid(ChunkGridPtr, gridCoords);
+							Chunk->GenerateVoxels();
+						}//);
+					}
+				}
+			}
+		}
+
 
 		for (int x = ChunkMinDistance.X; x < ChunkMaxDistance.X; x++)
 		{
@@ -128,47 +138,32 @@ void UVoxelGeneratorComponent::SpawnChunks(const FIntVector ChunkMinDistance, co
 			{
 				for (int z = ChunkMinDistance.Z; z < ChunkMaxDistance.Z; z++)
 				{
-					auto gridCoords = FIntVector(x, y, z);
-					
-					if (!ChunkGridPtr->IsChunkInGrid(gridCoords))
+					auto Chunk = ChunkGridPtr->GetChunkPtr(FIntVector(x, y, z));
+
+					if(Chunk == nullptr)
 					{
-						auto transform = FTransform::Identity;
+						continue;
+					}
 
-						{
-							auto spawnedChunkLocation = FVector(gridCoords.X, gridCoords.Y, gridCoords.Z) * ChunkSize;
-							transform.SetLocation(spawnedChunkLocation);
-						}
-						
-					//	AsyncTask(ENamedThreads::GameThread, [this, gridCoords, transform]()
-						{
-							auto chunk = GetWorld()->SpawnActorDeferred<AChunkActor>(AChunkActor::StaticClass(), transform,
-								nullptr, nullptr,
-								ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding);
-
-							chunk->SetChunkGridData(ChunkGridPtr, gridCoords);
-							chunk->SetLockLocation(true);
-							ChunkGridPtr->AddChunkToGrid(gridCoords, chunk);
-							ChunkHandles.Add(TTuple<AChunkActor*, FTransform>(chunk, transform));
-						}//);
+					if(!Chunk->IsSpawned())
+					{
+						Chunk->StartSpawn();
+						Chunk->GenerateMesh();
+						Chunk->FinishSpawn();
+					}else
+					{
+						Chunk->GenerateMesh();
 					}
 				}
 			}
 		}
-
-	for (auto ChunkHandle : ChunkHandles)
-	{
-		UGameplayStatics::FinishSpawningActor(ChunkHandle.Key, ChunkHandle.Value);
-	}
-		
-	}//);
+	});
 }
 
 void UVoxelGeneratorComponent::UpdateCurrentChunkLocation()
 {
-	auto generatorLocation = GetOwner()->GetActorTransform().GetLocation();
-	
 	{
-		const auto generatorGridLocation = generatorLocation / ChunkSize;
+		const auto generatorGridLocation = GetOwner()->GetActorTransform().GetLocation() / ChunkSize;
 
 		CurrentChunkLocation.Coords.X = FMath::Floor(generatorGridLocation.X);
 		CurrentChunkLocation.Coords.Y = FMath::Floor(generatorGridLocation.Y);

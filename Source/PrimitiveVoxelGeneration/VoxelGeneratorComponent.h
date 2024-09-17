@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Chunks/ChunkActor.h"
 #include "Chunks/ChunkGridData.h"
 #include "Components/ActorComponent.h"
 #include "VoxelGeneratorComponent.generated.h"
@@ -56,11 +55,10 @@ protected:
 	
 	virtual bool IsPlayerInChunkBounds() const;
 	
-	virtual void DespawnChunks(const FIntVector ChunkMinDistance, const FIntVector ChunkMaxDistance);
+	virtual void DespawnChunks(const FIntVector& ChunkMinDistance, const FIntVector& ChunkMaxDistance);
     virtual void SpawnChunks(const FIntVector ChunkMinDistance, const FIntVector ChunkMaxDistance);
 	
 private:
-	void RemoveChunk(const TTuple<TIntVector3<int>, AChunkActor*>& Element) const;
 	void ShowDebugVector(TVector<double>& vector, FColor color);
 	void UpdateCurrentChunkLocation();
 
@@ -78,7 +76,7 @@ private:
 	
 	// The reason why shared pointer is used instead of game instance is so multiple moving  voxel generating actors can exist in a same scene with different settings.
 	TSharedPtr<FChunkGridData> ChunkGridPtr;
-	TSharedPtr<TMap<FIntVector, AChunkActor*>> SpawnedChunks;
+	TSharedPtr<TMap<FIntVector, UChunkBase*>> SpawnedChunks;
 	
 public:
 	// Called every frame
