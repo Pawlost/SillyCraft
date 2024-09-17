@@ -60,7 +60,26 @@ void UVoxelGeneratorComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 bool UVoxelGeneratorComponent::IsPlayerInChunkBounds() const
 {
 	auto location = GetOwner()->GetActorTransform().GetLocation();
-	return TVector<double>::PointsAreNear(location, CurrentChunkLocation.Coords, VoxelSize * ChunkSideSizeInVoxels * GenerationDistance);
+
+	auto distance = VoxelSize * ChunkSideSizeInVoxels;
+	
+	GEngine->AddOnScreenDebugMessage(-1, DebugTime, FColor::Green,
+									 *(FString::Printf(
+										 TEXT("Generator Position - X:%f | Y:%f | Z:%f"),
+										 location.X, location.Y,
+										 location.Z)));
+
+	GEngine->AddOnScreenDebugMessage(-1, DebugTime, FColor::Green,
+								 *(FString::Printf(
+									 TEXT("Distance:%d"),distance)));
+
+	GEngine->AddOnScreenDebugMessage(-1, DebugTime, FColor::Green,
+							 *(FString::Printf(
+								 TEXT("Current chunk location - X:%f | Y:%f | Z:%f"),
+								 CurrentChunkLocation.Coords.X, CurrentChunkLocation.Coords.Y,
+								 CurrentChunkLocation.Coords.Z)));
+	
+	return TVector<double>::PointsAreNear(location, CurrentChunkLocation.Coords, distance);
 }
 
 void UVoxelGeneratorComponent::RemoveChunk(const TTuple<TIntVector3<int>, AChunkActor*>& Chunk) const
@@ -83,22 +102,26 @@ void UVoxelGeneratorComponent::RemoveChunk(const TTuple<TIntVector3<int>, AChunk
 void UVoxelGeneratorComponent::DespawnChunks(const FIntVector ChunkMinDistance, const FIntVector ChunkMaxDistance)
 {
 	// Async check of every chunk outside bounds
-	AsyncTask(ENamedThreads::AnyThread, [this, ChunkMinDistance, ChunkMaxDistance]()
+/*	auto result = Async(EAsyncExecution::Thread, [this, ChunkMinDistance, ChunkMaxDistance]()
 	{
 		for (auto Element : *SpawnedChunks.Get())
 		{
-			if (Element.Key < ChunkMinDistance || Element.Key > ChunkMaxDistance)
+			if (Element.Key <= ChunkMinDistance || Element.Key >= ChunkMaxDistance)
 			{
 				RemoveChunk(Element);
 			}
 		}
 	});
+
+	result.Wait();*/
 }
 
 void UVoxelGeneratorComponent::SpawnChunks(const FIntVector ChunkMinDistance, const FIntVector ChunkMaxDistance)
 {
-	AsyncTask(ENamedThreads::AnyThread, [this, ChunkMinDistance, ChunkMaxDistance]()
+//	AsyncTask(ENamedThreads::AnyThread, [this, ChunkMinDistance, ChunkMaxDistance]()
 	{
+		TArray<TTuple<AChunkActor*, FTransform>> ChunkHandles = TArray<TTuple<AChunkActor*, FTransform>>();
+
 		for (int x = ChunkMinDistance.X; x < ChunkMaxDistance.X; x++)
 		{
 			for (int y = ChunkMinDistance.Y; y < ChunkMaxDistance.Y; y++)
@@ -116,7 +139,7 @@ void UVoxelGeneratorComponent::SpawnChunks(const FIntVector ChunkMinDistance, co
 							transform.SetLocation(spawnedChunkLocation);
 						}
 						
-						AsyncTask(ENamedThreads::GameThread, [this, gridCoords, transform]()
+					//	AsyncTask(ENamedThreads::GameThread, [this, gridCoords, transform]()
 						{
 							auto chunk = GetWorld()->SpawnActorDeferred<AChunkActor>(AChunkActor::StaticClass(), transform,
 								nullptr, nullptr,
@@ -125,35 +148,36 @@ void UVoxelGeneratorComponent::SpawnChunks(const FIntVector ChunkMinDistance, co
 							chunk->SetChunkGridData(ChunkGridPtr, gridCoords);
 							chunk->SetLockLocation(true);
 							ChunkGridPtr->AddChunkToGrid(gridCoords, chunk);
-							UGameplayStatics::FinishSpawningActor(chunk, transform);
-						});
+							ChunkHandles.Add(TTuple<AChunkActor*, FTransform>(chunk, transform));
+						}//);
 					}
 				}
 			}
 		}
-	});
+
+	for (auto ChunkHandle : ChunkHandles)
+	{
+		UGameplayStatics::FinishSpawningActor(ChunkHandle.Key, ChunkHandle.Value);
+	}
+		
+	}//);
 }
 
 void UVoxelGeneratorComponent::UpdateCurrentChunkLocation()
 {
-	auto playerLocation = GetOwner()->GetActorTransform().GetLocation();
-
-	GEngine->AddOnScreenDebugMessage(-1, DebugTime, FColor::Green,
-	                                 *(FString::Printf(
-		                                 TEXT("Stamina - X:%f | Y:%f | Z:%f"), playerLocation.X, playerLocation.Y,
-		                                 playerLocation.Z)));
-
+	auto generatorLocation = GetOwner()->GetActorTransform().GetLocation();
+	
 	{
-		const auto GridVector = playerLocation / RenderDistanceBounds;
+		const auto generatorGridLocation = generatorLocation / ChunkSize;
 
-		CurrentChunkLocation.Coords.X = FMath::Floor(GridVector.X);
-		CurrentChunkLocation.Coords.Y = FMath::Floor(GridVector.Y);
-		CurrentChunkLocation.Coords.Z = FMath::Floor(GridVector.Z);
+		CurrentChunkLocation.Coords.X = FMath::Floor(generatorGridLocation.X);
+		CurrentChunkLocation.Coords.Y = FMath::Floor(generatorGridLocation.Y);
+		CurrentChunkLocation.Coords.Z = FMath::Floor(generatorGridLocation.Z);
 	}
 
 	auto chunkLoc = static_cast<FIntVector>(CurrentChunkLocation.Coords);
-	CurrentChunkLocation.Coords *= RenderDistanceBounds;
-
+	
+	CurrentChunkLocation.Coords *= ChunkSize;
 	{
 		const auto GenerationDistanceV = FIntVector(GenerationDistance);
 		CurrentChunkLocation.ChunkMinCoords = chunkLoc - GenerationDistanceV;
