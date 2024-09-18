@@ -6,28 +6,42 @@
 void FChunkGridData::AddChunkToGrid(UChunkBase* chunk, const FIntVector& gridPos) const
 {
 	//FScopeLock Lock(&DataGuard);
-	SpawnedChunks->Add(gridPos, chunk);
+	if(SpawnedChunks.IsValid())
+	{
+		SpawnedChunks->Add(gridPos, chunk);
+	}
 }
 
 void FChunkGridData::RemoveChunkFromGrid(const FIntVector& gridPos) const
 {
-//	FScopeLock Lock(&DataGuard);
-	SpawnedChunks->Remove(gridPos);
+	//	FScopeLock Lock(&DataGuard);
+	if(SpawnedChunks.IsValid())
+	{
+		SpawnedChunks->Remove(gridPos);
+	}
 }
 
 bool FChunkGridData::IsChunkInGrid(const FIntVector& gridPos) const
 {
-	return SpawnedChunks->Contains(gridPos);
+	if(SpawnedChunks.IsValid())
+	{
+		return SpawnedChunks->Contains(gridPos);
+	}
+	
+	return false;
 }
 
 UChunkBase* FChunkGridData::GetChunkPtr(const FIntVector& gridPos) const
 {
-	auto chunk = SpawnedChunks->Find(gridPos);
-	if(chunk != nullptr)
+	if(SpawnedChunks.IsValid())
 	{
-		return *chunk;
+		auto chunk = SpawnedChunks->Find(gridPos);
+		if(chunk != nullptr)
+		{
+			return *chunk;
+		}
 	}
-
+	
 	return nullptr;
 }
 

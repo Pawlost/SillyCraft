@@ -63,6 +63,11 @@ void UChunkBase::FinishSpawn()
 
 void UChunkBase::Despawn() const
 {
+	if(!IsValid(this))
+	{
+		return;
+	}
+	
 	AsyncTask(ENamedThreads::GameThread, [this]()
 	{
 	// Check if actor has not been garbage collected by UE

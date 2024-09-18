@@ -25,7 +25,7 @@ struct PRIMITIVEVOXELGENERATION_API FChunkGridData
 	UChunkBase* GetChunkPtr(const FIntVector& gridPos) const;
 	
 	void SetSpawnedChunks(const TSharedPtr<TMap<FIntVector, UChunkBase*>>& spawnedChunks);
-	void SetChunkSettings(const TSharedPtr<FChunkSettings>& chunKSettings);
+	void SetChunkSettings(const TSharedPtr<FChunkSettings>& chunkSettings);
 	TSharedPtr<FChunkSettings> GetChunkSettings() const;
 	
 private:

@@ -1,0 +1,175 @@
+warning: in the working copy of 'SillyCraft.sln.DotSettings.user', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/SillyCraft.sln.DotSettings.user b/SillyCraft.sln.DotSettings.user[m
+[1mindex 7b810bc..bd609cb 100644[m
+[1m--- a/SillyCraft.sln.DotSettings.user[m
+[1m+++ b/SillyCraft.sln.DotSettings.user[m
+[36m@@ -2,6 +2,7 @@[m
+ 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003ABucemuq_002Easm_002Fl_003AC_0021_003FUsers_003FPavel_003FAppData_003FLocal_003FTemp_003FSandboxFiles_003FKyramij_003FBucemuq_002Easm/@EntryIndexedValue">ForceIncluded</s:String>[m
+ 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003ABygizeb_002Easm_002Fl_003AC_0021_003FUsers_003FPavel_003FAppData_003FLocal_003FTemp_003FSandboxFiles_003FTisoleg_003FBygizeb_002Easm/@EntryIndexedValue">ForceIncluded</s:String>[m
+ 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003ACymenew_002Easm_002Fl_003AC_0021_003FUsers_003FPavel_003FAppData_003FLocal_003FTemp_003FSandboxFiles_003FKiruzaq_003FCymenew_002Easm/@EntryIndexedValue">ForceIncluded</s:String>[m
+[32m+[m	[32m<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003AGoxyxik_002Easm_002Fl_003AC_0021_003FUsers_003FPavel_003FAppData_003FLocal_003FTemp_003FSandboxFiles_003FGihynep_003FGoxyxik_002Easm/@EntryIndexedValue">ForceIncluded</s:String>[m
+ 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003AKypuzyj_002Easm_002Fl_003AC_0021_003FUsers_003FPavel_003FAppData_003FLocal_003FTemp_003FSandboxFiles_003FVowokud_003FKypuzyj_002Easm/@EntryIndexedValue">ForceIncluded</s:String>[m
+ 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003AMokudym_002Easm_002Fl_003AC_0021_003FUsers_003FPavel_003FAppData_003FLocal_003FTemp_003FSandboxFiles_003FDylaput_003FMokudym_002Easm/@EntryIndexedValue">ForceIncluded</s:String>[m
+ 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003APykazol_002Easm_002Fl_003AC_0021_003FUsers_003FPavel_003FAppData_003FLocal_003FTemp_003FSandboxFiles_003FCynaxat_003FPykazol_002Easm/@EntryIndexedValue">ForceIncluded</s:String>[m
+[1mdiff --git a/Source/PrimitiveVoxelGeneration/Private/Chunks/ChunkBase.cpp b/Source/PrimitiveVoxelGeneration/Private/Chunks/ChunkBase.cpp[m
+[1mindex 4be15e9..acd9bb4 100644[m
+[1m--- a/Source/PrimitiveVoxelGeneration/Private/Chunks/ChunkBase.cpp[m
+[1m+++ b/Source/PrimitiveVoxelGeneration/Private/Chunks/ChunkBase.cpp[m
+[36m@@ -63,6 +63,11 @@[m [mvoid UChunkBase::FinishSpawn()[m
+ [m
+ void UChunkBase::Despawn() const[m
+ {[m
+[32m+[m	[32mif(!IsValid(this))[m
+[32m+[m	[32m{[m
+[32m+[m		[32mreturn;[m
+[32m+[m	[32m}[m
+[32m+[m[41m	[m
+ 	AsyncTask(ENamedThreads::GameThread, [this]()[m
+ 	{[m
+ 	// Check if actor has not been garbage collected by UE[m
+[1mdiff --git a/Source/PrimitiveVoxelGeneration/Private/Chunks/ChunkGridData.cpp b/Source/PrimitiveVoxelGeneration/Private/Chunks/ChunkGridData.cpp[m
+[1mindex 44cd45e..09d4b30 100644[m
+[1m--- a/Source/PrimitiveVoxelGeneration/Private/Chunks/ChunkGridData.cpp[m
+[1m+++ b/Source/PrimitiveVoxelGeneration/Private/Chunks/ChunkGridData.cpp[m
+[36m@@ -6,28 +6,42 @@[m
+ void FChunkGridData::AddChunkToGrid(UChunkBase* chunk, const FIntVector& gridPos) const[m
+ {[m
+ 	//FScopeLock Lock(&DataGuard);[m
+[31m-	SpawnedChunks->Add(gridPos, chunk);[m
+[32m+[m	[32mif(SpawnedChunks.IsValid())[m
+[32m+[m	[32m{[m
+[32m+[m		[32mSpawnedChunks->Add(gridPos, chunk);[m
+[32m+[m	[32m}[m
+ }[m
+ [m
+ void FChunkGridData::RemoveChunkFromGrid(const FIntVector& gridPos) const[m
+ {[m
+[31m-//	FScopeLock Lock(&DataGuard);[m
+[31m-	SpawnedChunks->Remove(gridPos);[m
+[32m+[m	[32m//	FScopeLock Lock(&DataGuard);[m
+[32m+[m	[32mif(SpawnedChunks.IsValid())[m
+[32m+[m	[32m{[m
+[32m+[m		[32mSpawnedChunks->Remove(gridPos);[m
+[32m+[m	[32m}[m
+ }[m
+ [m
+ bool FChunkGridData::IsChunkInGrid(const FIntVector& gridPos) const[m
+ {[m
+[31m-	return SpawnedChunks->Contains(gridPos);[m
+[32m+[m	[32mif(SpawnedChunks.IsValid())[m
+[32m+[m	[32m{[m
+[32m+[m		[32mreturn SpawnedChunks->Contains(gridPos);[m
+[32m+[m	[32m}[m
+[32m+[m[41m	[m
+[32m+[m	[32mreturn false;[m
+ }[m
+ [m
+ UChunkBase* FChunkGridData::GetChunkPtr(const FIntVector& gridPos) const[m
+ {[m
+[31m-	auto chunk = SpawnedChunks->Find(gridPos);[m
+[31m-	if(chunk != nullptr)[m
+[32m+[m	[32mif(SpawnedChunks.IsValid())[m
+ 	{[m
+[31m-		return *chunk;[m
+[32m+[m		[32mauto chunk = SpawnedChunks->Find(gridPos);[m
+[32m+[m		[32mif(chunk != nullptr)[m
+[32m+[m		[32m{[m
+[32m+[m			[32mreturn *chunk;[m
+[32m+[m		[32m}[m
+ 	}[m
+[31m-[m
+[32m+[m[41m	[m
+ 	return nullptr;[m
+ }[m
+ [m
+[1mdiff --git a/Source/PrimitiveVoxelGeneration/Public/Chunks/ChunkGridData.h b/Source/PrimitiveVoxelGeneration/Public/Chunks/ChunkGridData.h[m
+[1mindex 61e4928..627b5b6 100644[m
+[1m--- a/Source/PrimitiveVoxelGeneration/Public/Chunks/ChunkGridData.h[m
+[1m+++ b/Source/PrimitiveVoxelGeneration/Public/Chunks/ChunkGridData.h[m
+[36m@@ -25,7 +25,7 @@[m [mstruct PRIMITIVEVOXELGENERATION_API FChunkGridData[m
+ 	UChunkBase* GetChunkPtr(const FIntVector& gridPos) const;[m
+ 	[m
+ 	void SetSpawnedChunks(const TSharedPtr<TMap<FIntVector, UChunkBase*>>& spawnedChunks);[m
+[31m-	void SetChunkSettings(const TSharedPtr<FChunkSettings>& chunKSettings);[m
+[32m+[m	[32mvoid SetChunkSettings(const TSharedPtr<FChunkSettings>& chunkSettings);[m
+ 	TSharedPtr<FChunkSettings> GetChunkSettings() const;[m
+ 	[m
+ private:[m
+[1mdiff --git a/Source/PrimitiveVoxelGeneration/VoxelGeneratorComponent.cpp b/Source/PrimitiveVoxelGeneration/VoxelGeneratorComponent.cpp[m
+[1mindex 5f48f2a..e62f231 100644[m
+[1m--- a/Source/PrimitiveVoxelGeneration/VoxelGeneratorComponent.cpp[m
+[1m+++ b/Source/PrimitiveVoxelGeneration/VoxelGeneratorComponent.cpp[m
+[36m@@ -48,10 +48,10 @@[m [mvoid UVoxelGeneratorComponent::BeginPlay()[m
+ [m
+ void UVoxelGeneratorComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)[m
+ {[m
+[31m-	for (auto Element : *SpawnedChunks.Get())[m
+[32m+[m	[32m/*for (auto Element : *SpawnedChunks.Get())[m
+ 	{[m
+ 		Element.Value->Despawn();[m
+[31m-	}[m
+[32m+[m	[32m}*/[m
+ 	[m
+ 	Super::EndPlay(EndPlayReason);[m
+ }[m
+[36m@@ -85,10 +85,10 @@[m [mbool UVoxelGeneratorComponent::IsPlayerInChunkBounds() const[m
+ void UVoxelGeneratorComponent::DespawnChunks(const FIntVector& ChunkMinDistance, const FIntVector& ChunkMaxDistance)[m
+ {[m
+ 	// Async check of every chunk outside bounds[m
+[31m-	AsyncTask(ENamedThreads::AnyThread, [this, ChunkMinDistance, ChunkMaxDistance]()[m
+[32m+[m	[32m//AsyncTask(ENamedThreads::AnyThread, [this, ChunkMinDistance, ChunkMaxDistance]()[m
+ 	{[m
+ 		auto identity = FIntVector(1, 1, 1);[m
+[31m-		auto minDistancePlus = ChunkMinDistance + identity;[m
+[32m+[m		[32mauto minDistancePlus = ChunkMinDistance - identity;[m
+ 		auto maxDistancePlus = ChunkMaxDistance + identity;[m
+ [m
+ 		TArray<FIntVector> ChunkCoords;	[m
+[36m@@ -103,13 +103,15 @@[m [mvoid UVoxelGeneratorComponent::DespawnChunks(const FIntVector& ChunkMinDistance,[m
+ 				SpawnedChunks.Get()->FindChecked(Coord)->RemoveMeshAsync();[m
+ 			}[m
+ 		}[m
+[31m-	}); [m
+[32m+[m	[32m}//);[m[41m [m
+ }[m
+ [m
+ void UVoxelGeneratorComponent::SpawnChunks(const FIntVector ChunkMinDistance, const FIntVector ChunkMaxDistance)[m
+ {[m
+ 	AsyncTask(ENamedThreads::AnyThread, [this, ChunkMinDistance, ChunkMaxDistance]()[m
+ 	{[m
+[32m+[m		[32mDespawnChunks(ChunkMinDistance, ChunkMaxDistance);[m
+[32m+[m
+ 		for (int x = ChunkMinDistance.X - 1; x <= ChunkMaxDistance.X; x++)[m
+ 		{[m
+ 			for (int y = ChunkMinDistance.Y - 1; y <= ChunkMaxDistance.Y; y++)[m
+[36m@@ -120,12 +122,19 @@[m [mvoid UVoxelGeneratorComponent::SpawnChunks(const FIntVector ChunkMinDistance, co[m
+ 					[m
+ 					if (!ChunkGridPtr->IsChunkInGrid(gridCoords))[m
+ 					{[m
+[31m-					//	AsyncTask(ENamedThreads::GameThread, [this, gridCoords, transform]()[m
+[32m+[m						[32mauto handle = Async(EAsyncExecution::TaskGraphMainThread , [this, gridCoords]() mutable[m
+ 						{[m
+[32m+[m							[32mif(!IsValid(this)){[m
+[32m+[m								[32mreturn;[m
+[32m+[m							[32m}[m
+[32m+[m[41m						[m
+ 							auto Chunk = NewObject<UChunkBase>(this, ChunkTemplate);[m
+ 							Chunk->AddToGrid(ChunkGridPtr, gridCoords);[m
+[31m-							Chunk->GenerateVoxels();[m
+[31m-						}//);[m
+[32m+[m						[32m});[m
+[32m+[m
+[32m+[m						[32mhandle.Wait();[m
+[32m+[m						[32mauto Chunk = ChunkGridPtr->GetChunkPtr(gridCoords);[m
+[32m+[m						[32mChunk->GenerateVoxels();[m
+ 					}[m
+ 				}[m
+ 			}[m
+[36m@@ -193,7 +202,6 @@[m [mvoid UVoxelGeneratorComponent::TickComponent(float DeltaTime, ELevelTick TickTyp[m
+ 		auto ChunkMinDistance = CurrentChunkLocation.ChunkMinCoords;[m
+ 		auto ChunkMaxDistance = CurrentChunkLocation.ChunkMaxCoords;[m
+ [m
+[31m-		DespawnChunks(ChunkMinDistance, ChunkMaxDistance);[m
+ 		SpawnChunks(ChunkMinDistance, ChunkMaxDistance);[m
+ 	}[m
+ }[m

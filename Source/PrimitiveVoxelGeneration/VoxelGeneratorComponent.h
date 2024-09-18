@@ -22,6 +22,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation");
 	int64 Seed = 1234;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation");
+	bool MoveActorToSurface = false;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation|Noise");
 	double MaximumElevation = 2000.0;
 
