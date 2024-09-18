@@ -14,7 +14,7 @@ AChunkActor::AChunkActor()
 	PrimaryActorTick.bCanEverTick = true;
 
 	ProceduralMeshComponent = CreateDefaultSubobject<UProceduralMeshComponent>("MeshComponent");
-	SetRootComponent(ProceduralMeshComponent);
+	SetRootComponent(ProceduralMeshComponent.Get());
 }
 
 // Called when the game starts or when spawned

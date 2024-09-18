@@ -23,6 +23,7 @@ public:
 	// should be called before generate mesh
 	void StartSpawn(bool lockLocation = true);
 	virtual void GenerateMesh(){}
+	void RemoveMeshAsync() const;
 	void RemoveMesh() const;
 	
 	// Will finish spawning with current mesh

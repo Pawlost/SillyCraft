@@ -30,16 +30,23 @@ void UChunkBase::StartSpawn(bool lockLocation)
 	});
 }
 
-void UChunkBase::RemoveMesh() const
+void UChunkBase::RemoveMeshAsync() const
 {
 	AsyncTask(ENamedThreads::GameThread, [this]()
 	{
+		RemoveMesh();
+	});
+}
+
+void UChunkBase::RemoveMesh() const
+{
+	if(ChunkActor != nullptr && IsValid(ChunkActor)){
 		auto procMesh = ChunkActor->GetProceduralMeshComponent();
 		if(procMesh.IsValid(false,true))
 		{
 			procMesh->ClearAllMeshSections();
 		}
-	});
+	}
 }
 
 void UChunkBase::FinishSpawn()

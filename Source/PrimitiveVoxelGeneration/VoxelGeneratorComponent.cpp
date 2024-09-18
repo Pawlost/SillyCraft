@@ -100,7 +100,7 @@ void UVoxelGeneratorComponent::DespawnChunks(const FIntVector& ChunkMinDistance,
 				SpawnedChunks.Get()->FindChecked(Coord)->Despawn();
 			}else if (Coord < ChunkMinDistance || Coord > ChunkMaxDistance)
 			{
-				SpawnedChunks.Get()->FindChecked(Coord)->RemoveMesh();
+				SpawnedChunks.Get()->FindChecked(Coord)->RemoveMeshAsync();
 			}
 		}
 	}); 

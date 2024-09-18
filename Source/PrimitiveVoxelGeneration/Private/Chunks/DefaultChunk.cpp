@@ -219,11 +219,11 @@ void UDefaultChunk::GenerateMesh()
 
 		auto procMesh = ChunkActor->GetProceduralMeshComponent();
 
-	 if(procMesh.IsValid(false,true) &&  Vertice.IsValid() && Triangles.IsValid() && Colors.IsValid()){
-			procMesh->CreateMeshSection_LinearColor(0,*Vertice.Get(), *Triangles.Get(), TArray<FVector>(), TArray<FVector2D>(),*Colors.Get(), TArray<FProcMeshTangent>(), true);
-			procMesh->SetMeshSectionVisible(0, true);
-		}
-	});
+	 if(procMesh.IsValid() && procMesh.IsValid(false,true) &&  Vertice.IsValid() && Triangles.IsValid() && Colors.IsValid()){
+	 	RemoveMesh();
+	 	procMesh->CreateMeshSection_LinearColor(0,*Vertice.Get(), *Triangles.Get(), TArray<FVector>(), TArray<FVector2D>(),*Colors.Get(), TArray<FProcMeshTangent>(), true);
+	 	procMesh->SetMeshSectionVisible(0, true);
+	 }});
 }
 
 void UDefaultChunk::GenerateVoxels()
