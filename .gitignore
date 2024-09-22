@@ -76,3 +76,4 @@ DerivedDataCache/*
 #custom
 .vsconfig
 .idea/*
+*.user
