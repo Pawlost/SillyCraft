@@ -30,11 +30,11 @@ public:
 private:
 	void AddNaiveMeshedFace(FChunkFace& face, TArray<FChunkFace>& faces);
 
-	bool ChunkCull(int32 chunkIndex, FIntVector& neigborChunkCoords) const;
+	bool ChunkCull(int32 chunkIndex, FIntVector& neighborChunkDistance) const;
 	bool VoxelCull(int32 forwardVoxelIndex);
 
-	bool CrossChunkCullMin(int min, int32 forwardVoxelIndex, int32 chunkIndex, FIntVector& neighborChunkCoords);
-	bool CrossChunkCullMax(int max, int32 forwardVoxelIndex, int32 chunkIndex, FIntVector& neighborChunkCoords);
+	bool CrossChunkCullMin(int min, int32 forwardVoxelIndex, int32 chunkIndex, FIntVector neighborChunkDistance);
+	bool CrossChunkCullMax(int max, int32 forwardVoxelIndex, int32 chunkIndex, FIntVector neighborChunkDistance);
 	
 	UPROPERTY()
 	TObjectPtr<UFastNoiseWrapper> Noise;
