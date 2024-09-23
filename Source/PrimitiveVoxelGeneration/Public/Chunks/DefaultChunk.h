@@ -8,6 +8,7 @@
 #include "FastNoiseWrapper.h"
 #include "DefaultChunk.generated.h"
 
+struct FVoxel;
 struct FChunkFace;
 /**
  * 
@@ -16,7 +17,7 @@ UCLASS()
 class PRIMITIVEVOXELGENERATION_API UDefaultChunk : public UChunkBase
 {
 public:
-	virtual void AddToGrid(const TSharedPtr<FChunkGridData> chunkGridData, FIntVector& chunkGridPos) override;
+	virtual void AddToGrid(const TWeakObjectPtr<UChunkGridData> chunkGridData, FIntVector& chunkGridPos) override;
 
 private:
 	GENERATED_BODY()
@@ -25,7 +26,7 @@ public:
 	UDefaultChunk();
 	virtual void GenerateVoxels() override;
 	virtual void GenerateMesh() override;
-	virtual int32 VoxelAt(int32 index) override;
+	virtual FVoxel VoxelAt(int32 index) override;
 
 private:
 	void AddNaiveMeshedFace(FChunkFace& face, TArray<FChunkFace>& faces);
@@ -38,7 +39,7 @@ private:
 	
 	UPROPERTY()
 	TObjectPtr<UFastNoiseWrapper> Noise;
-	TArray<int32> Voxels;
+	TArray<FVoxel> Voxels;
 
 	TSharedPtr<FChunkSettings> ChunkSettings;
 };

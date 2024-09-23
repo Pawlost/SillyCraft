@@ -3,17 +3,6 @@
 
 #include "Chunks/ChunkSettings.h"
 
-
-FDataTableRowHandle FChunkSettings::GetVoxelTypes() const
-{
-	return VoxelTypes;
-}
-
-void FChunkSettings::SetVoxelTypes(const FDataTableRowHandle& voxelTypes)
-{
-	this->VoxelTypes = voxelTypes;
-}
-
 int64 FChunkSettings::GetSeed() const
 {
 	return Seed;

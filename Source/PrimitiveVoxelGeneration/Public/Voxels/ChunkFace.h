@@ -21,7 +21,6 @@ struct PRIMITIVEVOXELGENERATION_API FChunkFace
 	static FChunkFace CreateRightFace(const FVector& InitialPosition);
 	static FChunkFace CreateTopFace(const FVector& InitialPosition);
 	static FChunkFace CreateBottomFace(const FVector& InitialPosition);
-
 	
 	FChunkFace(){}
 	

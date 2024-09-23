@@ -3,25 +3,25 @@
 
 #include "Chunks/ChunkGridData.h"
 
-void FChunkGridData::AddChunkToGrid(UChunkBase* chunk, const FIntVector& gridPos) const
+void UChunkGridData::AddChunkToGrid(TWeakObjectPtr<UChunkBase> chunk, const FIntVector& gridPos) const
 {
-	//FScopeLock Lock(&DataGuard);
+	FScopeLock Lock(&GridLock);
+	
 	if(SpawnedChunks.IsValid())
 	{
 		SpawnedChunks->Add(gridPos, chunk);
 	}
 }
 
-void FChunkGridData::RemoveChunkFromGrid(const FIntVector& gridPos) const
+void UChunkGridData::RemoveChunkFromGrid(const FIntVector& gridPos) const
 {
-	//	FScopeLock Lock(&DataGuard);
 	if(SpawnedChunks.IsValid())
 	{
 		SpawnedChunks->Remove(gridPos);
 	}
 }
 
-bool FChunkGridData::IsChunkInGrid(const FIntVector& gridPos) const
+bool UChunkGridData::IsChunkInGrid(const FIntVector& gridPos) const
 {
 	if(SpawnedChunks.IsValid())
 	{
@@ -31,12 +31,12 @@ bool FChunkGridData::IsChunkInGrid(const FIntVector& gridPos) const
 	return false;
 }
 
-UChunkBase* FChunkGridData::GetChunkPtr(const FIntVector& gridPos) const
+TWeakObjectPtr<UChunkBase> UChunkGridData::GetChunkPtr(const FIntVector& gridPos) const
 {
 	if(SpawnedChunks.IsValid())
 	{
 		auto chunk = SpawnedChunks->Find(gridPos);
-		if(chunk != nullptr)
+		if(chunk != nullptr && chunk->IsValid(false, true))
 		{
 			return *chunk;
 		}
@@ -45,18 +45,32 @@ UChunkBase* FChunkGridData::GetChunkPtr(const FIntVector& gridPos) const
 	return nullptr;
 }
 
-void FChunkGridData::SetSpawnedChunks(const TSharedPtr<TMap<FIntVector, UChunkBase*>>& spawnedChunks)
-{
-	this->SpawnedChunks = spawnedChunks;
-}
-
-
-TSharedPtr<FChunkSettings> FChunkGridData::GetChunkSettings() const
+TSharedPtr<FChunkSettings> UChunkGridData::GetChunkSettings() const
 {
 	return ChunkSettings;
 }
 
-void FChunkGridData::SetChunkSettings(const TSharedPtr<FChunkSettings>& chunKSettings)
+TSharedPtr<TMap<FIntVector, TWeakObjectPtr<UChunkBase>>> UChunkGridData::GetSpawnedChunks() const
 {
-	ChunkSettings = chunKSettings;
+	return SpawnedChunks;
+}
+
+void UChunkGridData::SetSpawnedChunks(const TSharedPtr<TMap<FIntVector, TWeakObjectPtr<UChunkBase>>>& spawnedChunks)
+{
+	this->SpawnedChunks = spawnedChunks;
+}
+
+void UChunkGridData::SetVoxelTypes(const TSharedPtr<TArray<TWeakFieldPtr<FVoxelType>>>& voxelTypes)
+{
+	this->VoxelTypes = voxelTypes;
+}
+
+int32 UChunkGridData::GetVoxelTypeNum() const
+{
+	return VoxelTypes.Get()->Num();
+}
+
+void UChunkGridData::SetChunkSettings(const TSharedPtr<FChunkSettings>& chunkSettings)
+{
+	ChunkSettings = chunkSettings;
 }

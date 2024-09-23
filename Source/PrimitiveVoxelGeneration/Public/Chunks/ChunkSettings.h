@@ -21,8 +21,6 @@ struct PRIMITIVEVOXELGENERATION_API FChunkSettings
 	FIntVector3 IndexToCoords(const int32 index) const;
 	
 	// Getters & Setters
-	FDataTableRowHandle GetVoxelTypes() const;
-	void SetVoxelTypes(const FDataTableRowHandle& VoxelTypes);
 	int64 GetSeed() const;
 	void SetSeed(const int64 Seed);
 	int32 GetChunkSideSizeInVoxels() const;
@@ -36,9 +34,6 @@ struct PRIMITIVEVOXELGENERATION_API FChunkSettings
 	void SetNoiseFrequency(const double NoiseFrequency);
 	
 private:
-	UPROPERTY()
-	FDataTableRowHandle VoxelTypes;
-
 	UPROPERTY()
 	int64 Seed = 1234;
 

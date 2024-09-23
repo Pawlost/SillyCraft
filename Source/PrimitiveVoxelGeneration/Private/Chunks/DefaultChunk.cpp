@@ -8,8 +8,9 @@
 #include "Chunks/ChunkGridData.h"
 #include "Chunks/ChunkSettings.h"
 #include "Voxels/ChunkFace.h"
+#include "Voxels/Voxel.h"
 
-void UDefaultChunk::AddToGrid(const TSharedPtr<FChunkGridData> chunkGridData, FIntVector& chunkGridPos)
+void UDefaultChunk::AddToGrid(const TWeakObjectPtr<UChunkGridData> chunkGridData, FIntVector& chunkGridPos)
 {
 	ChunkSettings = chunkGridData->GetChunkSettings();
 	Voxels.SetNum(ChunkSettings->GetChunkSideSizeInVoxels() * ChunkSettings->GetChunkPlaneSizeInVoxels());
@@ -52,12 +53,12 @@ bool UDefaultChunk::ChunkCull(int32 chunkIndex, FIntVector& neighborChunkDistanc
 {
 	FIntVector neighborChunkCoords = ChunkGridPos + neighborChunkDistance;
 	auto chunk = ChunkGridData->GetChunkPtr(neighborChunkCoords);
-	return chunk != nullptr && chunk->VoxelAt(chunkIndex) == 0;
+	return chunk != nullptr && chunk->VoxelAt(chunkIndex).IsEmptyVoxel();
 }
 
 bool UDefaultChunk::VoxelCull(int32 forwardVoxelIndex)
 {
-	return Voxels.IsValidIndex(forwardVoxelIndex) && Voxels[forwardVoxelIndex] == 0;
+	return Voxels.IsValidIndex(forwardVoxelIndex) && Voxels[forwardVoxelIndex].IsEmptyVoxel();
 }
 
 bool UDefaultChunk::CrossChunkCullMin(int min, int32 forwardVoxelIndex, int32 chunkIndex, FIntVector neighborChunkDistance)
@@ -87,6 +88,11 @@ bool UDefaultChunk::CrossChunkCullMax(int max, int32 forwardVoxelIndex, int32 ch
 
 void UDefaultChunk::GenerateMesh()
 {
+	if(IsEmpty)
+	{
+		return;
+	}
+	
 	auto chunkLenght = ChunkSettings->GetChunkSideSizeInVoxels();
 	constexpr auto faceNumber = 6;
 	
@@ -105,9 +111,9 @@ void UDefaultChunk::GenerateMesh()
 			{
 				int32 index = ChunkSettings->GetVoxelIndex(x, y, z);
 
-				auto voxelId = Voxels[index];
+				FVoxel voxelId = Voxels[index];
 
-				if(voxelId != 0)
+				if(!voxelId.IsEmptyVoxel())
 				{
 					FVector position = FVector(x, y, z);
 
@@ -227,20 +233,18 @@ void UDefaultChunk::GenerateVoxels()
 			for (int z = 0; z < chunkLenght; z++) 
 			{
 				int32 index = ChunkSettings->GetVoxelIndex(x, y, z);
-				int32 voxelId = 0;
 				
 				if (gridPos.Z + z <= elevation) 
 				{
-					voxelId = 1;
+					Voxels[index].VoxelId = 1;
+					IsEmpty = false;
 				}
-
-				Voxels[index] = voxelId;
 			}
 		}
 	}
 }
 
-int32 UDefaultChunk::VoxelAt(int32 index)
+FVoxel UDefaultChunk::VoxelAt(int32 index)
 {
 	return Voxels[index];
 }

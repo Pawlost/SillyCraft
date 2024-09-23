@@ -7,7 +7,7 @@
 #include "Chunks/ChunkSettings.h"
 #include "Kismet/GameplayStatics.h"
 
-void UChunkBase::AddToGrid(const TSharedPtr<FChunkGridData> chunkGridData, FIntVector& chunkGridPos)
+void UChunkBase::AddToGrid(const TWeakObjectPtr<UChunkGridData> chunkGridData, FIntVector& chunkGridPos)
 {
 	ChunkGridData = chunkGridData;
 	ChunkGridPos = chunkGridPos;
@@ -15,7 +15,8 @@ void UChunkBase::AddToGrid(const TSharedPtr<FChunkGridData> chunkGridData, FIntV
 	auto spawnedChunkLocation = FVector(chunkGridPos.X, chunkGridPos.Y, chunkGridPos.Z) * chunkGridData->GetChunkSettings()->GetChunkSize();
 	SpawnTransform.SetLocation(spawnedChunkLocation);
 
-	chunkGridData->AddChunkToGrid(this, chunkGridPos);
+	auto chunkPtr =  MakeWeakObjectPtr<UChunkBase>(this);
+	chunkGridData->AddChunkToGrid(chunkPtr, chunkGridPos);
 }
 
 void UChunkBase::StartSpawn(bool lockLocation)

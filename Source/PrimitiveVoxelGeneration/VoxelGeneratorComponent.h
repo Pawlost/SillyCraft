@@ -7,6 +7,7 @@
 #include "Components/ActorComponent.h"
 #include "VoxelGeneratorComponent.generated.h"
 
+struct FVoxelType;
 using namespace UE::Math;
 
 //TODO: add forward declarations
@@ -50,7 +51,8 @@ public:
 	float DebugTime = 0.005f;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation");
-	FDataTableRowHandle VoxelTypeTable;
+	// ReSharper disable once CppUE4ProbableMemoryIssuesWithUObject
+	TObjectPtr<UDataTable> VoxelTypeTable;
 	
 protected:
 	// Called when the game starts
@@ -78,8 +80,11 @@ private:
 	CurrentChunkLocation CurrentChunkLocation;
 	
 	// The reason why shared pointer is used instead of game instance is so multiple moving  voxel generating actors can exist in a same scene with different settings.
-	TSharedPtr<FChunkGridData> ChunkGridPtr;
-	TSharedPtr<TMap<FIntVector, UChunkBase*>> SpawnedChunks;
+	UPROPERTY()
+	TObjectPtr<UChunkGridData> ChunkGridData;
+	
+	TSharedPtr<TMap<FIntVector, TWeakObjectPtr<UChunkBase>>> SpawnedChunks;
+	TSharedPtr<TArray<TWeakFieldPtr<FVoxelType>>> VoxelTypes;
 	
 public:
 	// Called every frame
