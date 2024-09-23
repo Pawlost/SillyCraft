@@ -3,16 +3,6 @@
 
 #include "Chunks/ChunkSettings.h"
 
-int64 FChunkSettings::GetSeed() const
-{
-	return Seed;
-}
-
-void FChunkSettings::SetSeed(const int64 seed)
-{
-	this->Seed = seed;
-}
-
 int32 FChunkSettings::GetChunkSideSizeInVoxels() const
 {
 	return ChunkSideSizeInVoxels;	
@@ -62,14 +52,4 @@ void FChunkSettings::SetMaximumElevation(const int32 maximumElevation)
 int32 FChunkSettings::GetChunkPlaneSizeInVoxels() const
 {
 	return ChunkPlaneSizeInVoxels;
-}
-
-double FChunkSettings::GetNoiseFrequency() const
-{
-	return NoiseFrequency;
-}
-
-void FChunkSettings::SetNoiseFrequency(const double noiseFrequency)
-{
-	this->NoiseFrequency = noiseFrequency;
 }

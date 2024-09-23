@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "CoreMinimal.h"
+#include "Voxel.h"
 
 struct PRIMITIVEVOXELGENERATION_API FChunkFace
 {
@@ -7,6 +8,7 @@ struct PRIMITIVEVOXELGENERATION_API FChunkFace
 	FVector BeginVertexUp;
 	FVector EndVertexDown;
 	FVector EndVertexUp;
+	FVoxel Voxel;
 	
 	static FChunkFace FrontFace;
 	static FChunkFace BackFace;
@@ -15,12 +17,12 @@ struct PRIMITIVEVOXELGENERATION_API FChunkFace
 	static FChunkFace TopFace;
 	static FChunkFace BottomFace;
 
-	static FChunkFace CreateFrontFace(const FVector& InitialPosition);
-	static FChunkFace CreateBackFace(const FVector& InitialPosition);
-	static FChunkFace CreateLeftFace(const FVector& InitialPosition);
-	static FChunkFace CreateRightFace(const FVector& InitialPosition);
-	static FChunkFace CreateTopFace(const FVector& InitialPosition);
-	static FChunkFace CreateBottomFace(const FVector& InitialPosition);
+	static FChunkFace CreateFrontFace(const FVector& InitialPosition, const FVoxel& Voxel);
+	static FChunkFace CreateBackFace(const FVector& InitialPosition, const FVoxel& Voxel);
+	static FChunkFace CreateLeftFace(const FVector& InitialPosition, const FVoxel& Voxel);
+	static FChunkFace CreateRightFace(const FVector& InitialPosition, const FVoxel& Voxel);
+	static FChunkFace CreateTopFace(const FVector& InitialPosition, const FVoxel& Voxel);
+	static FChunkFace CreateBottomFace(const FVector& InitialPosition, const FVoxel& Voxel);
 	
 	FChunkFace(){}
 	
@@ -31,6 +33,9 @@ struct PRIMITIVEVOXELGENERATION_API FChunkFace
 		EndVertexDown = endVertexDown;
 		EndVertexUp = endVertexUp;
 	}
+
+private:
+	static FChunkFace CreateChunkFace(FChunkFace face, const FVector& InitialPosition, const FVoxel& Voxel);
 };
 
 	

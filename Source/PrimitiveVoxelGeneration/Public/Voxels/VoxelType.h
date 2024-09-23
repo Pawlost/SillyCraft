@@ -19,15 +19,21 @@ struct PRIMITIVEVOXELGENERATION_API FVoxelType : public FTableRowBase
 {
 	GENERATED_BODY()
 	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Basic")
 	FString BlockName;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Basic")
 	EHardness BlockHardness;
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Basic")
 	int32 Range;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Basic")
 	TObjectPtr<UMaterial> Material;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Noise")
+	int64 Seed = 1234;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Noise")
+	double NoiseFrequency = 0.007;
 };

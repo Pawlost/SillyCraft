@@ -19,39 +19,32 @@ class PRIMITIVEVOXELGENERATION_API UVoxelGeneratorComponent : public UActorCompo
 public:
 	// Sets default values for this component's properties
 	UVoxelGeneratorComponent();
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation");
-	int64 Seed = 1234;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation");
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation")
 	bool MoveActorToSurface = false;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation|Noise");
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation|Noise")
 	double MaximumElevation = 2000.0;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation|Noise");
-	double NoiseFrequency = 0.001;
 	
    	//if set will overide all chunk meshers
-   	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation");
+   	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation")
     TSubclassOf<UChunkBase> ChunkTemplate = nullptr;
 
 	// How many layers of chunks are generated around player
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation|Blocks");
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation|Blocks")
 	int32 GenerationDistance = 2;
 
 	//Height is same in as Width
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation|Blocks");
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation|Blocks")
 	int32 ChunkSideSizeInVoxels = 32;
 	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation|Blocks");
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation|Blocks")
     int32 VoxelSize = 20;
 	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Debug");
-	float DebugTime = 0.005f;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Debug")
+	float DebugTime = 0.0006f;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation");
-	// ReSharper disable once CppUE4ProbableMemoryIssuesWithUObject
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation")
 	TObjectPtr<UDataTable> VoxelTypeTable;
 	
 protected:
@@ -84,8 +77,7 @@ private:
 	TObjectPtr<UChunkGridData> ChunkGridData;
 	
 	TSharedPtr<TMap<FIntVector, TWeakObjectPtr<UChunkBase>>> SpawnedChunks;
-	TSharedPtr<TArray<TWeakFieldPtr<FVoxelType>>> VoxelTypes;
-	
+
 public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,

@@ -9,6 +9,7 @@
 #include "Chunks/ChunkSettings.h"
 #include "Voxels/ChunkFace.h"
 #include "Voxels/Voxel.h"
+#include "Voxels/VoxelType.h"
 
 void UDefaultChunk::AddToGrid(const TWeakObjectPtr<UChunkGridData> chunkGridData, FIntVector& chunkGridPos)
 {
@@ -94,14 +95,8 @@ void UDefaultChunk::GenerateMesh()
 	}
 	
 	auto chunkLenght = ChunkSettings->GetChunkSideSizeInVoxels();
-	constexpr auto faceNumber = 6;
 	
-	TUniquePtr<TArray<FChunkFace>> faces[faceNumber];
-
-	for(int i = 0; i < faceNumber; i++)
-	{
-		faces[i] = MakeUnique<TArray<FChunkFace>>();
-	}
+	TMap<int32, TUniquePtr<TArray<FChunkFace>>> faces;
 	
 	for(int x = 0; x < chunkLenght; x++)
 	{
@@ -112,9 +107,15 @@ void UDefaultChunk::GenerateMesh()
 				int32 index = ChunkSettings->GetVoxelIndex(x, y, z);
 
 				FVoxel voxelId = Voxels[index];
-
+				
 				if(!voxelId.IsEmptyVoxel())
 				{
+
+					if(!faces.Contains(voxelId.VoxelId))
+					{
+						faces.Add(voxelId.VoxelId, MakeUnique<TArray<FChunkFace>>());
+					}
+					
 					FVector position = FVector(x, y, z);
 
 					FChunkFace face;
@@ -123,65 +124,68 @@ void UDefaultChunk::GenerateMesh()
 					if(CrossChunkCullMin(x, index + ChunkSettings->GetVoxelIndex(-1,0,0),
 						ChunkSettings->GetVoxelIndex(chunkLenght - 1, y, z), FIntVector(-1, 0, 0)))
 					{
-						face = FChunkFace::CreateFrontFace(position);
-						AddNaiveMeshedFace(face, *faces[0]);
+						face = FChunkFace::CreateFrontFace(position, voxelId);
+						AddNaiveMeshedFace(face, **faces.Find(voxelId.VoxelId));
 					}
 					
 					// Back
 					if(CrossChunkCullMax(x, index + ChunkSettings->GetVoxelIndex(1,0,0),
 						ChunkSettings->GetVoxelIndex(0, y, z), FIntVector(1, 0, 0)))
 					{
-						face = FChunkFace::CreateBackFace(position);
-						AddNaiveMeshedFace(face, *faces[1]);
+						face = FChunkFace::CreateBackFace(position, voxelId);
+						AddNaiveMeshedFace(face, **faces.Find(voxelId.VoxelId));
 					}
 					
 					// Left
 					if(CrossChunkCullMin(y, index + ChunkSettings->GetVoxelIndex(0,-1,0),
 						ChunkSettings->GetVoxelIndex(x, chunkLenght - 1, z), FIntVector(0, -1, 0)))
 					{
-						face = FChunkFace::CreateLeftFace(position);
-						AddNaiveMeshedFace(face, *faces[2]);
+						face = FChunkFace::CreateLeftFace(position, voxelId);
+						AddNaiveMeshedFace(face, **faces.Find(voxelId.VoxelId));
 					}
 					
 					// Right
 					if(CrossChunkCullMax(y, index + ChunkSettings->GetVoxelIndex(0,1,0),
 						ChunkSettings->GetVoxelIndex(x, 0,z ), FIntVector(0, 1, 0)))
 					{
-						face = FChunkFace::CreateRightFace(position);
-						AddNaiveMeshedFace(face, *faces[3]);
+						face = FChunkFace::CreateRightFace(position, voxelId);
+						AddNaiveMeshedFace(face, **faces.Find(voxelId.VoxelId));
 					}
 
 					// Bottom
 					if(CrossChunkCullMin(z, index + ChunkSettings->GetVoxelIndex(0,0,-1),
 						ChunkSettings->GetVoxelIndex(x, y, chunkLenght - 1), FIntVector(0, 0, -1)))
 					{
-						face = FChunkFace::CreateBottomFace(position);
-						AddNaiveMeshedFace(face, *faces[4]);
+						face = FChunkFace::CreateBottomFace(position, voxelId);
+						AddNaiveMeshedFace(face, **faces.Find(voxelId.VoxelId));
 					}
 
 					// Top
 					if(CrossChunkCullMax(z, index + ChunkSettings->GetVoxelIndex(0,0,1),
 						ChunkSettings->GetVoxelIndex(x, y,0), FIntVector(0, 0, 1)))
 					{
-						face = FChunkFace::CreateTopFace(position);
-						AddNaiveMeshedFace(face, *faces[5]);
+						face = FChunkFace::CreateTopFace(position, voxelId);
+						AddNaiveMeshedFace(face, **faces.Find(voxelId.VoxelId));
 					}
 				}
 			}
 		}	
 	}
 
-	int32 index = 0;
+	auto voxelIdsInMesh = TArray<int32>();
+	faces.GetKeys(voxelIdsInMesh);
 	
-	TSharedPtr<TArray<FVector>> Vertice = MakeShared<TArray<FVector>>();
-
-	TSharedPtr<TArray<int32>> Triangles = MakeShared<TArray<int32>>();
+	for (auto voxelId : voxelIdsInMesh)
+	{
+		int32 index = 0;
 	
-	// Define the cube UV coordinates
-	TSharedPtr<TArray<FVector2D>> UVs = MakeShared<TArray<FVector2D>>();
+		TSharedPtr<TArray<FVector>> Vertice = MakeShared<TArray<FVector>>();
 
-	for(int i = 0; i < faceNumber; i++){
-		for (auto Face : *faces[i])
+		TSharedPtr<TArray<int32>> Triangles = MakeShared<TArray<int32>>();
+		
+		FVoxelType voxelType = ChunkGridData->GetVoxelTypeById(voxelId);
+
+		for (auto Face : **faces.Find(voxelId))
 		{
 			auto voxelSize = ChunkSettings->GetVoxelSize();
 
@@ -191,56 +195,60 @@ void UDefaultChunk::GenerateMesh()
 			Vertice->Push(Face.BeginVertexUp);
 			Vertice->Push(Face.EndVertexDown);
 			Vertice->Push(Face.EndVertexUp);
-
+			
 			Triangles->Add(index); Triangles->Add(index + 1); Triangles->Add(index + 2);
 			Triangles->Add(index + 2); Triangles->Add(index + 3); Triangles->Add(index);
 
 			index += 4;
 		}
-	}
-
-	TSharedPtr<TArray<FLinearColor>> Colors = MakeShared<TArray<FLinearColor>>();
-
 	
-	AsyncTask(ENamedThreads::GameThread, [this, Vertice, Triangles, Colors]()
-	{
+		AsyncTask(ENamedThreads::GameThread, [this, voxelId, Vertice, Triangles, voxelType]()
+		{
 
-		auto procMesh = ChunkActor->GetProceduralMeshComponent();
+			auto procMesh = ChunkActor->GetProceduralMeshComponent();
 
-	 if(procMesh.IsValid() && procMesh.IsValid(false,true) &&  Vertice.IsValid() && Triangles.IsValid() && Colors.IsValid()){
-	 	RemoveMesh();
-	 	procMesh->CreateMeshSection_LinearColor(0,*Vertice.Get(), *Triangles.Get(), TArray<FVector>(), TArray<FVector2D>(),*Colors.Get(), TArray<FProcMeshTangent>(), true);
-	 	procMesh->SetMeshSectionVisible(0, true);
-	 }});
+		 if(procMesh.IsValid() && procMesh.IsValid(false,true) &&  Vertice.IsValid() && Triangles.IsValid()){
+			 procMesh->CreateMeshSection_LinearColor(voxelId,*Vertice, *Triangles, TArray<FVector>(), TArray<FVector2D>(), TArray<FLinearColor>(), TArray<FProcMeshTangent>(), true);
+		 	procMesh->SetMaterial(voxelId, voxelType.Material);
+		 	procMesh->SetMeshSectionVisible(voxelId, true);
+		 }});
+	}
 }
 
 void UDefaultChunk::GenerateVoxels()
 {
-	Noise->SetSeed(ChunkSettings->GetSeed());
-	Noise->SetupFastNoise(EFastNoise_NoiseType::ValueFractal, ChunkSettings->GetSeed(),  ChunkSettings->GetNoiseFrequency());
-	
 	auto chunkLenght = ChunkSettings->GetChunkSideSizeInVoxels();
 	auto maxElevation = ChunkSettings->GetMaximumElevation();;
 
 	auto gridPos = ChunkGridPos * chunkLenght;
+	int voxelIds = ChunkGridData->GetVoxelIdCount(); 
 	
-	for (int x = 0; x < chunkLenght; x++) 
+	for(int voxelId = 0; voxelId < voxelIds; voxelId++)
 	{
-		for (int y = 0; y < chunkLenght; y++) 
+		FVoxelType voxelType = ChunkGridData->GetVoxelTypeById(voxelId);
+		
+		auto voxel = FVoxel(voxelId);
+		
+		Noise->SetupFastNoise(EFastNoise_NoiseType::ValueFractal, voxelType.Seed,  voxelType.NoiseFrequency);
+		
+		for (int x = 0; x < chunkLenght; x++) 
 		{
-			float elevation = Noise->GetNoise2D(x + gridPos.X, y + gridPos.Y) * maxElevation;
-			
-			for (int z = 0; z < chunkLenght; z++) 
+			for (int y = 0; y < chunkLenght; y++) 
 			{
-				int32 index = ChunkSettings->GetVoxelIndex(x, y, z);
-				
-				if (gridPos.Z + z <= elevation) 
+				float elevation = Noise->GetNoise2D(x + gridPos.X, y + gridPos.Y) * maxElevation;
+			
+				for (int z = 0; z < chunkLenght; z++) 
 				{
-					Voxels[index].VoxelId = 1;
-					IsEmpty = false;
+					int32 index = ChunkSettings->GetVoxelIndex(x, y, z);
+				
+					if ((gridPos.Z + z) * ChunkSettings->GetVoxelSize() <= elevation) 
+					{
+						Voxels[index] = voxel;
+						IsEmpty = false;
 				}
 			}
 		}
+	}
 	}
 }
 

@@ -28,15 +28,12 @@ void UVoxelGeneratorComponent::BeginPlay()
 	RenderDistanceBounds = ChunkSize * GenerationDistance;
 
 	SpawnedChunks = MakeShared<TMap<FIntVector, TWeakObjectPtr<UChunkBase>>>();
-	VoxelTypes = MakeShared<TArray<TWeakFieldPtr<FVoxelType>>>();
 		
 	auto settings = MakeShared<FChunkSettings>();
 	{
-		settings->SetSeed(Seed);
 		settings->SetVoxelSize(VoxelSize);
 		settings->SetChunkSizeInVoxels(ChunkSideSizeInVoxels);
 		settings->SetMaximumElevation(MaximumElevation);
-		settings->SetNoiseFrequency(NoiseFrequency);
 	}
 	
 	//TODO: get enumerator and set grid in chunk grid
@@ -51,12 +48,10 @@ void UVoxelGeneratorComponent::BeginPlay()
 
 	// First chunk Id is empty space
 	auto rowNames = VoxelTypeTable->GetRowNames();
-
-	VoxelTypes->SetNum(rowNames.Num());
 	
 	ChunkGridData->SetSpawnedChunks(SpawnedChunks);
 	ChunkGridData->SetChunkSettings(settings);
-	ChunkGridData->SetVoxelTypes(VoxelTypes);
+	ChunkGridData->SetVoxelTypes(VoxelTypeTable);
 	
 	Super::BeginPlay();
 }

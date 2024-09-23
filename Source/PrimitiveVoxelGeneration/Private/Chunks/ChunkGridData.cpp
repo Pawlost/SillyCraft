@@ -2,6 +2,7 @@
 
 
 #include "Chunks/ChunkGridData.h"
+#include "Voxels/VoxelType.h"
 
 void UChunkGridData::AddChunkToGrid(TWeakObjectPtr<UChunkBase> chunk, const FIntVector& gridPos) const
 {
@@ -33,6 +34,7 @@ bool UChunkGridData::IsChunkInGrid(const FIntVector& gridPos) const
 
 TWeakObjectPtr<UChunkBase> UChunkGridData::GetChunkPtr(const FIntVector& gridPos) const
 {
+	FScopeLock Lock(&GridLock);
 	if(SpawnedChunks.IsValid())
 	{
 		auto chunk = SpawnedChunks->Find(gridPos);
@@ -60,14 +62,22 @@ void UChunkGridData::SetSpawnedChunks(const TSharedPtr<TMap<FIntVector, TWeakObj
 	this->SpawnedChunks = spawnedChunks;
 }
 
-void UChunkGridData::SetVoxelTypes(const TSharedPtr<TArray<TWeakFieldPtr<FVoxelType>>>& voxelTypes)
+void UChunkGridData::SetVoxelTypes(const TWeakObjectPtr<UDataTable>& voxelTypes)
 {
 	this->VoxelTypes = voxelTypes;
+	VoxelIds = VoxelTypes->GetRowNames();
 }
 
-int32 UChunkGridData::GetVoxelTypeNum() const
+int32 UChunkGridData::GetVoxelIdCount() const
 {
-	return VoxelTypes.Get()->Num();
+	return VoxelIds.Num();
+}
+
+FVoxelType UChunkGridData::GetVoxelTypeById(const int32& voxelId)
+{
+	auto rowName = VoxelIds[voxelId];
+
+	return *VoxelTypes->FindRow<FVoxelType>(rowName, "");
 }
 
 void UChunkGridData::SetChunkSettings(const TSharedPtr<FChunkSettings>& chunkSettings)

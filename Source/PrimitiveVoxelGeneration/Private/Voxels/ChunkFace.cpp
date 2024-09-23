@@ -36,34 +36,40 @@ FChunkFace FChunkFace::BottomFace = FChunkFace(
 	FVector(1.0, 0.0, 0.0),
 	FVector(1.0, 1.0, 0.0));
 
-FChunkFace FChunkFace::CreateFrontFace(const FVector& InitialPosition)
+FChunkFace FChunkFace::CreateFrontFace(const FVector& InitialPosition, const FVoxel& voxel)
 {
-	return FrontFace + InitialPosition;
+	return CreateChunkFace(FrontFace, InitialPosition, voxel);
 }
 
-FChunkFace FChunkFace::CreateBackFace(const FVector& InitialPosition)
+FChunkFace FChunkFace::CreateBackFace(const FVector& InitialPosition, const FVoxel& voxel)
 {
-	return BackFace + InitialPosition;
+	return CreateChunkFace(BackFace, InitialPosition, voxel);
 }
 
-FChunkFace FChunkFace::CreateLeftFace(const FVector& InitialPosition)
+FChunkFace FChunkFace::CreateLeftFace(const FVector& InitialPosition, const FVoxel& voxel)
 {
-	return LeftFace + InitialPosition;
+	return CreateChunkFace(LeftFace, InitialPosition, voxel);
 }
 
-FChunkFace FChunkFace::CreateRightFace(const FVector& InitialPosition)
+FChunkFace FChunkFace::CreateRightFace(const FVector& InitialPosition, const FVoxel& voxel)
 {
-	return RightFace + InitialPosition;
+	return CreateChunkFace(RightFace, InitialPosition, voxel);
 }
 
-FChunkFace FChunkFace::CreateTopFace(const FVector& InitialPosition)
+FChunkFace FChunkFace::CreateTopFace(const FVector& InitialPosition, const FVoxel& voxel)
 {
-	return TopFace + InitialPosition;
+	return CreateChunkFace(TopFace, InitialPosition, voxel);
 }
 
-FChunkFace FChunkFace::CreateBottomFace(const FVector& InitialPosition)
+FChunkFace FChunkFace::CreateBottomFace(const FVector& InitialPosition, const FVoxel& voxel)
 {
-	return BottomFace + InitialPosition;
+	return CreateChunkFace(BottomFace, InitialPosition, voxel);
+}
+
+FChunkFace FChunkFace::CreateChunkFace(FChunkFace face, const FVector& InitialPosition, const FVoxel& voxel)
+{
+	face.Voxel = voxel;
+	return face + InitialPosition;
 }
 
 void operator+=(FChunkFace& ChunkFace, const FVector& Vector)

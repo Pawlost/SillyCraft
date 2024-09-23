@@ -6,13 +6,11 @@
 #include "UObject/Object.h"
 #include "ChunkGridData.generated.h"
 
+struct FVoxel;
 struct FVoxelType;
 class UChunkBase;
 struct FChunkSettings;
 class AChunkActor;
-/**
- * 
- */
 
 UCLASS()
 class PRIMITIVEVOXELGENERATION_API UChunkGridData : public UObject
@@ -31,15 +29,19 @@ public:
 
 	TSharedPtr<TMap<FIntVector, TWeakObjectPtr<UChunkBase>>> GetSpawnedChunks() const;
 	void SetSpawnedChunks(const TSharedPtr<TMap<FIntVector, TWeakObjectPtr<UChunkBase>>>& SpawnedChunks);
-	void SetVoxelTypes(const TSharedPtr<TArray<TWeakFieldPtr<FVoxelType>>>& VoxelTypes);
-
-	int32 GetVoxelTypeNum() const;
+	void SetVoxelTypes(const TWeakObjectPtr<UDataTable>& VoxelTypes);
+	int32 GetVoxelIdCount() const;
+	
+	FVoxelType GetVoxelTypeById(const int32& voxelId);
 	
 private:
 	TSharedPtr<FChunkSettings> ChunkSettings;
 
 	TSharedPtr<TMap<FIntVector, TWeakObjectPtr<UChunkBase>>> SpawnedChunks;
-	TSharedPtr<TArray<TWeakFieldPtr<FVoxelType>>> VoxelTypes;
-
+	TWeakObjectPtr<UDataTable> VoxelTypes;
+	
+	UPROPERTY()
+	TArray<FName> VoxelIds;
+	
 	mutable FCriticalSection GridLock;
 };
