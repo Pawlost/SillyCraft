@@ -7,7 +7,6 @@
 #include "Chunks/ChunkGridData.h"
 #include "Chunks/ChunkSettings.h"
 #include "OperatorOverloads.h"
-#include "Voxels/VoxelType.h"
 
 // Sets default values for this component's properties
 UVoxelGeneratorComponent::UVoxelGeneratorComponent()
@@ -35,16 +34,6 @@ void UVoxelGeneratorComponent::BeginPlay()
 		settings->SetChunkSizeInVoxels(ChunkSideSizeInVoxels);
 		settings->SetMaximumElevation(MaximumElevation);
 	}
-	
-	//TODO: get enumerator and set grid in chunk grid
-	if(MoveActorToSurface)
-	{
-		auto location = GetOwner()->GetTransform().GetLocation();
-		GetOwner()->GetActorTransform().TransformPositionNoScale(location + FVector(0 , 0,MaximumElevation));
-	}
-	
-	UpdateCurrentChunkLocation();
-	SpawnChunks(CurrentChunkLocation.ChunkMinCoords, CurrentChunkLocation.ChunkMaxCoords);
 
 	// First chunk Id is empty space
 	auto rowNames = VoxelTypeTable->GetRowNames();
@@ -52,6 +41,24 @@ void UVoxelGeneratorComponent::BeginPlay()
 	ChunkGridData->SetSpawnedChunks(SpawnedChunks);
 	ChunkGridData->SetChunkSettings(settings);
 	ChunkGridData->SetVoxelTypes(VoxelTypeTable);
+	
+	UpdateCurrentChunkLocation();
+	
+	//TODO: get enumerator and set grid in chunk grid
+	if(MoveActorToSurface)
+	{
+		UChunkBase* Chunk;
+		CreateChunk(Chunk, FIntVector(0));
+		
+		auto location = GetOwner()->GetTransform().GetLocation().GridSnap(VoxelSize);
+		location.Z = Chunk->GetHighestElevationAtPosition(location.X, location.Y) + 2 * VoxelSize;
+		GetOwner()->SetActorLocation(location);
+
+		Chunk->Despawn();
+	}
+
+	UpdateCurrentChunkLocation();
+	SpawnChunks(CurrentChunkLocation.ChunkMinCoords, CurrentChunkLocation.ChunkMaxCoords);
 	
 	Super::BeginPlay();
 }
@@ -73,10 +80,6 @@ bool UVoxelGeneratorComponent::IsPlayerInChunkBounds() const
 										 TEXT("Generator Position - X:%f | Y:%f | Z:%f"),
 										 location.X, location.Y,
 										 location.Z)));
-
-	GEngine->AddOnScreenDebugMessage(-1, DebugTime, FColor::Green,
-								 *(FString::Printf(
-									 TEXT("Distance:%d"),distance)));
 
 	GEngine->AddOnScreenDebugMessage(-1, DebugTime, FColor::Green,
 							 *(FString::Printf(
@@ -127,20 +130,21 @@ void UVoxelGeneratorComponent::SpawnChunks(const FIntVector ChunkMinDistance, co
 					
 					if (!ChunkGridData->IsChunkInGrid(gridCoords))
 					{
-						auto handle = Async(EAsyncExecution::TaskGraphMainThread , [this, gridCoords]() mutable
+						UChunkBase* Chunk;
+
+						auto handle = Async(EAsyncExecution::TaskGraphMainThread , [this, &Chunk, gridCoords]() mutable
 						{
 							if(!IsValid(this)){
 								return;
 							}
 						
-							auto Chunk = NewObject<UChunkBase>(this, ChunkTemplate);
-							auto chunkGridData = MakeWeakObjectPtr<UChunkGridData>(ChunkGridData);
-							Chunk->AddToGrid(chunkGridData, gridCoords);
+							CreateChunk(Chunk, gridCoords);
+
+							Chunk->Spawn();
 						});
 
 						handle.Wait();
-						auto Chunk = ChunkGridData->GetChunkPtr(gridCoords);
-
+						
 						if(Chunk != nullptr)
 						{
 							Chunk->GenerateVoxels();
@@ -164,15 +168,17 @@ void UVoxelGeneratorComponent::SpawnChunks(const FIntVector ChunkMinDistance, co
 						continue;
 					}
 
-					if(!Chunk->IsSpawned())
+					if(!Chunk->HasMesh())
 					{
-						Chunk->StartSpawn();
-						Chunk->GenerateMesh();
-						Chunk->FinishSpawn();
-					}else
-					{
-						Chunk->GenerateMesh();
+						auto handle = Async(EAsyncExecution::TaskGraphMainThread , [&Chunk]()
+						{
+							Chunk->RemoveMesh();
+						});
+
+						handle.Wait();
 					}
+					
+					Chunk->GenerateMesh();
 				}
 			}
 		}
@@ -196,6 +202,18 @@ void UVoxelGeneratorComponent::UpdateCurrentChunkLocation()
 		const auto GenerationDistanceV = FIntVector(GenerationDistance);
 		CurrentChunkLocation.ChunkMinCoords = chunkLoc - GenerationDistanceV;
 		CurrentChunkLocation.ChunkMaxCoords = chunkLoc + GenerationDistanceV;
+	}
+}
+
+void UVoxelGeneratorComponent::CreateChunk(UChunkBase*& Chunk, FIntVector ChunkCoordinates)
+{
+	Chunk = NewObject<UChunkBase>(this, ChunkTemplate);
+	auto chunkGridData = MakeWeakObjectPtr<UChunkGridData>(ChunkGridData);
+	Chunk->AddToGrid(chunkGridData, ChunkCoordinates);
+
+	if(ShowChunkBorders)
+	{
+		Chunk->ShowChunkBorders();
 	}
 }
 

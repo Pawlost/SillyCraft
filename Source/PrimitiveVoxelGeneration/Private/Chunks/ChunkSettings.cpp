@@ -14,12 +14,12 @@ void FChunkSettings::SetChunkSizeInVoxels(const int32 chunkSideSizeInBlocks)
 	ChunkPlaneSizeInVoxels = chunkSideSizeInBlocks * chunkSideSizeInBlocks;
 }
 
-int32 FChunkSettings::GetVoxelSize() const
+double FChunkSettings::GetVoxelSize() const
 {
 	return VoxelSize;
 }
 
-void FChunkSettings::SetVoxelSize(const int32 voxelSize)
+void FChunkSettings::SetVoxelSize(const double voxelSize)
 {
 	this->VoxelSize = voxelSize;
 }
@@ -39,12 +39,12 @@ FIntVector3 FChunkSettings::IndexToCoords(const int32 index) const
 	return FIntVector3(index / ChunkSideSizeInVoxels, index % ChunkSideSizeInVoxels, (index / ChunkSideSizeInVoxels) % ChunkSideSizeInVoxels);
 }
 
-int32 FChunkSettings::GetMaximumElevation() const
+double FChunkSettings::GetMaximumElevation() const
 {
-	return MaximumElevation;
+	return MaximumElevation / VoxelSize;
 }
 
-void FChunkSettings::SetMaximumElevation(const int32 maximumElevation)
+void FChunkSettings::SetMaximumElevation(const double maximumElevation)
 {
 	this->MaximumElevation = maximumElevation;
 }

@@ -23,10 +23,10 @@ struct PRIMITIVEVOXELGENERATION_API FChunkSettings
 	// Getters & Setters
 	int32 GetChunkSideSizeInVoxels() const;
 	void SetChunkSizeInVoxels(const int32 chunkSideSizeInVoxels);
-	int32 GetVoxelSize() const;
-	void SetVoxelSize(const int32 VoxelSize);
-	int32 GetMaximumElevation() const;
-	void SetMaximumElevation(const int32 MaximumElevation);
+	double GetVoxelSize() const;
+	void SetVoxelSize(const double VoxelSize);
+	double GetMaximumElevation() const;
+	void SetMaximumElevation(const double MaximumElevation);
 	int32 GetChunkPlaneSizeInVoxels() const;
 	
 private:

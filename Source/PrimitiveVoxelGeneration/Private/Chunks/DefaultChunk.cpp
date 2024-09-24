@@ -54,7 +54,7 @@ bool UDefaultChunk::ChunkCull(int32 chunkIndex, FIntVector& neighborChunkDistanc
 {
 	FIntVector neighborChunkCoords = ChunkGridPos + neighborChunkDistance;
 	auto chunk = ChunkGridData->GetChunkPtr(neighborChunkCoords);
-	return chunk != nullptr && chunk->VoxelAt(chunkIndex).IsEmptyVoxel();
+	return chunk != nullptr && (VisibleChunkBorders && !chunk->HasMesh() || chunk->VoxelAt(chunkIndex).IsEmptyVoxel());
 }
 
 bool UDefaultChunk::VoxelCull(int32 forwardVoxelIndex)
@@ -89,7 +89,7 @@ bool UDefaultChunk::CrossChunkCullMax(int max, int32 forwardVoxelIndex, int32 ch
 
 void UDefaultChunk::GenerateMesh()
 {
-	if(IsEmpty)
+	if(Empty)
 	{
 		return;
 	}
@@ -218,7 +218,7 @@ void UDefaultChunk::GenerateMesh()
 void UDefaultChunk::GenerateVoxels()
 {
 	auto chunkLenght = ChunkSettings->GetChunkSideSizeInVoxels();
-	auto maxElevation = ChunkSettings->GetMaximumElevation();;
+	auto maxElevation = ChunkSettings->GetMaximumElevation();
 
 	auto gridPos = ChunkGridPos * chunkLenght;
 	int voxelIds = ChunkGridData->GetVoxelIdCount(); 
@@ -235,24 +235,50 @@ void UDefaultChunk::GenerateVoxels()
 		{
 			for (int y = 0; y < chunkLenght; y++) 
 			{
-				float elevation = Noise->GetNoise2D(x + gridPos.X, y + gridPos.Y) * maxElevation;
-			
+				auto elevation = Noise->GetNoise2D(x + gridPos.X,  y + gridPos.Y) * maxElevation;
+				
 				for (int z = 0; z < chunkLenght; z++) 
 				{
-					int32 index = ChunkSettings->GetVoxelIndex(x, y, z);
-				
-					if ((gridPos.Z + z) * ChunkSettings->GetVoxelSize() <= elevation) 
+					auto index = ChunkSettings->GetVoxelIndex(x, y, z);
+					
+					if (gridPos.Z + z <= elevation) 
 					{
 						Voxels[index] = voxel;
-						IsEmpty = false;
+						Empty = false;
+					}
 				}
 			}
 		}
-	}
 	}
 }
 
 FVoxel UDefaultChunk::VoxelAt(int32 index)
 {
 	return Voxels[index];
+}
+
+double UDefaultChunk::GetHighestElevationAtPosition(double posX, double posY)
+{
+	double maxElevation = 0.0;
+
+	auto voxelSize = ChunkSettings->GetVoxelSize();
+	
+	int voxelIds = ChunkGridData->GetVoxelIdCount();
+
+	auto voxelPosX = posX / voxelSize;
+	auto voxelPosY = posY / voxelSize;
+	
+	for(int voxelId = 0; voxelId < voxelIds; voxelId++)
+	{
+		FVoxelType voxelType = ChunkGridData->GetVoxelTypeById(voxelId);
+		Noise->SetupFastNoise(EFastNoise_NoiseType::ValueFractal, voxelType.Seed,  voxelType.NoiseFrequency);
+		double elevation = Noise->GetNoise2D(voxelPosX, voxelPosY) * ChunkSettings->GetMaximumElevation();
+
+		if(elevation > maxElevation)
+		{
+			maxElevation = elevation;
+		}
+	}
+	
+	return maxElevation * voxelSize;
 }

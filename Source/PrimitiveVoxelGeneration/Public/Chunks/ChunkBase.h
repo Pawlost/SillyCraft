@@ -23,22 +23,24 @@ public:
 	virtual void AddToGrid(const TWeakObjectPtr<UChunkGridData> chunkGridData, FIntVector& chunkGridPos);
 
 	// should be called before generate mesh
-	void StartSpawn(bool lockLocation = true);
+	void Spawn(bool lockLocation = true);
 	virtual void GenerateMesh(){}
 	void RemoveMeshAsync() const;
 	void RemoveMesh() const;
-	
-	// Will finish spawning with current mesh
-	void FinishSpawn();
-
 	void Despawn() const;
 	
 	virtual void GenerateVoxels(){}
 	
 	virtual FVoxel VoxelAt(int32 index){return FVoxel();}
 
-	bool IsSpawned() const;
+	bool HasMesh() const;
+	bool IsEmpty() const;
 
+	void ShowChunkBorders();
+	void HideChunkBorders();
+	
+	virtual double GetHighestElevationAtPosition(double posX, double posY);
+	
 protected:
 	TWeakObjectPtr<UChunkGridData> ChunkGridData;
 
@@ -52,8 +54,8 @@ protected:
 	FIntVector ChunkGridPos;
 
 	UPROPERTY()
-	bool IsEmpty = true;
+	bool Empty = true;
 
-private:
-	bool Spawned = false;
+	UPROPERTY()
+	bool VisibleChunkBorders = false;
 };

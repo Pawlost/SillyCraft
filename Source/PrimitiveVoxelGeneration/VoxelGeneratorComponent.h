@@ -23,6 +23,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation")
 	bool MoveActorToSurface = false;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation")
+	bool ShowChunkBorders = false;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation|Noise")
 	double MaximumElevation = 2000.0;
 	
@@ -39,7 +42,7 @@ public:
 	int32 ChunkSideSizeInVoxels = 32;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation|Blocks")
-    int32 VoxelSize = 20;
+    double VoxelSize = 20.0;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Debug")
 	float DebugTime = 0.0006f;
@@ -59,6 +62,7 @@ protected:
 private:
 	void ShowDebugVector(TVector<double>& vector, FColor color);
 	void UpdateCurrentChunkLocation();
+	void CreateChunk(UChunkBase*& Chunk, FIntVector ChunkCoordinates);
 
 	double ChunkSize = 0;
 	double RenderDistanceBounds = 0;

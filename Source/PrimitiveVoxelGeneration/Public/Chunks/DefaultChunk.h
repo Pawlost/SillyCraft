@@ -27,7 +27,8 @@ public:
 	virtual void GenerateVoxels() override;
 	virtual void GenerateMesh() override;
 	virtual FVoxel VoxelAt(int32 index) override;
-
+	virtual double GetHighestElevationAtPosition(double posX, double posY) override;
+	
 private:
 	void AddNaiveMeshedFace(FChunkFace& face, TArray<FChunkFace>& faces);
 

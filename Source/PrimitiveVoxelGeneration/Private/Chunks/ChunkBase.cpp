@@ -12,23 +12,20 @@ void UChunkBase::AddToGrid(const TWeakObjectPtr<UChunkGridData> chunkGridData, F
 	ChunkGridData = chunkGridData;
 	ChunkGridPos = chunkGridPos;
 
-	auto spawnedChunkLocation = FVector(chunkGridPos.X, chunkGridPos.Y, chunkGridPos.Z) * chunkGridData->GetChunkSettings()->GetChunkSize();
-	SpawnTransform.SetLocation(spawnedChunkLocation);
-
 	auto chunkPtr =  MakeWeakObjectPtr<UChunkBase>(this);
 	chunkGridData->AddChunkToGrid(chunkPtr, chunkGridPos);
 }
 
-void UChunkBase::StartSpawn(bool lockLocation)
+void UChunkBase::Spawn(bool lockLocation)
 {
-	AsyncTask(ENamedThreads::GameThread, [this, lockLocation]()
-	{
-		ChunkActor = GetWorld()->SpawnActorDeferred<AChunkActor>(AChunkActor::StaticClass(), SpawnTransform,
-			nullptr, nullptr,
-			ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding);
+	auto spawnedChunkLocation = FVector(ChunkGridPos.X, ChunkGridPos.Y, ChunkGridPos.Z) * ChunkGridData->GetChunkSettings()->GetChunkSize();
 
-		ChunkActor->SetLockLocation(lockLocation);
-	});
+	auto parameters = FActorSpawnParameters();
+	parameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding;
+	
+	ChunkActor = GetWorld()->SpawnActor<AChunkActor>(parameters);
+	ChunkActor->SetActorLocation(spawnedChunkLocation);
+	ChunkActor->SetLockLocation(lockLocation);
 }
 
 void UChunkBase::RemoveMeshAsync() const
@@ -50,27 +47,8 @@ void UChunkBase::RemoveMesh() const
 	}
 }
 
-void UChunkBase::FinishSpawn()
-{
-	AsyncTask(ENamedThreads::GameThread, [this]()
-	{
-		if(IsValid(ChunkActor))
-		{
-			UGameplayStatics::FinishSpawningActor(ChunkActor, SpawnTransform);
-			Spawned = true;
-		}
-	});
-}
-
 void UChunkBase::Despawn() const
 {
-	if(!IsValid(this))
-	{
-		return;
-	}
-	
-	AsyncTask(ENamedThreads::GameThread, [this]()
-	{
 	// Check if actor has not been garbage collected by UE
 	if (ChunkActor != nullptr && IsValid(ChunkActor) && GetWorld()->ContainsActor(ChunkActor))
 	{
@@ -78,12 +56,31 @@ void UChunkBase::Despawn() const
 		ChunkActor->Destroy();
 	}
 
-		// Remove despawned element from map
-		ChunkGridData->RemoveChunkFromGrid(ChunkGridPos);
-	});
+	// Remove despawned element from map
+	ChunkGridData->RemoveChunkFromGrid(ChunkGridPos);
 }
 
-bool UChunkBase::IsSpawned() const
+bool UChunkBase::HasMesh() const
 {
-	return Spawned;
+	return ChunkActor != nullptr && ChunkActor->GetProceduralMeshComponent()->GetNumSections() != 0;
+}
+
+bool UChunkBase::IsEmpty() const
+{
+	return Empty;
+}
+
+double UChunkBase::GetHighestElevationAtPosition(double posX, double posY)
+{
+	return ChunkGridData->GetChunkSettings()->GetMaximumElevation();
+}
+
+void UChunkBase::ShowChunkBorders()
+{
+	VisibleChunkBorders = true;
+}
+
+void UChunkBase::HideChunkBorders()
+{
+	VisibleChunkBorders = false;
 }
