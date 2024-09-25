@@ -187,7 +187,7 @@ void UDefaultChunk::GenerateMesh()
 		int32 index = 0;
 	
 		TSharedPtr<TArray<FVector>> Vertice = MakeShared<TArray<FVector>>();
-
+		TSharedPtr<TArray<FVector2D>> UVs = MakeShared<TArray<FVector2D>>();
 		TSharedPtr<TArray<int32>> Triangles = MakeShared<TArray<int32>>();
 		
 		FVoxelType voxelType = ChunkGridData->GetVoxelTypeById(voxelId);
@@ -211,7 +211,12 @@ void UDefaultChunk::GenerateMesh()
 				Vertice->Push(Face.BeginVertexUp);
 				Vertice->Push(Face.EndVertexDown);
 				Vertice->Push(Face.EndVertexUp);
-			
+
+				UVs->Add(FVector2D(0, 0));
+				UVs->Add(FVector2D(1, 0));
+				UVs->Add(FVector2D(1, 1));
+				UVs->Add(FVector2D(0, 1));
+				
 				Triangles->Add(index); Triangles->Add(index + 1); Triangles->Add(index + 2);
 				Triangles->Add(index + 2); Triangles->Add(index + 3); Triangles->Add(index);
 
@@ -219,13 +224,13 @@ void UDefaultChunk::GenerateMesh()
 			}
 		}
 
-		AsyncTask(ENamedThreads::GameThread, [this, voxelId, Vertice, Triangles, voxelType]()
+		AsyncTask(ENamedThreads::GameThread, [this, voxelId, Vertice, Triangles, UVs, voxelType]()
 		{
 
 			auto procMesh = ChunkActor->GetProceduralMeshComponent();
 
 		 if(procMesh.IsValid() && procMesh.IsValid(false,true) &&  Vertice.IsValid() && Triangles.IsValid()){
-			 procMesh->CreateMeshSection_LinearColor(voxelId,*Vertice, *Triangles, TArray<FVector>(), TArray<FVector2D>(), TArray<FLinearColor>(), TArray<FProcMeshTangent>(), true);
+			 procMesh->CreateMeshSection_LinearColor(voxelId,*Vertice, *Triangles, TArray<FVector>(), *UVs, TArray<FLinearColor>(), TArray<FProcMeshTangent>(), true);
 		 	procMesh->SetMaterial(voxelId, voxelType.Material);
 		 	procMesh->SetMeshSectionVisible(voxelId, true);
 		 }});
