@@ -177,6 +177,11 @@ void UVoxelGeneratorComponent::SpawnChunks(const FIntVector ChunkMinDistance, co
 
 						handle.Wait();
 					}
+
+					if(Chunk == nullptr || !Chunk.IsValid())
+					{
+						continue;
+					}
 					
 					Chunk->GenerateMesh();
 				}

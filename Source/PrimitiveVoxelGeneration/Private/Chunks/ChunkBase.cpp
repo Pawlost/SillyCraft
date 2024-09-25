@@ -38,6 +38,13 @@ void UChunkBase::RemoveMeshAsync() const
 
 void UChunkBase::RemoveMesh() const
 {
+
+	if(!IsValid(this))
+	{
+		return;
+	}
+	
+	FScopeLock Lock(&DataGuard);
 	if(ChunkActor != nullptr && IsValid(ChunkActor)){
 		auto procMesh = ChunkActor->GetProceduralMeshComponent();
 		if(procMesh.IsValid(false,true))

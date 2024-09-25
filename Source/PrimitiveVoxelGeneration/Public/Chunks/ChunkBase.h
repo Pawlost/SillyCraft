@@ -58,4 +58,7 @@ protected:
 
 	UPROPERTY()
 	bool VisibleChunkBorders = false;
+
+private:
+	mutable FCriticalSection DataGuard;
 };
