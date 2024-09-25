@@ -36,40 +36,58 @@ FChunkFace FChunkFace::BottomFace = FChunkFace(
 	FVector(1.0, 0.0, 0.0),
 	FVector(1.0, 1.0, 0.0));
 
-FChunkFace FChunkFace::CreateFrontFace(const FVector& InitialPosition, const FVoxel& voxel)
+FChunkFace FChunkFace::CreateFrontFace(const FIntVector& InitialPosition, const FVoxel& voxel)
 {
-	return CreateChunkFace(FrontFace, InitialPosition, voxel);
+	return CreateChunkFace(InitialPosition, voxel, FrontFace, EUnstableAxis::X);
 }
 
-FChunkFace FChunkFace::CreateBackFace(const FVector& InitialPosition, const FVoxel& voxel)
+FChunkFace FChunkFace::CreateBackFace(const FIntVector& InitialPosition, const FVoxel& voxel)
 {
-	return CreateChunkFace(BackFace, InitialPosition, voxel);
+	return CreateChunkFace(InitialPosition, voxel,BackFace, EUnstableAxis::X);
 }
 
-FChunkFace FChunkFace::CreateLeftFace(const FVector& InitialPosition, const FVoxel& voxel)
+FChunkFace FChunkFace::CreateLeftFace(const FIntVector& InitialPosition, const FVoxel& voxel)
 {
-	return CreateChunkFace(LeftFace, InitialPosition, voxel);
+	return CreateChunkFace(InitialPosition, voxel,LeftFace, EUnstableAxis::Y);
 }
 
-FChunkFace FChunkFace::CreateRightFace(const FVector& InitialPosition, const FVoxel& voxel)
+FChunkFace FChunkFace::CreateRightFace(const FIntVector& InitialPosition, const FVoxel& voxel)
 {
-	return CreateChunkFace(RightFace, InitialPosition, voxel);
+	return CreateChunkFace(InitialPosition, voxel,RightFace, EUnstableAxis::Y);
 }
 
-FChunkFace FChunkFace::CreateTopFace(const FVector& InitialPosition, const FVoxel& voxel)
+FChunkFace FChunkFace::CreateTopFace(const FIntVector& InitialPosition, const FVoxel& voxel)
 {
-	return CreateChunkFace(TopFace, InitialPosition, voxel);
+	return CreateChunkFace(InitialPosition, voxel,TopFace, EUnstableAxis::Y);
 }
 
-FChunkFace FChunkFace::CreateBottomFace(const FVector& InitialPosition, const FVoxel& voxel)
+FChunkFace FChunkFace::CreateBottomFace(const FIntVector& InitialPosition, const FVoxel& voxel)
 {
-	return CreateChunkFace(BottomFace, InitialPosition, voxel);
+	return CreateChunkFace(InitialPosition, voxel,BottomFace, EUnstableAxis::Y);
 }
 
-FChunkFace FChunkFace::CreateChunkFace(FChunkFace face, const FVector& InitialPosition, const FVoxel& voxel)
+bool FChunkFace::IsAxisStable(const FChunkFace& otherFace) const
+{
+	switch (UnstableAxis)
+	{
+	case EUnstableAxis::X:
+		return otherFace.InitialPosition.Z == InitialPosition.Z && otherFace.InitialPosition.Y == InitialPosition.Y;
+	case EUnstableAxis::Y:
+		return otherFace.InitialPosition.Z == InitialPosition.Z && otherFace.InitialPosition.X == InitialPosition.X;
+	case EUnstableAxis::Z:
+		return otherFace.InitialPosition.Y == InitialPosition.Y && otherFace.InitialPosition.X == InitialPosition.X;
+	default:
+		return false;
+	}
+}
+
+FChunkFace FChunkFace::CreateChunkFace(const FIntVector& InitialPosition, const FVoxel& voxel, FChunkFace face,
+	const EUnstableAxis& stableAxis)
 {
 	face.Voxel = voxel;
-	return face + InitialPosition;
+	face.InitialPosition = InitialPosition;
+	face.UnstableAxis = stableAxis;
+	return face + static_cast<FVector>(InitialPosition);
 }
 
 void operator+=(FChunkFace& ChunkFace, const FVector& Vector)

@@ -19,3 +19,14 @@ struct FVoxel
 		return VoxelId == EMPTY_VOXEL;
 	}
 };
+
+
+inline bool operator==(const FVoxel& Voxel, const FVoxel& OtherVoxel)
+{
+	return Voxel.VoxelId == OtherVoxel.VoxelId;
+}
+
+inline bool operator!=(const FVoxel& Voxel, const FVoxel& OtherVoxel)
+{
+	return Voxel.VoxelId != OtherVoxel.VoxelId;
+}

@@ -9,6 +9,7 @@ struct PRIMITIVEVOXELGENERATION_API FChunkFace
 	FVector EndVertexDown;
 	FVector EndVertexUp;
 	FVoxel Voxel;
+	FIntVector InitialPosition = FIntVector();
 	
 	static FChunkFace FrontFace;
 	static FChunkFace BackFace;
@@ -17,16 +18,18 @@ struct PRIMITIVEVOXELGENERATION_API FChunkFace
 	static FChunkFace TopFace;
 	static FChunkFace BottomFace;
 
-	static FChunkFace CreateFrontFace(const FVector& InitialPosition, const FVoxel& Voxel);
-	static FChunkFace CreateBackFace(const FVector& InitialPosition, const FVoxel& Voxel);
-	static FChunkFace CreateLeftFace(const FVector& InitialPosition, const FVoxel& Voxel);
-	static FChunkFace CreateRightFace(const FVector& InitialPosition, const FVoxel& Voxel);
-	static FChunkFace CreateTopFace(const FVector& InitialPosition, const FVoxel& Voxel);
-	static FChunkFace CreateBottomFace(const FVector& InitialPosition, const FVoxel& Voxel);
+	static FChunkFace CreateFrontFace(const FIntVector& InitialPosition, const FVoxel& voxel);
+	static FChunkFace CreateBackFace(const FIntVector& InitialPosition, const FVoxel& voxel);
+	static FChunkFace CreateLeftFace(const FIntVector& InitialPosition, const FVoxel& voxel);
+	static FChunkFace CreateRightFace(const FIntVector& InitialPosition, const FVoxel& voxel);
+	static FChunkFace CreateTopFace(const FIntVector& InitialPosition, const FVoxel& voxel);
+	static FChunkFace CreateBottomFace(const FIntVector& InitialPosition, const FVoxel& voxel);
+
+	bool IsAxisStable(const FChunkFace& otherFace) const;
 	
 	FChunkFace(){}
 	
-	FChunkFace(const FVector& beginVertexDown, const FVector& beginVertexUp, const FVector& endVertexDown, const FVector& endVertexUp)
+	FChunkFace(const FVector& beginVertexDown, const FVector& endVertexDown, const FVector& endVertexUp, const FVector& beginVertexUp)
 	{
 		BeginVertexDown = beginVertexDown;
 		BeginVertexUp = beginVertexUp;
@@ -35,7 +38,18 @@ struct PRIMITIVEVOXELGENERATION_API FChunkFace
 	}
 
 private:
-	static FChunkFace CreateChunkFace(FChunkFace face, const FVector& InitialPosition, const FVoxel& Voxel);
+	UENUM(BlueprintType)
+	enum class EUnstableAxis: uint8
+	{
+		X,
+		Y,
+		Z,
+		Undefined
+	};
+
+	
+	EUnstableAxis UnstableAxis = EUnstableAxis::Undefined;
+	static FChunkFace CreateChunkFace(const FIntVector& InitialPosition, const FVoxel& voxel, FChunkFace face,  const EUnstableAxis& stableAxis);
 };
 
 	

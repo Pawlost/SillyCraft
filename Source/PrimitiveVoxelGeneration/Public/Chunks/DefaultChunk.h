@@ -30,8 +30,8 @@ public:
 	virtual double GetHighestElevationAtPosition(double posX, double posY) override;
 	
 private:
-	void AddNaiveMeshedFace(FVoxel& voxel, FChunkFace& face,
-		TMap<int32, TArray<FChunkFace>>& faces);
+	void AddNaiveMeshedFace(FChunkFace& face,
+		TMap<int32, TArray<FChunkFace>>& faces, bool reverse);
 	bool ChunkCull(int32 chunkIndex, FIntVector& neighborChunkDistance) const;
 	bool VoxelCull(int32 forwardVoxelIndex);
 
