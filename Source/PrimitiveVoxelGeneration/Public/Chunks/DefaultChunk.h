@@ -6,10 +6,9 @@
 #include "ChunkBase.h"
 #include "ChunkGridData.h"
 #include "FastNoiseWrapper.h"
+#include "Voxels/ChunkFace.h"
 #include "DefaultChunk.generated.h"
-
 struct FVoxel;
-struct FChunkFace;
 /**
  * 
  */
@@ -31,7 +30,8 @@ public:
 	
 private:
 	void AddNaiveMeshedFace(FChunkFace& face,
-		TMap<int32, TArray<FChunkFace>>& faces, bool reverse);
+		TMap<int32, TArray<FChunkFace>>& faces, int32 previousVoxelDirection,
+		FChunkFace::EMergeMethod mergeMethod, FChunkFace::EUnstableAxis unstableAxis);
 	bool ChunkCull(int32 chunkIndex, FIntVector& neighborChunkDistance) const;
 	bool VoxelCull(int32 forwardVoxelIndex);
 

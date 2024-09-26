@@ -7,7 +7,6 @@
 #include "Chunks/ChunkActor.h"
 #include "Chunks/ChunkGridData.h"
 #include "Chunks/ChunkSettings.h"
-#include "Voxels/ChunkFace.h"
 #include "Voxels/Voxel.h"
 #include "Voxels/VoxelType.h"
 
@@ -24,34 +23,25 @@ UDefaultChunk::UDefaultChunk()
 }
 
 void UDefaultChunk::AddNaiveMeshedFace(FChunkFace& face,
-	TMap<int32, TArray<FChunkFace>>& faces, bool reverse)
+	TMap<int32, TArray<FChunkFace>>& faces, int32 previousVoxelDirection,
+	FChunkFace::EMergeMethod mergeMethod, FChunkFace::EUnstableAxis unstableAxis)
 {
 	if(!faces.Contains(face.Voxel.VoxelId))
 	{
 		faces.Add(face.Voxel.VoxelId, TArray<FChunkFace>());
 	}
-
+	
 	auto chunkFace = faces.Find(face.Voxel.VoxelId);
 
-	if(!chunkFace->IsEmpty()){
+	if(Voxels.IsValidIndex(previousVoxelDirection) &&
+		face.Voxel == Voxels[previousVoxelDirection] &&
+		!chunkFace->IsEmpty())
+	{
+		const auto prevface = chunkFace->Last();
 		
-		auto prevface = chunkFace->Last();
-		
-		if(face.Voxel.VoxelId == prevface.Voxel.VoxelId)
+		if(face.MergeFace(prevface, mergeMethod, unstableAxis))
 		{
-			if(face.IsAxisStable(prevface))
-			{
-				if(reverse)
-				{
-					face.EndVertexDown = prevface.EndVertexDown;
-					face.EndVertexUp = prevface.EndVertexUp;
-				}else{
-					face.BeginVertexDown = prevface.BeginVertexDown;
-					face.BeginVertexUp = prevface.BeginVertexUp;
-				}
-				
-				chunkFace->Pop();
-			}
+			chunkFace->Pop();
 		}
 	}
 	
@@ -113,6 +103,11 @@ void UDefaultChunk::GenerateMesh()
 	{
 		faces[i] = MakeUnique<TMap<int32, TArray<FChunkFace>>>();
 	}
+
+	FChunkFace face;
+	FIntVector position;
+	int32 index;
+	FVoxel voxel;
 	
 	for(int x = 0; x < chunkLenght; x++)
 	{
@@ -120,56 +115,36 @@ void UDefaultChunk::GenerateMesh()
 		{
 			for(int y = 0; y < chunkLenght; y++)
 			{
-				int32 index = ChunkSettings->GetVoxelIndex(x, y, z);
-
-				FVoxel voxel = Voxels[index];
+				index = ChunkSettings->GetVoxelIndex(x, y, z);
+				voxel = Voxels[index];
 				
 				if(!voxel.IsEmptyVoxel())
 				{
 					voxelIdsInMesh.FindOrAdd(voxel.VoxelId);
+					 position = FIntVector(x, y, z);
 					
-					FIntVector position = FIntVector(x, y, z);
-
-					FChunkFace face;
-					
-					/*	// Front
-						if(CrossChunkCullMin(x, index + ChunkSettings->GetVoxelIndex(-1,0,0),
-							ChunkSettings->GetVoxelIndex(chunkLenght - 1, y, z), FIntVector(-1, 0, 0)))
-						{
-							face = FChunkFace::CreateFrontFace(position, FChunkFace::EStableAxis::X);
-							AddNaiveMeshedFace(voxelId, face, *faces[0], index + ChunkSettings->GetVoxelIndex(-1,0,0));
-						}
+					// Front
+					if(CrossChunkCullMin(x, index + ChunkSettings->GetVoxelIndex(-1,0,0),
+						ChunkSettings->GetVoxelIndex(chunkLenght - 1, y, z), FIntVector(-1, 0, 0)))
+					{
+						face = FChunkFace::CreateFrontFace(position, voxel);
+						AddNaiveMeshedFace(face, *faces[0], index + ChunkSettings->GetVoxelIndex(0,-1,0), FChunkFace::EMergeMethod::Begin,  FChunkFace::EUnstableAxis::Y);
+					}
 						
-						// Back
-						if(CrossChunkCullMax(x, index + ChunkSettings->GetVoxelIndex(1,0,0),
-							ChunkSettings->GetVoxelIndex(0, y, z), FIntVector(1, 0, 0)))
-						{
-							face = FChunkFace::CreateBackFace(position, FChunkFace::EStableAxis::X);
-							AddNaiveMeshedFace(voxelId, face, *faces[1], index + ChunkSettings->GetVoxelIndex(-1,0,0));
-						}
-						
-						// Left
-						if(CrossChunkCullMin(y, index + ChunkSettings->GetVoxelIndex(0,-1,0),
-							ChunkSettings->GetVoxelIndex(x, chunkLenght - 1, z), FIntVector(0, -1, 0)))
-						{
-							face = FChunkFace::CreateLeftFace(position, FChunkFace::EStableAxis::X);
-							AddNaiveMeshedFace(voxelId, face, *faces[2], index + ChunkSettings->GetVoxelIndex(-1,0,0));
-						}
-						
-						// Right
-						if(CrossChunkCullMax(y, index + ChunkSettings->GetVoxelIndex(0,1,0),
-							ChunkSettings->GetVoxelIndex(x, 0,z ), FIntVector(0, 1, 0)))
-						{
-							face = FChunkFace::CreateRightFace(position, FChunkFace::EStableAxis::X);
-							AddNaiveMeshedFace(voxelId, face, *faces[3], index + ChunkSettings->GetVoxelIndex(-1,0,0));
-						}
-					*/
+					// Back
+					if(CrossChunkCullMax(x, index + ChunkSettings->GetVoxelIndex(1,0,0),
+						ChunkSettings->GetVoxelIndex(0, y, z), FIntVector(1, 0, 0)))
+					{
+						face = FChunkFace::CreateBackFace(position, voxel);
+						AddNaiveMeshedFace(face, *faces[1], index + ChunkSettings->GetVoxelIndex(0,-1,0), FChunkFace::EMergeMethod::End,  FChunkFace::EUnstableAxis::Y);
+					}
+				
 					// Bottom
 					if(CrossChunkCullMin(z, index + ChunkSettings->GetVoxelIndex(0,0,-1),
 						ChunkSettings->GetVoxelIndex(x, y, chunkLenght - 1), FIntVector(0, 0, -1)))
 					{
 						face = FChunkFace::CreateBottomFace(position, voxel);
-						AddNaiveMeshedFace(face, *faces[4], true);
+						AddNaiveMeshedFace(face, *faces[4], index + ChunkSettings->GetVoxelIndex(0,-1,0), FChunkFace::EMergeMethod::End,  FChunkFace::EUnstableAxis::Y);
 					}
 			
 					// Top
@@ -177,7 +152,40 @@ void UDefaultChunk::GenerateMesh()
 						ChunkSettings->GetVoxelIndex(x, y,0), FIntVector(0, 0, 1)))
 					{
 						face = FChunkFace::CreateTopFace(position, voxel);
-						AddNaiveMeshedFace(face, *faces[5], false);
+						AddNaiveMeshedFace(face, *faces[5], index + ChunkSettings->GetVoxelIndex(0,-1,0), FChunkFace::EMergeMethod::Begin,  FChunkFace::EUnstableAxis::Y);
+					}
+				}
+			}
+		}
+
+		for(int y = 0; y < chunkLenght; y++)
+		{
+			for(int z = 0; z < chunkLenght; z++)
+			{
+
+				index = ChunkSettings->GetVoxelIndex(x, y, z);
+				voxel = Voxels[index];
+				
+				if(!voxel.IsEmptyVoxel())
+				{
+					voxelIdsInMesh.FindOrAdd(voxel.VoxelId);
+					
+					position = FIntVector(x, y, z);
+					
+					// Left
+					if(CrossChunkCullMin(y, index + ChunkSettings->GetVoxelIndex(0,-1,0),
+						ChunkSettings->GetVoxelIndex(x, chunkLenght - 1, z), FIntVector(0, -1, 0)))
+					{
+						face = FChunkFace::CreateLeftFace(position, voxel);
+						AddNaiveMeshedFace(face, *faces[2], index + ChunkSettings->GetVoxelIndex(0,0,-1), FChunkFace::EMergeMethod::Up,  FChunkFace::EUnstableAxis::Z);
+					}
+						
+					// Right
+					if(CrossChunkCullMax(y, index + ChunkSettings->GetVoxelIndex(0,1,0),
+						ChunkSettings->GetVoxelIndex(x, 0,z ), FIntVector(0, 1, 0)))
+					{
+						face = FChunkFace::CreateRightFace(position, voxel);
+						AddNaiveMeshedFace(face, *faces[3], index + ChunkSettings->GetVoxelIndex(0,0,1), FChunkFace::EMergeMethod::Down, FChunkFace::EUnstableAxis::Z);
 					}
 				}
 			}
@@ -186,7 +194,7 @@ void UDefaultChunk::GenerateMesh()
 	
 	for (auto voxelId : voxelIdsInMesh)
 	{
-		int32 index = 0;
+		int32 faceIndex = 0;
 	
 		TSharedPtr<TArray<FVector>> Vertice = MakeShared<TArray<FVector>>();
 		TSharedPtr<TArray<FVector2D>> UVs = MakeShared<TArray<FVector2D>>();
@@ -209,20 +217,20 @@ void UDefaultChunk::GenerateMesh()
 
 				Face *= voxelSize;
 			
-				Vertice->Push(Face.BeginVertexDown);
-				Vertice->Push(Face.EndVertexDown);
-				Vertice->Push(Face.EndVertexUp);
-				Vertice->Push(Face.BeginVertexUp);
+				Vertice->Push(static_cast<FVector>(Face.BeginVertexDown));
+				Vertice->Push(static_cast<FVector>(Face.EndVertexDown));
+				Vertice->Push(static_cast<FVector>(Face.EndVertexUp));
+				Vertice->Push(static_cast<FVector>(Face.BeginVertexUp));
 
 				UVs->Add(FVector2D(0, 0));
 				UVs->Add(FVector2D(1, 0));
 				UVs->Add(FVector2D(1, 1));
 				UVs->Add(FVector2D(0, 1));
 				
-				Triangles->Add(index); Triangles->Add(index + 1); Triangles->Add(index + 2);
-				Triangles->Add(index + 2); Triangles->Add(index + 3); Triangles->Add(index);
+				Triangles->Add(faceIndex); Triangles->Add(faceIndex + 1); Triangles->Add(faceIndex + 2);
+				Triangles->Add(faceIndex + 2); Triangles->Add(faceIndex + 3); Triangles->Add(faceIndex);
 
-				index += 4;
+				faceIndex += 4;
 			}
 		}
 

@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include <vector>
+#include <vector>
 
 inline bool operator<(const FIntVector& vectorA, const FIntVector& vectorB)
 {	

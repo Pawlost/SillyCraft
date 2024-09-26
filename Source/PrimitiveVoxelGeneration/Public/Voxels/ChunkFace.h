@@ -4,12 +4,11 @@
 
 struct PRIMITIVEVOXELGENERATION_API FChunkFace
 {
-	FVector BeginVertexDown;
-	FVector BeginVertexUp;
-	FVector EndVertexDown;
-	FVector EndVertexUp;
-	FVoxel Voxel;
-	FIntVector InitialPosition = FIntVector();
+	FIntVector BeginVertexDown;
+	FIntVector BeginVertexUp;
+	FIntVector EndVertexDown;
+	FIntVector EndVertexUp;
+	FVoxel Voxel = FVoxel();
 	
 	static FChunkFace FrontFace;
 	static FChunkFace BackFace;
@@ -25,11 +24,18 @@ struct PRIMITIVEVOXELGENERATION_API FChunkFace
 	static FChunkFace CreateTopFace(const FIntVector& InitialPosition, const FVoxel& voxel);
 	static FChunkFace CreateBottomFace(const FIntVector& InitialPosition, const FVoxel& voxel);
 
-	bool IsAxisStable(const FChunkFace& otherFace) const;
+	UENUM(BlueprintType)
+	enum class EMergeMethod: uint8
+	{
+		Up,
+		Down,
+		End,
+		Begin
+	};
 	
 	FChunkFace(){}
 	
-	FChunkFace(const FVector& beginVertexDown, const FVector& endVertexDown, const FVector& endVertexUp, const FVector& beginVertexUp)
+	FChunkFace(const FIntVector& beginVertexDown, const FIntVector& endVertexDown, const FIntVector& endVertexUp, const FIntVector& beginVertexUp)
 	{
 		BeginVertexDown = beginVertexDown;
 		BeginVertexUp = beginVertexUp;
@@ -37,7 +43,6 @@ struct PRIMITIVEVOXELGENERATION_API FChunkFace
 		EndVertexUp = endVertexUp;
 	}
 
-private:
 	UENUM(BlueprintType)
 	enum class EUnstableAxis: uint8
 	{
@@ -47,19 +52,21 @@ private:
 		Undefined
 	};
 
+	bool MergeFace(const FChunkFace& otherFace, EMergeMethod mergeMethod, EUnstableAxis unstableAxis);
 	
-	EUnstableAxis UnstableAxis = EUnstableAxis::Undefined;
-	static FChunkFace CreateChunkFace(const FIntVector& InitialPosition, const FVoxel& voxel, FChunkFace face,  const EUnstableAxis& stableAxis);
+private:
+	// returns true if merge was succesful
+	static bool IsAxisStable(const FIntVector& mergeVertex, const FIntVector& otherMergeVertex,
+		const EUnstableAxis unstableAxis);
+	static FChunkFace CreateChunkFace(const FIntVector& InitialPosition, const FVoxel& voxel, FChunkFace face);
 };
 
 	
-inline void operator+=(FChunkFace& ChunkFace, const FVector& Vector);
+inline void operator+=(FChunkFace& ChunkFace, const FIntVector& Vector);
 
-inline FChunkFace operator+(FChunkFace ChunkFace, const FVector& Vector);
+inline void operator-=(FChunkFace& ChunkFace, const FIntVector& Vector);
 
-inline void operator-=(FChunkFace& ChunkFace, const FVector& Vector);
-
-inline FChunkFace operator-(FChunkFace ChunkFace, const FVector& Vector);
+inline FChunkFace operator-(FChunkFace ChunkFace, const FIntVector& Vector);
 
 inline void operator*=(FChunkFace& ChunkFace, const int32& Multiplier)
 {
