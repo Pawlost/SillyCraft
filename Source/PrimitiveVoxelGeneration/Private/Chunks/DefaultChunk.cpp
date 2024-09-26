@@ -32,23 +32,26 @@ void UDefaultChunk::AddNaiveMeshedFace(FChunkFace& face,
 	}
 
 	auto chunkFace = faces.Find(face.Voxel.VoxelId);
-	
-	auto prevface = chunkFace->Last();
+
+	if(!chunkFace->IsEmpty()){
 		
-	if(!chunkFace->IsEmpty() && face.Voxel.VoxelId == prevface.Voxel.VoxelId)
-	{
-		if(face.IsAxisStable(prevface))
+		auto prevface = chunkFace->Last();
+		
+		if(face.Voxel.VoxelId == prevface.Voxel.VoxelId)
 		{
-			if(reverse)
+			if(face.IsAxisStable(prevface))
 			{
-				face.EndVertexDown = prevface.EndVertexDown;
-				face.EndVertexUp = prevface.EndVertexUp;
-			}else{
-				face.BeginVertexDown = prevface.BeginVertexDown;
-				face.BeginVertexUp = prevface.BeginVertexUp;
-			}
+				if(reverse)
+				{
+					face.EndVertexDown = prevface.EndVertexDown;
+					face.EndVertexUp = prevface.EndVertexUp;
+				}else{
+					face.BeginVertexDown = prevface.BeginVertexDown;
+					face.BeginVertexUp = prevface.BeginVertexUp;
+				}
 				
-			chunkFace->Pop();
+				chunkFace->Pop();
+			}
 		}
 	}
 	
