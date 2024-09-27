@@ -12,13 +12,13 @@ FChunkFace FChunkFace::BackFace = FChunkFace(
 	FIntVector(1, 0, 1),
 	FIntVector(1, 1, 1));
 
-FChunkFace FChunkFace::LeftFace = FChunkFace(
+FChunkFace FChunkFace::RightFace = FChunkFace(
 	FIntVector(1, 0, 0),
 	FIntVector(0, 0, 0),
 	FIntVector(0, 0, 1),
 	FIntVector(1, 0, 1));
 
-FChunkFace FChunkFace::RightFace = FChunkFace(
+FChunkFace FChunkFace::LeftFace = FChunkFace(
 	FIntVector(0, 1, 0),
 	FIntVector(1, 1, 0),
 	FIntVector(1, 1, 1),
