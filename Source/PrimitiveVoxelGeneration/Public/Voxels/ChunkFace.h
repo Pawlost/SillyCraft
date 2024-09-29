@@ -8,6 +8,7 @@ struct PRIMITIVEVOXELGENERATION_API FChunkFace
 	FIntVector BeginVertexUp;
 	FIntVector EndVertexDown;
 	FIntVector EndVertexUp;
+	bool IsMark = false;
 	FVoxel Voxel = FVoxel();
 	
 	static FChunkFace FrontFace;
@@ -52,7 +53,7 @@ struct PRIMITIVEVOXELGENERATION_API FChunkFace
 		Undefined
 	};
 
-	bool MergeFace(const FChunkFace& otherFace, EMergeMethod mergeMethod, EUnstableAxis unstableAxis);
+	bool MergeFace(const FChunkFace& otherFace, const EMergeMethod mergeMethod, const EUnstableAxis unstableAxis);
 	
 private:
 	// returns true if merge was succesful

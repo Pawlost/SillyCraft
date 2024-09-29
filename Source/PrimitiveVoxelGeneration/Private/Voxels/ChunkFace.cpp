@@ -82,7 +82,7 @@ bool FChunkFace::IsAxisStable(const FIntVector& mergeVertex, const FIntVector& o
 	}
 }
 
-bool FChunkFace::MergeFace(const FChunkFace& otherFace, EMergeMethod mergeMethod, EUnstableAxis unstableAxis)
+bool FChunkFace::MergeFace(const FChunkFace& otherFace, const EMergeMethod mergeMethod, const EUnstableAxis unstableAxis)
 {
 	switch (mergeMethod)
 	{

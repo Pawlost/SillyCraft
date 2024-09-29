@@ -1,6 +1,5 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Chunks/DefaultChunk.h"
 
 #include "FastNoiseWrapper.h"
@@ -26,6 +25,8 @@ void UDefaultChunk::AddNaiveMeshedFace(FChunkFace& face,
 	TMap<int32, TArray<FChunkFace>>& faces, int32 previousVoxelDirection,
 	FChunkFace::EMergeMethod mergeMethod, FChunkFace::EUnstableAxis unstableAxis)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE("Naive greedy mesh creation")
+	
 	if(!faces.Contains(face.Voxel.VoxelId))
 	{
 		faces.Add(face.Voxel.VoxelId, TArray<FChunkFace>());
@@ -33,19 +34,16 @@ void UDefaultChunk::AddNaiveMeshedFace(FChunkFace& face,
 	
 	auto chunkFace = faces.Find(face.Voxel.VoxelId);
 
-	if(Voxels.IsValidIndex(previousVoxelDirection) &&
+	auto faceJoined = (Voxels.IsValidIndex(previousVoxelDirection) &&
 		face.Voxel == Voxels[previousVoxelDirection] &&
-		!chunkFace->IsEmpty())
-	{
-		const auto prevface = chunkFace->Last();
-		
-		if(face.MergeFace(prevface, mergeMethod, unstableAxis))
-		{
-		//TODO: merge prevface
-			chunkFace->Pop();
-		}
-	}
+		!chunkFace->IsEmpty() &&
+		chunkFace->Last().MergeFace(face, mergeMethod, unstableAxis));
 	
+	if(faceJoined)
+	{
+		return;
+	}
+
 	chunkFace->Add(face);
 }
 
@@ -88,6 +86,8 @@ bool UDefaultChunk::CrossChunkCullInPositiveDirection(int max, int32 forwardVoxe
 
 void UDefaultChunk::GenerateMesh()
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh generation")
+	
 	if(Empty)
 	{
 		return;
@@ -116,6 +116,8 @@ void UDefaultChunk::GenerateMesh()
 		{
 			for(int y = 0; y < chunkLenght; y++)
 			{
+				TRACE_CPUPROFILER_EVENT_SCOPE("Mesh faces generation")
+
 				index = ChunkSettings->GetVoxelIndex(x, y, z);
 				voxel = Voxels[index];
 				
@@ -129,7 +131,7 @@ void UDefaultChunk::GenerateMesh()
 						ChunkSettings->GetVoxelIndex(chunkLenght - 1, y, z), FIntVector(-1, 0, 0)))
 					{
 						face = FChunkFace::CreateFrontFace(position, voxel);
-						AddNaiveMeshedFace(face, *faces[0], index + ChunkSettings->GetVoxelIndex(0,-1,0), FChunkFace::EMergeMethod::Begin,  FChunkFace::EUnstableAxis::Y);
+						AddNaiveMeshedFace(face, *faces[0], index + ChunkSettings->GetVoxelIndex(0,-1,0), FChunkFace::EMergeMethod::End,  FChunkFace::EUnstableAxis::Y);
 					}
 						
 					// Back
@@ -137,7 +139,7 @@ void UDefaultChunk::GenerateMesh()
 						ChunkSettings->GetVoxelIndex(0, y, z), FIntVector(1, 0, 0)))
 					{
 						face = FChunkFace::CreateBackFace(position, voxel);
-						AddNaiveMeshedFace(face, *faces[1], index + ChunkSettings->GetVoxelIndex(0,-1,0), FChunkFace::EMergeMethod::End,  FChunkFace::EUnstableAxis::Y);
+						AddNaiveMeshedFace(face, *faces[1], index + ChunkSettings->GetVoxelIndex(0,-1,0), FChunkFace::EMergeMethod::Begin,  FChunkFace::EUnstableAxis::Y);
 					}
 				
 					// Bottom
@@ -145,7 +147,7 @@ void UDefaultChunk::GenerateMesh()
 						ChunkSettings->GetVoxelIndex(x, y, chunkLenght - 1), FIntVector(0, 0, -1)))
 					{
 						face = FChunkFace::CreateBottomFace(position, voxel);
-						AddNaiveMeshedFace(face, *faces[4], index + ChunkSettings->GetVoxelIndex(0,-1,0), FChunkFace::EMergeMethod::End,  FChunkFace::EUnstableAxis::Y);
+						AddNaiveMeshedFace(face, *faces[4], index + ChunkSettings->GetVoxelIndex(0,-1,0), FChunkFace::EMergeMethod::Begin,  FChunkFace::EUnstableAxis::Y);
 					}
 			
 					// Top
@@ -153,7 +155,7 @@ void UDefaultChunk::GenerateMesh()
 						ChunkSettings->GetVoxelIndex(x, y,0), FIntVector(0, 0, 1)))
 					{
 						face = FChunkFace::CreateTopFace(position, voxel);
-						AddNaiveMeshedFace(face, *faces[5], index + ChunkSettings->GetVoxelIndex(0,-1,0), FChunkFace::EMergeMethod::Begin,  FChunkFace::EUnstableAxis::Y);
+						AddNaiveMeshedFace(face, *faces[5], index + ChunkSettings->GetVoxelIndex(0,-1,0), FChunkFace::EMergeMethod::End,  FChunkFace::EUnstableAxis::Y);
 					}
 				}
 				
@@ -171,7 +173,7 @@ void UDefaultChunk::GenerateMesh()
 						ChunkSettings->GetVoxelIndex(y, chunkLenght-1, z), FIntVector(0, -1, 0)))
 					{
 						face = FChunkFace::CreateRightFace(position, voxel);
-						AddNaiveMeshedFace(face, *faces[3], index + ChunkSettings->GetVoxelIndex(-1,0,0), FChunkFace::EMergeMethod::End, FChunkFace::EUnstableAxis::X);
+						AddNaiveMeshedFace(face, *faces[3], index + ChunkSettings->GetVoxelIndex(-1,0,0), FChunkFace::EMergeMethod::Begin, FChunkFace::EUnstableAxis::X);
 					}
 					
 					// Left
@@ -179,7 +181,7 @@ void UDefaultChunk::GenerateMesh()
 						ChunkSettings->GetVoxelIndex(y,0, z), FIntVector(0, 1, 0)))
 					{
 						face = FChunkFace::CreateLeftFace(position, voxel);
-						AddNaiveMeshedFace(face, *faces[2], index + ChunkSettings->GetVoxelIndex(-1,0,0), FChunkFace::EMergeMethod::Begin,  FChunkFace::EUnstableAxis::X);
+						AddNaiveMeshedFace(face, *faces[2], index + ChunkSettings->GetVoxelIndex(-1,0,0), FChunkFace::EMergeMethod::End,  FChunkFace::EUnstableAxis::X);
 					}
 				}
 			}
@@ -188,6 +190,8 @@ void UDefaultChunk::GenerateMesh()
 	
 	for (auto voxelId : voxelIdsInMesh)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE("Mesh vertex generation")
+
 		int32 faceIndex = 0;
 	
 		TSharedPtr<TArray<FVector>> Vertice = MakeShared<TArray<FVector>>();
@@ -230,6 +234,7 @@ void UDefaultChunk::GenerateMesh()
 
 		AsyncTask(ENamedThreads::GameThread, [this, voxelId, Vertice, Triangles, UVs, voxelType]()
 		{
+			TRACE_CPUPROFILER_EVENT_SCOPE("Procedural mesh activation")
 
 			auto procMesh = ChunkActor->GetProceduralMeshComponent();
 

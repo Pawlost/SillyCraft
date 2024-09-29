@@ -13,7 +13,7 @@ struct FVoxel
 	
 	// Initial voxel id
 	int32 VoxelId = EMPTY_VOXEL;
-
+	
 	bool IsEmptyVoxel() const
 	{
 		return VoxelId == EMPTY_VOXEL;
