@@ -35,8 +35,8 @@ private:
 	bool ChunkCull(int32 chunkIndex, FIntVector& neighborChunkDistance) const;
 	bool VoxelCull(int32 forwardVoxelIndex);
 
-	bool CrossChunkCullMin(int min, int32 forwardVoxelIndex, int32 chunkIndex, FIntVector neighborChunkDistance);
-	bool CrossChunkCullMax(int max, int32 forwardVoxelIndex, int32 chunkIndex, FIntVector neighborChunkDistance);
+	bool CrossChunkCullInNegativeDirection(int min, int32 forwardVoxelIndex, int32 chunkIndex, FIntVector neighborChunkDistance);
+	bool CrossChunkCullInPositiveDirection(int max, int32 forwardVoxelIndex, int32 chunkIndex, FIntVector neighborChunkDistance);
 	
 	UPROPERTY()
 	TObjectPtr<UFastNoiseWrapper> Noise;

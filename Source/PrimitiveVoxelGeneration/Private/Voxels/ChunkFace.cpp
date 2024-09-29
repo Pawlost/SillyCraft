@@ -76,7 +76,7 @@ bool FChunkFace::IsAxisStable(const FIntVector& mergeVertex, const FIntVector& o
 	case EUnstableAxis::Y:
 		return mergeVertex.Z == otherMergeVertex.Z && mergeVertex.X == otherMergeVertex.X;
 	case EUnstableAxis::Z:
-		return mergeVertex.Z == otherMergeVertex.Y && mergeVertex.X == otherMergeVertex.X;
+		return mergeVertex.Y == otherMergeVertex.Y && mergeVertex.X == otherMergeVertex.X;
 	default:
 		return false;
 	}
