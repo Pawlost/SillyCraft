@@ -87,7 +87,8 @@ bool FChunkFace::MergeFace(const FChunkFace& otherFace, const EMergeMethod merge
 	switch (mergeMethod)
 	{
 	case EMergeMethod::Begin:
-		if(IsAxisStable(BeginVertexDown, otherFace.BeginVertexDown, unstableAxis))
+		if(IsAxisStable(BeginVertexDown, otherFace.BeginVertexDown, unstableAxis) &&
+			IsAxisStable(BeginVertexUp, otherFace.BeginVertexUp, unstableAxis))
 		{
 			BeginVertexDown = otherFace.BeginVertexDown;
 			BeginVertexUp = otherFace.BeginVertexUp;
@@ -97,7 +98,8 @@ bool FChunkFace::MergeFace(const FChunkFace& otherFace, const EMergeMethod merge
 		
 	case EMergeMethod::End:
 
-		if(IsAxisStable(EndVertexDown, otherFace.EndVertexDown, unstableAxis))
+		if(IsAxisStable(EndVertexDown, otherFace.EndVertexDown, unstableAxis) &&
+			IsAxisStable(EndVertexUp, otherFace.EndVertexUp, unstableAxis))
 		{
 			EndVertexDown = otherFace.EndVertexDown;
 			EndVertexUp = otherFace.EndVertexUp;
@@ -106,7 +108,8 @@ bool FChunkFace::MergeFace(const FChunkFace& otherFace, const EMergeMethod merge
 		return false;
 
 	case EMergeMethod::Up:
-		if(IsAxisStable(BeginVertexUp, otherFace.BeginVertexUp, unstableAxis))
+		if(IsAxisStable(BeginVertexUp, otherFace.BeginVertexUp, unstableAxis) &&
+			IsAxisStable(EndVertexUp, otherFace.EndVertexUp, unstableAxis))
 		{
 			EndVertexUp = otherFace.EndVertexUp;
 			BeginVertexUp = otherFace.BeginVertexUp;
@@ -115,7 +118,8 @@ bool FChunkFace::MergeFace(const FChunkFace& otherFace, const EMergeMethod merge
 		return false;
 		
 	case EMergeMethod::Down:
-		if(IsAxisStable(BeginVertexDown, otherFace.BeginVertexDown, unstableAxis))
+		if(IsAxisStable(BeginVertexDown, otherFace.BeginVertexDown, unstableAxis) &&
+			IsAxisStable(EndVertexDown, otherFace.EndVertexDown, unstableAxis))
 		{
 			BeginVertexDown = otherFace.BeginVertexDown;
 			EndVertexDown = otherFace.EndVertexDown;

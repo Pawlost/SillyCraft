@@ -30,17 +30,26 @@ public:
 	
 private:
 	void AddNaiveMeshedFace(FChunkFace& face,
-		TMap<int32, TArray<FChunkFace>>& faces, int32 previousVoxelDirection,
+		TMap<int32, TSharedPtr<TArray<FChunkFace>>>& faces, int32 previousVoxelDirection,
 		FChunkFace::EMergeMethod mergeMethod, FChunkFace::EUnstableAxis unstableAxis);
+	
 	bool ChunkCull(int32 chunkIndex, FIntVector& neighborChunkDistance) const;
 	bool VoxelCull(int32 forwardVoxelIndex);
 
 	bool CrossChunkCullInNegativeDirection(int min, int32 forwardVoxelIndex, int32 chunkIndex, FIntVector neighborChunkDistance);
 	bool CrossChunkCullInPositiveDirection(int max, int32 forwardVoxelIndex, int32 chunkIndex, FIntVector neighborChunkDistance);
+
+	static void GreedyMeshing(TMap<int32, TSharedPtr<TArray<FChunkFace>>>& faces,
+	                          FChunkFace::EMergeMethod mergeMethod, FChunkFace::EUnstableAxis unstableAxis);
 	
 	UPROPERTY()
 	TObjectPtr<UFastNoiseWrapper> Noise;
+
+	UPROPERTY()
 	TArray<FVoxel> Voxels;
+
+	UPROPERTY()
+	TSet<int32> voxelIdsInMesh;
 
 	TSharedPtr<FChunkSettings> ChunkSettings;
 };

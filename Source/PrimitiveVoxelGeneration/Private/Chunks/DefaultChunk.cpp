@@ -22,17 +22,14 @@ UDefaultChunk::UDefaultChunk()
 }
 
 void UDefaultChunk::AddNaiveMeshedFace(FChunkFace& face,
-	TMap<int32, TArray<FChunkFace>>& faces, int32 previousVoxelDirection,
+	TMap<int32, TSharedPtr<TArray<FChunkFace>>>& faces, int32 previousVoxelDirection,
 	FChunkFace::EMergeMethod mergeMethod, FChunkFace::EUnstableAxis unstableAxis)
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE("Naive greedy mesh creation")
+#if CPUPROFILERTRACE_ENABLED
+	TRACE_CPUPROFILER_EVENT_SCOPE("Naive greedy mesh generation")
+#endif
 	
-	if(!faces.Contains(face.Voxel.VoxelId))
-	{
-		faces.Add(face.Voxel.VoxelId, TArray<FChunkFace>());
-	}
-	
-	auto chunkFace = faces.Find(face.Voxel.VoxelId);
+	auto chunkFace = faces.Find(face.Voxel.VoxelId)->ToSharedRef();
 
 	auto faceJoined = (Voxels.IsValidIndex(previousVoxelDirection) &&
 		face.Voxel == Voxels[previousVoxelDirection] &&
@@ -84,9 +81,53 @@ bool UDefaultChunk::CrossChunkCullInPositiveDirection(int max, int32 forwardVoxe
 	return VoxelCull(forwardVoxelIndex);
 }
 
+void UDefaultChunk::GreedyMeshing(TMap<int32, TSharedPtr<TArray<FChunkFace>>>& faces,
+	FChunkFace::EMergeMethod mergeMethod, FChunkFace::EUnstableAxis unstableAxis)
+{
+
+	//TODO add linker conditions
+#if CPUPROFILERTRACE_ENABLED
+	TRACE_CPUPROFILER_EVENT_SCOPE("Greedy mesh generation")
+#endif
+	
+	TArray<int32> voxelIds;
+	faces.GetKeys(voxelIds);
+
+	for (auto voxelId : voxelIds)
+	{
+		auto voxelFaces = faces.Find(voxelId)->ToSharedRef();
+		auto voxelFacesSize = voxelFaces->Num();
+
+		if(voxelFacesSize <= 1)
+		{
+			continue;
+		}
+		
+		TSharedPtr<TArray<FChunkFace>> meshedFaces = MakeShared<TArray<FChunkFace>>();
+		
+		for (int i = 1; i < voxelFacesSize; i++)
+		{
+			FChunkFace& prevFace = (*voxelFaces)[i-1];
+			FChunkFace& nextFace = (*voxelFaces)[i];
+
+			if(!nextFace.MergeFace(prevFace,mergeMethod,unstableAxis))
+			{
+				meshedFaces->Add(prevFace);
+			}
+		}
+
+		meshedFaces->Add((*voxelFaces)[voxelFacesSize-1]);
+
+		faces.Remove(voxelId);
+		faces.Add(voxelId, meshedFaces);
+	}
+}
+
 void UDefaultChunk::GenerateMesh()
 {
+#if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh generation")
+#endif
 	
 	if(Empty)
 	{
@@ -95,35 +136,43 @@ void UDefaultChunk::GenerateMesh()
 	
 	auto chunkLenght = ChunkSettings->GetChunkSideSizeInVoxels();
 	
-	auto voxelIdsInMesh = TSet<int32>();
-
 	constexpr int faceNumber = 6;
-	TUniquePtr<TMap<int32, TArray<FChunkFace>>> faces[faceNumber];
+	TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>> faces[faceNumber];
 
 	for(int i = 0; i < faceNumber; i++)
 	{
-		faces[i] = MakeUnique<TMap<int32, TArray<FChunkFace>>>();
+		faces[i] = MakeUnique<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>();
+		
+		for (auto voxelId : voxelIdsInMesh)
+		{
+			if(!faces[i]->Contains(voxelId))
+			{
+				faces[i]->Add(voxelId, MakeShared<TArray<FChunkFace>>());
+			}
+		}
 	}
 
 	FChunkFace face;
 	FIntVector position;
 	int32 index;
 	FVoxel voxel;
-	
+
+	// culling and naive greedy meshing
 	for(int x = 0; x < chunkLenght; x++)
 	{
 		for(int z = 0; z < chunkLenght; z++)
 		{
 			for(int y = 0; y < chunkLenght; y++)
 			{
-				TRACE_CPUPROFILER_EVENT_SCOPE("Mesh faces generation")
+#if CPUPROFILERTRACE_ENABLED
+				TRACE_CPUPROFILER_EVENT_SCOPE("Mesh faces generation and culling")
+#endif
 
 				index = ChunkSettings->GetVoxelIndex(x, y, z);
 				voxel = Voxels[index];
 				
 				if(!voxel.IsEmptyVoxel())
 				{
-					voxelIdsInMesh.FindOrAdd(voxel.VoxelId);
 					position = FIntVector(x, y, z);
 					
 					// Front
@@ -133,7 +182,7 @@ void UDefaultChunk::GenerateMesh()
 						face = FChunkFace::CreateFrontFace(position, voxel);
 						AddNaiveMeshedFace(face, *faces[0], index + ChunkSettings->GetVoxelIndex(0,-1,0), FChunkFace::EMergeMethod::End,  FChunkFace::EUnstableAxis::Y);
 					}
-						
+							
 					// Back
 					if(CrossChunkCullInPositiveDirection(x, index + ChunkSettings->GetVoxelIndex(1,0,0),
 						ChunkSettings->GetVoxelIndex(0, y, z), FIntVector(1, 0, 0)))
@@ -141,18 +190,25 @@ void UDefaultChunk::GenerateMesh()
 						face = FChunkFace::CreateBackFace(position, voxel);
 						AddNaiveMeshedFace(face, *faces[1], index + ChunkSettings->GetVoxelIndex(0,-1,0), FChunkFace::EMergeMethod::Begin,  FChunkFace::EUnstableAxis::Y);
 					}
+				}
+
+				index = ChunkSettings->GetVoxelIndex(z, y, x);
+				voxel = Voxels[index];
 				
+				if(!voxel.IsEmptyVoxel())
+				{
+					position = FIntVector(z, y, x);
 					// Bottom
-					if(CrossChunkCullInNegativeDirection(z, index + ChunkSettings->GetVoxelIndex(0,0,-1),
-						ChunkSettings->GetVoxelIndex(x, y, chunkLenght - 1), FIntVector(0, 0, -1)))
+					if(CrossChunkCullInNegativeDirection(x, index + ChunkSettings->GetVoxelIndex(0,0,-1),
+						ChunkSettings->GetVoxelIndex(z, y, chunkLenght - 1), FIntVector(0, 0, -1)))
 					{
 						face = FChunkFace::CreateBottomFace(position, voxel);
 						AddNaiveMeshedFace(face, *faces[4], index + ChunkSettings->GetVoxelIndex(0,-1,0), FChunkFace::EMergeMethod::Begin,  FChunkFace::EUnstableAxis::Y);
 					}
 			
 					// Top
-					if(CrossChunkCullInPositiveDirection(z, index + ChunkSettings->GetVoxelIndex(0,0,1),
-						ChunkSettings->GetVoxelIndex(x, y,0), FIntVector(0, 0, 1)))
+					if(CrossChunkCullInPositiveDirection(x, index + ChunkSettings->GetVoxelIndex(0,0,1),
+						ChunkSettings->GetVoxelIndex(z, y,0), FIntVector(0, 0, 1)))
 					{
 						face = FChunkFace::CreateTopFace(position, voxel);
 						AddNaiveMeshedFace(face, *faces[5], index + ChunkSettings->GetVoxelIndex(0,-1,0), FChunkFace::EMergeMethod::End,  FChunkFace::EUnstableAxis::Y);
@@ -164,8 +220,6 @@ void UDefaultChunk::GenerateMesh()
 				
 				if(!voxel.IsEmptyVoxel())
 				{
-					voxelIdsInMesh.FindOrAdd(voxel.VoxelId);
-					
 					position = FIntVector(y, x, z);
 
 					// Right
@@ -187,11 +241,32 @@ void UDefaultChunk::GenerateMesh()
 			}
 		}
 	}
+
+	// greedy meshing
+		//Front
+		GreedyMeshing(*faces[0], FChunkFace::EMergeMethod::Down, FChunkFace::EUnstableAxis::Z);
+
+		//Back
+		GreedyMeshing(*faces[1], FChunkFace::EMergeMethod::Down, FChunkFace::EUnstableAxis::Z);
+	
+		//Right
+		GreedyMeshing(*faces[2], FChunkFace::EMergeMethod::Down, FChunkFace::EUnstableAxis::Z);
+
+		//Left
+		GreedyMeshing(*faces[3], FChunkFace::EMergeMethod::Down, FChunkFace::EUnstableAxis::Z);
+
+		// Bottom
+		GreedyMeshing(*faces[4], FChunkFace::EMergeMethod::Down, FChunkFace::EUnstableAxis::X);
+
+		// Top
+		GreedyMeshing(*faces[5], FChunkFace::EMergeMethod::Down, FChunkFace::EUnstableAxis::X);
 	
 	for (auto voxelId : voxelIdsInMesh)
 	{
+#if CPUPROFILERTRACE_ENABLED
 		TRACE_CPUPROFILER_EVENT_SCOPE("Mesh vertex generation")
-
+#endif
+		
 		int32 faceIndex = 0;
 	
 		TSharedPtr<TArray<FVector>> Vertice = MakeShared<TArray<FVector>>();
@@ -209,7 +284,7 @@ void UDefaultChunk::GenerateMesh()
 				continue;
 			}
 	
-			for (auto Face : *sideFaces)
+			for (auto Face : *sideFaces->Get())
 			{
 				auto voxelSize = ChunkSettings->GetVoxelSize();
 
@@ -234,20 +309,26 @@ void UDefaultChunk::GenerateMesh()
 
 		AsyncTask(ENamedThreads::GameThread, [this, voxelId, Vertice, Triangles, UVs, voxelType]()
 		{
-			TRACE_CPUPROFILER_EVENT_SCOPE("Procedural mesh activation")
-
+#if CPUPROFILERTRACE_ENABLED
+			TRACE_CPUPROFILER_EVENT_SCOPE("Procedural mesh generation")
+#endif
 			auto procMesh = ChunkActor->GetProceduralMeshComponent();
 
 		 if(procMesh.IsValid() && procMesh.IsValid(false,true) &&  Vertice.IsValid() && Triangles.IsValid()){
 			 procMesh->CreateMeshSection_LinearColor(voxelId,*Vertice, *Triangles, TArray<FVector>(), *UVs, TArray<FLinearColor>(), TArray<FProcMeshTangent>(), true);
-		 	procMesh->SetMaterial(voxelId, voxelType.Material);
-		 	procMesh->SetMeshSectionVisible(voxelId, true);
+			 procMesh->SetMaterial(voxelId, voxelType.Material);
+			 procMesh->SetMeshSectionVisible(voxelId, true);
 		 }});
 	}
 }
 
 void UDefaultChunk::GenerateVoxels()
 {
+#if CPUPROFILERTRACE_ENABLED
+	TRACE_CPUPROFILER_EVENT_SCOPE("Voxel generation")
+#endif
+	
+	
 	auto chunkLenght = ChunkSettings->GetChunkSideSizeInVoxels();
 	auto maxElevation = ChunkSettings->GetMaximumElevation();
 
@@ -275,6 +356,7 @@ void UDefaultChunk::GenerateVoxels()
 					if (gridPos.Z + z <= elevation) 
 					{
 						Voxels[index] = voxel;
+						voxelIdsInMesh.FindOrAdd(voxel.VoxelId);
 						Empty = false;
 					}
 				}
