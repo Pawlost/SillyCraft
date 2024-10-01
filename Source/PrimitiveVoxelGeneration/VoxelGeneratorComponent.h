@@ -20,7 +20,10 @@ public:
 	// Sets default values for this component's properties
 	UVoxelGeneratorComponent();
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Actor")
+	int32 DistanceFromSurfaceInVoxels = 30;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Actor")
 	bool MoveActorToSurface = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation")

@@ -22,6 +22,7 @@ UVoxelGeneratorComponent::UVoxelGeneratorComponent()
 void UVoxelGeneratorComponent::BeginPlay()
 {
 	checkf(VoxelTypeTable, TEXT("Voxel generator mush have a voxel table"));
+	checkf(ChunkTemplate, TEXT("Chunk template is not set"));
 	
 	ChunkSize = VoxelSize * ChunkSideSizeInVoxels;
 	RenderDistanceBounds = ChunkSize * GenerationDistance;
@@ -51,7 +52,7 @@ void UVoxelGeneratorComponent::BeginPlay()
 		CreateChunk(Chunk, FIntVector(0));
 		
 		auto location = GetOwner()->GetTransform().GetLocation().GridSnap(VoxelSize);
-		location.Z = Chunk->GetHighestElevationAtPosition(location.X, location.Y) + 2 * VoxelSize;
+		location.Z = Chunk->GetHighestElevationAtPosition(location.X, location.Y) + DistanceFromSurfaceInVoxels * VoxelSize;
 		GetOwner()->SetActorLocation(location);
 
 		Chunk->Despawn();

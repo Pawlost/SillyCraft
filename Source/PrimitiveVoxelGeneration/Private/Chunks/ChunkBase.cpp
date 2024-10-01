@@ -56,15 +56,23 @@ void UChunkBase::RemoveMesh() const
 
 void UChunkBase::Despawn() const
 {
-	// Check if actor has not been garbage collected by UE
-	if (ChunkActor != nullptr && IsValid(ChunkActor) && GetWorld()->ContainsActor(ChunkActor))
+	AsyncTask(ENamedThreads::GameThread, [this]()
 	{
-		// If not than despawn it
-		ChunkActor->Destroy();
-	}
+		if(!IsValid(this))
+		{
+			return;
+		}
+		
+		// Check if actor has not been garbage collected by UE
+		if (ChunkActor != nullptr && IsValid(ChunkActor) && GetWorld()->ContainsActor(ChunkActor))
+		{
+			// If not than despawn it
+			ChunkActor->Destroy();
+		}
 
-	// Remove despawned element from map
-	ChunkGridData->RemoveChunkFromGrid(ChunkGridPos);
+		// Remove despawned element from map
+		ChunkGridData->RemoveChunkFromGrid(ChunkGridPos);
+	});
 }
 
 bool UChunkBase::HasMesh() const
@@ -77,6 +85,7 @@ bool UChunkBase::IsEmpty() const
 	return Empty;
 }
 
+// position of exact chunk
 double UChunkBase::GetHighestElevationAtPosition(double posX, double posY)
 {
 	return ChunkGridData->GetChunkSettings()->GetMaximumElevation();

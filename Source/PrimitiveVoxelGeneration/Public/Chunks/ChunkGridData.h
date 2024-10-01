@@ -37,6 +37,7 @@ public:
 private:
 	TSharedPtr<FChunkSettings> ChunkSettings;
 
+	// chunks must have exact position in grid, this is the reason why scene tree cant be used
 	TSharedPtr<TMap<FIntVector, TWeakObjectPtr<UChunkBase>>> SpawnedChunks;
 	TWeakObjectPtr<UDataTable> VoxelTypes;
 	
