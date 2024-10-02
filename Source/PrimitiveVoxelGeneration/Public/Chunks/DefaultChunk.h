@@ -42,12 +42,12 @@ private:
 	bool CrossChunkCullInNegativeDirection(int min, int32 forwardVoxelIndex, int32 chunkIndex, FIntVector neighborChunkDistance);
 	bool CrossChunkCullInPositiveDirection(int max, int32 forwardVoxelIndex, int32 chunkIndex, FIntVector neighborChunkDistance);
 
-	static void GreedyMeshing(TMap<int32, TSharedPtr<TArray<FChunkFace>>>& faces,
+	static void GreedyMeshing(int32 voxelId, TMap<int32, TSharedPtr<TArray<FChunkFace>>>& faces,
 	                          FChunkFace::EMergeMethod mergeMethod, FChunkFace::EUnstableAxis unstableAxis);
 
 	void InitFaces(TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
 	void FaceGeneration(const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
-	static void GreedyMeshFaces(const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
+	void GreedyMeshAllFaces(const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
 	void GenerateMeshFromFaces(const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
 
 	void GenerateFacesInXAxis(int x, int y, int z, const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);

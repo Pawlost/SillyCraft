@@ -36,7 +36,7 @@ void UDefaultChunk::GenerateMesh()
 
 	InitFaces(faces);
 	FaceGeneration(faces);
-	GreedyMeshFaces(faces);
+	GreedyMeshAllFaces(faces);
 	GenerateMeshFromFaces(faces);
 }
 
@@ -226,69 +226,66 @@ bool UDefaultChunk::VoxelCull(int32 forwardVoxelIndex)
 	return Voxels.IsValidIndex(forwardVoxelIndex) && Voxels[forwardVoxelIndex].IsEmptyVoxel();
 }
 
-void UDefaultChunk::GreedyMeshFaces(const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces)
+void UDefaultChunk::GreedyMeshAllFaces(const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces)
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Greedy mesh generation")
 #endif
+	for (auto voxelId : voxelIdsInMesh)
+	{
+		//Front
+		GreedyMeshing(voxelId,*faces[0], FChunkFace::EMergeMethod::Down, FChunkFace::EUnstableAxis::Z);
+		
+		//Back
+		GreedyMeshing(voxelId,*faces[1], FChunkFace::EMergeMethod::Down, FChunkFace::EUnstableAxis::Z);
 	
-	//Front
-	GreedyMeshing(*faces[0], FChunkFace::EMergeMethod::Down, FChunkFace::EUnstableAxis::Z);
+		//Left
+		GreedyMeshing(voxelId,*faces[2], FChunkFace::EMergeMethod::Down, FChunkFace::EUnstableAxis::Z);
 
-	//Back
-	GreedyMeshing(*faces[1], FChunkFace::EMergeMethod::Down, FChunkFace::EUnstableAxis::Z);
-	
-	//Left
-	GreedyMeshing(*faces[2], FChunkFace::EMergeMethod::Down, FChunkFace::EUnstableAxis::Z);
+		//Right
+		GreedyMeshing(voxelId,*faces[3], FChunkFace::EMergeMethod::Down, FChunkFace::EUnstableAxis::Z);
 
-	//Right
-	GreedyMeshing(*faces[3], FChunkFace::EMergeMethod::Down, FChunkFace::EUnstableAxis::Z);
+		// Bottom
+		GreedyMeshing(voxelId,*faces[4], FChunkFace::EMergeMethod::Down, FChunkFace::EUnstableAxis::X);
 
-	// Bottom
-	GreedyMeshing(*faces[4], FChunkFace::EMergeMethod::Down, FChunkFace::EUnstableAxis::X);
-
-	// Top
-	GreedyMeshing(*faces[5], FChunkFace::EMergeMethod::Down, FChunkFace::EUnstableAxis::X);
+		// Top
+		GreedyMeshing(voxelId,*faces[5], FChunkFace::EMergeMethod::Down, FChunkFace::EUnstableAxis::X);
+	}
 }
 
-void UDefaultChunk::GreedyMeshing(TMap<int32, TSharedPtr<TArray<FChunkFace>>>& faces,
+void UDefaultChunk::GreedyMeshing(int32 voxelId, TMap<int32, TSharedPtr<TArray<FChunkFace>>>& faces,
 	FChunkFace::EMergeMethod mergeMethod, FChunkFace::EUnstableAxis unstableAxis)
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Face Greedy mesh generation")
 #endif
 	
-	TArray<int32> voxelIds;
-	faces.GetKeys(voxelIds);
+	auto voxelFaces = faces.Find(voxelId);
 
-	for (auto voxelId : voxelIds)
+	if(voxelFaces == nullptr || (*voxelFaces)->Num() <= 1)
 	{
-		auto voxelFaces = faces.Find(voxelId)->ToSharedRef();
-		auto voxelFacesSize = voxelFaces->Num();
-
-		if(voxelFacesSize <= 1)
-		{
-			continue;
-		}
-		
-		TSharedPtr<TArray<FChunkFace>> meshedFaces = MakeShared<TArray<FChunkFace>>();
-		
-		for (int i = 1; i < voxelFacesSize; i++)
-		{
-			FChunkFace& prevFace = (*voxelFaces)[i-1];
-			FChunkFace& nextFace = (*voxelFaces)[i];
-
-			if(!nextFace.MergeFace(prevFace,mergeMethod,unstableAxis))
-			{
-				meshedFaces->Add(prevFace);
-			}
-		}
-
-		meshedFaces->Add((*voxelFaces)[voxelFacesSize-1]);
-
-		faces.Remove(voxelId);
-		faces.Add(voxelId, meshedFaces);
+		return;
 	}
+
+	auto voxelFacesArray = voxelFaces->ToSharedRef();
+	auto faceArraySize = voxelFacesArray->Num();
+	
+	auto meshedFaces = MakeShared<TArray<FChunkFace>>();
+		
+	for (int i = 1; i < faceArraySize; i++)
+	{
+		FChunkFace& prevFace = (*voxelFacesArray)[i-1];
+		FChunkFace& nextFace = (*voxelFacesArray)[i];
+
+		if(!nextFace.MergeFace(prevFace,mergeMethod,unstableAxis))
+		{
+			meshedFaces->Add(prevFace);
+		}
+	}
+
+	meshedFaces->Add(voxelFacesArray->Last());
+
+	faces[voxelId] = meshedFaces;
 }
 
 void UDefaultChunk::GenerateMeshFromFaces(const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces)

@@ -70,6 +70,8 @@ void UChunkGridData::SetVoxelTypes(const TWeakObjectPtr<UDataTable>& voxelTypes)
 
 int32 UChunkGridData::GetVoxelIdCount() const
 {
+	if(!IsValid(this)){return 0;}
+	
 	return VoxelIds.Num();
 }
 
