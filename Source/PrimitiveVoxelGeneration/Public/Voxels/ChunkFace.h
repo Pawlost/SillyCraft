@@ -1,78 +1,78 @@
 ﻿#pragma once
-#include "CoreMinimal.h"
-#include "Voxel.h"
 
-struct PRIMITIVEVOXELGENERATION_API FChunkFace
+#include "Voxel.h"
+#include "CoreMinimal.h"
+#include "ChunkFace.generated.h"
+
+UENUM(BlueprintType)
+enum class EMergeMethod: uint8
 {
-	FIntVector BeginVertexDown;
-	FIntVector BeginVertexUp;
+	Up,
+	Down,
+	End,
+	Begin
+};
+
+UENUM(BlueprintType)
+enum class EUnstableAxis: uint8
+{
+	X,
+	Y,
+	Z,
+	Undefined
+};
+
+UCLASS()
+class PRIMITIVEVOXELGENERATION_API UChunkFace : public UObject
+{
+GENERATED_BODY()
+	
+public:
+	FVector GetStartVertexDown(double voxelSize = 1.0) const;
+	FVector GetStartVertexUp(double voxelSize = 1.0) const;
+	FVector GetEndVertexDown(double voxelSize = 1.0) const;
+	FVector GetEndVertexUp(double voxelSize = 1.0) const;
+
+	static UChunkFace CreateFrontFace(const FIntVector& InitialPosition, const FVoxel& voxel);
+	static UChunkFace CreateBackFace(const FIntVector& InitialPosition, const FVoxel& voxel);
+	static UChunkFace CreateLeftFace(const FIntVector& InitialPosition, const FVoxel& voxel);
+	static UChunkFace CreateRightFace(const FIntVector& InitialPosition, const FVoxel& voxel);
+	static UChunkFace CreateTopFace(const FIntVector& InitialPosition, const FVoxel& voxel);
+	static UChunkFace CreateBottomFace(const FIntVector& InitialPosition, const FVoxel& voxel);
+
+	int32 GetVoxelId() const;
+	virtual bool NaiveFaceMerge(const UChunkFace& otherFace){return false;};
+	virtual bool GreedyFaceMerge(const UChunkFace& otherFace){return false;};
+
+protected:
+	FIntVector StartVertexDown;
+	FIntVector StartVertexUp;
 	FIntVector EndVertexDown;
 	FIntVector EndVertexUp;
-	bool IsMark = false;
-	FVoxel Voxel = FVoxel();
-	
-	static FChunkFace FrontFace;
-	static FChunkFace BackFace;
-	static FChunkFace LeftFace;
-	static FChunkFace RightFace;
-	static FChunkFace TopFace;
-	static FChunkFace BottomFace;
+	FVoxel Voxel;
 
-	static FChunkFace CreateFrontFace(const FIntVector& InitialPosition, const FVoxel& voxel);
-	static FChunkFace CreateBackFace(const FIntVector& InitialPosition, const FVoxel& voxel);
-	static FChunkFace CreateLeftFace(const FIntVector& InitialPosition, const FVoxel& voxel);
-	static FChunkFace CreateRightFace(const FIntVector& InitialPosition, const FVoxel& voxel);
-	static FChunkFace CreateTopFace(const FIntVector& InitialPosition, const FVoxel& voxel);
-	static FChunkFace CreateBottomFace(const FIntVector& InitialPosition, const FVoxel& voxel);
-
-	UENUM(BlueprintType)
-	enum class EMergeMethod: uint8
-	{
-		Up,
-		Down,
-		End,
-		Begin
-	};
+	friend bool FrontNaiveMerge(UChunkFace& currentFace, const UChunkFace& otherFace);
 	
-	FChunkFace(){}
-	
-	FChunkFace(const FIntVector& beginVertexDown, const FIntVector& endVertexDown, const FIntVector& endVertexUp, const FIntVector& beginVertexUp)
+	UChunkFace(): StartVertexDown(), StartVertexUp(), EndVertexDown(), EndVertexUp()
 	{
-		BeginVertexDown = beginVertexDown;
-		BeginVertexUp = beginVertexUp;
-		EndVertexDown = endVertexDown;
-		EndVertexUp = endVertexUp;
+	}
+	
+	UChunkFace(const FIntVector& startVertexDown, const FIntVector& endVertexDown, const FIntVector& endVertexUp, const FIntVector& startVertexUp,
+		const FVoxel& voxel, const FIntVector& InitialPosition)
+	{
+		StartVertexDown = startVertexDown + InitialPosition;
+		StartVertexUp = startVertexUp + InitialPosition;
+		EndVertexDown = endVertexDown + InitialPosition;
+		EndVertexUp = endVertexUp + InitialPosition;
+		Voxel = voxel;
 	}
 
-	UENUM(BlueprintType)
-	enum class EUnstableAxis: uint8
-	{
-		X,
-		Y,
-		Z,
-		Undefined
-	};
 
-	bool MergeFace(const FChunkFace& otherFace, const EMergeMethod mergeMethod, const EUnstableAxis unstableAxis);
-	
+	//bool MergeFace(const ChunkFace& otherFace, const EMergeMethod mergeMethod, const EUnstableAxis unstableAxis);
+
 private:
 	// returns true if merge was succesful
 	static bool IsAxisStable(const FIntVector& mergeVertex, const FIntVector& otherMergeVertex,
 		const EUnstableAxis unstableAxis);
-	static FChunkFace CreateChunkFace(const FIntVector& InitialPosition, const FVoxel& voxel, FChunkFace face);
+	static UChunkFace CreateChunkFace(const FIntVector& InitialPosition, const FVoxel& voxel, UChunkFace face);
 };
-
-	
-inline void operator+=(FChunkFace& ChunkFace, const FIntVector& Vector);
-
-inline void operator-=(FChunkFace& ChunkFace, const FIntVector& Vector);
-
-inline FChunkFace operator-(FChunkFace ChunkFace, const FIntVector& Vector);
-
-inline void operator*=(FChunkFace& ChunkFace, const int32& Multiplier)
-{
-	ChunkFace.BeginVertexDown *= Multiplier;
-	ChunkFace.BeginVertexUp *= Multiplier;
-	ChunkFace.EndVertexDown *= Multiplier;
-	ChunkFace.EndVertexUp *= Multiplier;
-}
