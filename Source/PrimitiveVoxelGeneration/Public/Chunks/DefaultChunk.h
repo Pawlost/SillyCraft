@@ -8,6 +8,9 @@
 #include "FastNoiseWrapper.h"
 #include "Voxels/ChunkFace.h"
 #include "DefaultChunk.generated.h"
+
+#define FACE_COUNT 6
+
 struct FVoxel;
 /**
  * 
@@ -29,11 +32,11 @@ public:
 	virtual double GetHighestElevationAtPosition(double posX, double posY) override;
 	
 private:
-	void AddNaiveMeshedFace(FChunkFace& face,
-		TMap<int32, TSharedPtr<TArray<FChunkFace>>>& faces, int32 previousVoxelDirection,
-		FChunkFace::EMergeMethod mergeMethod, FChunkFace::EUnstableAxis unstableAxis);
+	void AddNaiveMeshedFace(const FChunkFace& face,
+	                        TMap<int32, TSharedPtr<TArray<FChunkFace>>>& faces, int32 previousVoxelDirection,
+	                        FChunkFace::EMergeMethod mergeMethod, FChunkFace::EUnstableAxis unstableAxis);
 	
-	bool ChunkCull(int32 chunkIndex, FIntVector& neighborChunkDistance) const;
+	bool ChunkCull(int32 chunkIndex, const FIntVector& neighborChunkDistance) const;
 	bool VoxelCull(int32 forwardVoxelIndex);
 
 	bool CrossChunkCullInNegativeDirection(int min, int32 forwardVoxelIndex, int32 chunkIndex, FIntVector neighborChunkDistance);
@@ -41,6 +44,15 @@ private:
 
 	static void GreedyMeshing(TMap<int32, TSharedPtr<TArray<FChunkFace>>>& faces,
 	                          FChunkFace::EMergeMethod mergeMethod, FChunkFace::EUnstableAxis unstableAxis);
+
+	void InitFaces(TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
+	void FaceGeneration(const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
+	static void GreedyMeshFaces(const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
+	void GenerateMeshFromFaces(const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
+
+	void GenerateFacesInXAxis(int x, int y, int z, const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
+	void GenerateFacesInYAxis(int x, int y, int z, const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
+	void GenerateFacesInZAxis(int x, int y, int z, const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
 	
 	UPROPERTY()
 	TObjectPtr<UFastNoiseWrapper> Noise;
