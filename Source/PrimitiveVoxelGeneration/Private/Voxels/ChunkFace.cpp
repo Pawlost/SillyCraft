@@ -36,6 +36,26 @@ FChunkFace FChunkFace::BottomFace = FChunkFace(
 	FIntVector(1, 0, 0),
 	FIntVector(1, 1, 0));
 
+FVector FChunkFace::GetFinalStartVertexDown(const double& voxelSize) const
+{
+	return static_cast<FVector>(StartVertexDown) * voxelSize;
+}
+
+FVector FChunkFace::GetFinalStartVertexUp(const double& voxelSize) const
+{
+	return static_cast<FVector>(StartVertexUp) * voxelSize;
+}
+
+FVector FChunkFace::GetFinalEndVertexDown(const double& voxelSize) const
+{
+	return static_cast<FVector>(EndVertexDown) * voxelSize;
+}
+
+FVector FChunkFace::GetFinalEndVertexUp(const double& voxelSize) const
+{
+	return static_cast<FVector>(EndVertexUp) * voxelSize;
+}
+
 FChunkFace FChunkFace::CreateFrontFace(const FIntVector& InitialPosition, const FVoxel& voxel)
 {
 	return CreateChunkFace(InitialPosition, voxel, FrontFace);
@@ -87,11 +107,11 @@ bool FChunkFace::MergeFace(const FChunkFace& otherFace, const EMergeMethod merge
 	switch (mergeMethod)
 	{
 	case EMergeMethod::Begin:
-		if(IsAxisStable(BeginVertexDown, otherFace.BeginVertexDown, unstableAxis) &&
-			IsAxisStable(BeginVertexUp, otherFace.BeginVertexUp, unstableAxis))
+		if(IsAxisStable(StartVertexDown, otherFace.StartVertexDown, unstableAxis) &&
+			IsAxisStable(StartVertexUp, otherFace.StartVertexUp, unstableAxis))
 		{
-			BeginVertexDown = otherFace.BeginVertexDown;
-			BeginVertexUp = otherFace.BeginVertexUp;
+			StartVertexDown = otherFace.StartVertexDown;
+			StartVertexUp = otherFace.StartVertexUp;
 			return true;
 		}
 		return false;
@@ -108,20 +128,20 @@ bool FChunkFace::MergeFace(const FChunkFace& otherFace, const EMergeMethod merge
 		return false;
 
 	case EMergeMethod::Up:
-		if(IsAxisStable(BeginVertexUp, otherFace.BeginVertexUp, unstableAxis) &&
+		if(IsAxisStable(StartVertexUp, otherFace.StartVertexUp, unstableAxis) &&
 			IsAxisStable(EndVertexUp, otherFace.EndVertexUp, unstableAxis))
 		{
 			EndVertexUp = otherFace.EndVertexUp;
-			BeginVertexUp = otherFace.BeginVertexUp;
+			StartVertexUp = otherFace.StartVertexUp;
 			return true;
 		}
 		return false;
 		
 	case EMergeMethod::Down:
-		if(IsAxisStable(BeginVertexDown, otherFace.BeginVertexDown, unstableAxis) &&
+		if(IsAxisStable(StartVertexDown, otherFace.StartVertexDown, unstableAxis) &&
 			IsAxisStable(EndVertexDown, otherFace.EndVertexDown, unstableAxis))
 		{
-			BeginVertexDown = otherFace.BeginVertexDown;
+			StartVertexDown = otherFace.StartVertexDown;
 			EndVertexDown = otherFace.EndVertexDown;
 			return true;
 		}
@@ -141,16 +161,16 @@ FChunkFace FChunkFace::CreateChunkFace(const FIntVector& InitialPosition, const 
 
 void operator+=(FChunkFace& ChunkFace, const FIntVector& Vector)
 {
-	ChunkFace.BeginVertexDown += Vector;
-	ChunkFace.BeginVertexUp += Vector;
+	ChunkFace.StartVertexDown += Vector;
+	ChunkFace.StartVertexUp += Vector;
 	ChunkFace.EndVertexDown += Vector;
 	ChunkFace.EndVertexUp += Vector;
 }
 
 void operator-=(FChunkFace& ChunkFace, const FIntVector& Vector)
 {
-	ChunkFace.BeginVertexDown -= Vector;
-	ChunkFace.BeginVertexUp -= Vector;
+	ChunkFace.StartVertexDown -= Vector;
+	ChunkFace.StartVertexUp -= Vector;
 	ChunkFace.EndVertexDown -= Vector;
 	ChunkFace.EndVertexUp -= Vector;
 }

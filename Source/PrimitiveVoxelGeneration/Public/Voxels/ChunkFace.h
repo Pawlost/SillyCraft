@@ -4,10 +4,16 @@
 
 struct PRIMITIVEVOXELGENERATION_API FChunkFace
 {
-	FIntVector BeginVertexDown;
-	FIntVector BeginVertexUp;
+	FIntVector StartVertexDown;
+	FIntVector StartVertexUp;
 	FIntVector EndVertexDown;
 	FIntVector EndVertexUp;
+
+	FVector GetFinalStartVertexDown(const double& voxelSize) const;
+	FVector GetFinalStartVertexUp(const double& voxelSize) const;
+	FVector GetFinalEndVertexDown(const double& voxelSize) const;
+	FVector GetFinalEndVertexUp(const double& voxelSize) const;
+	
 	bool IsMark = false;
 	FVoxel Voxel = FVoxel();
 	
@@ -34,12 +40,14 @@ struct PRIMITIVEVOXELGENERATION_API FChunkFace
 		Begin
 	};
 	
-	FChunkFace(){}
-	
+	FChunkFace(): StartVertexDown(), StartVertexUp(), EndVertexDown(), EndVertexUp()
+	{
+	}
+
 	FChunkFace(const FIntVector& beginVertexDown, const FIntVector& endVertexDown, const FIntVector& endVertexUp, const FIntVector& beginVertexUp)
 	{
-		BeginVertexDown = beginVertexDown;
-		BeginVertexUp = beginVertexUp;
+		StartVertexDown = beginVertexDown;
+		StartVertexUp = beginVertexUp;
 		EndVertexDown = endVertexDown;
 		EndVertexUp = endVertexUp;
 	}
@@ -68,11 +76,3 @@ inline void operator+=(FChunkFace& ChunkFace, const FIntVector& Vector);
 inline void operator-=(FChunkFace& ChunkFace, const FIntVector& Vector);
 
 inline FChunkFace operator-(FChunkFace ChunkFace, const FIntVector& Vector);
-
-inline void operator*=(FChunkFace& ChunkFace, const int32& Multiplier)
-{
-	ChunkFace.BeginVertexDown *= Multiplier;
-	ChunkFace.BeginVertexUp *= Multiplier;
-	ChunkFace.EndVertexDown *= Multiplier;
-	ChunkFace.EndVertexUp *= Multiplier;
-}

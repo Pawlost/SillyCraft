@@ -322,12 +322,10 @@ void UDefaultChunk::GenerateMeshFromFaces(const TUniquePtr<TMap<int32, TSharedPt
 			{
 				auto voxelSize = ChunkSettings->GetVoxelSize();
 
-				Face *= voxelSize;
-			
-				Vertice->Push(static_cast<FVector>(Face.BeginVertexDown));
-				Vertice->Push(static_cast<FVector>(Face.EndVertexDown));
-				Vertice->Push(static_cast<FVector>(Face.EndVertexUp));
-				Vertice->Push(static_cast<FVector>(Face.BeginVertexUp));
+				Vertice->Push(Face.GetFinalStartVertexDown(voxelSize));
+				Vertice->Push(Face.GetFinalEndVertexDown(voxelSize));
+				Vertice->Push(Face.GetFinalEndVertexUp(voxelSize));
+				Vertice->Push(Face.GetFinalStartVertexUp(voxelSize));
 
 				UVs->Add(FVector2D(0, 0));
 				UVs->Add(FVector2D(1, 0));

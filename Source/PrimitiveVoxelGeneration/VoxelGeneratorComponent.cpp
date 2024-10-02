@@ -45,7 +45,6 @@ void UVoxelGeneratorComponent::BeginPlay()
 	
 	UpdateCurrentChunkLocation();
 	
-	//TODO: get enumerator and set grid in chunk grid
 	if(MoveActorToSurface)
 	{
 		UChunkBase* Chunk;
@@ -146,7 +145,7 @@ void UVoxelGeneratorComponent::SpawnChunks(const FIntVector ChunkMinDistance, co
 
 						handle.Wait();
 						
-						if(Chunk != nullptr)
+						if(Chunk != nullptr && IsValid(Chunk))
 						{
 							Chunk->GenerateVoxels();
 						}
