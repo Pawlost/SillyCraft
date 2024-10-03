@@ -30,29 +30,38 @@ public:
 	virtual void GenerateMesh() override;
 	virtual FVoxel VoxelAt(int32 index) override;
 	virtual double GetHighestElevationAtPosition(double posX, double posY) override;
-	
+
 private:
-	void AddNaiveMeshedFace(const FChunkFace& face,
-	                        TMap<int32, TSharedPtr<TArray<FChunkFace>>>& faces, int32 previousVoxelDirection,
-	                        FChunkFace::EMergeMethod mergeMethod, FChunkFace::EUnstableAxis unstableAxis);
+	struct NaiveMeshingData
+	{
+		bool isBorder;
+		int32 forwardVoxelIndex;
+		int32 neighborChunkVoxelIndex;
+		FIntVector neighborChunkDistance;
+		FChunkFace face;
+		int32 previousVoxelIndex;
+		FChunkFace::EMergeMethod mergeMethod;
+		FChunkFace::EUnstableAxis unstableAxis;
+	};
 	
-	bool ChunkCull(int32 chunkIndex, const FIntVector& neighborChunkDistance) const;
-	bool VoxelCull(int32 forwardVoxelIndex);
-
-	bool CrossChunkCullInNegativeDirection(int min, int32 forwardVoxelIndex, int32 chunkIndex, FIntVector neighborChunkDistance);
-	bool CrossChunkCullInPositiveDirection(int max, int32 forwardVoxelIndex, int32 chunkIndex, FIntVector neighborChunkDistance);
-
+	bool ChunkCull(const NaiveMeshingData& faceData) const;
+	bool VoxelCull(const NaiveMeshingData& faceData);
+	
+	void GenerateFacesInAxis(int x, int y, int z,
+					NaiveMeshingData faceData, NaiveMeshingData reversedFaceData,
+					const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>> faceContainer,
+					const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>> reversedFaceContainer);
+	
+	bool NaiveMeshing(const NaiveMeshingData& naiveMeshingData, const TSharedRef<TArray<FChunkFace>> chunkFaces);
+	
 	static void GreedyMeshing(int32 voxelId, TMap<int32, TSharedPtr<TArray<FChunkFace>>>& faces,
 	                          FChunkFace::EMergeMethod mergeMethod, FChunkFace::EUnstableAxis unstableAxis);
 
-	void InitFaces(TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
-	void FaceGeneration(const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
-	void GreedyMeshAllFaces(const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
-	void GenerateMeshFromFaces(const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
-
-	void GenerateFacesInXAxis(int x, int y, int z, const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
-	void GenerateFacesInYAxis(int x, int y, int z, const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
-	void GenerateFacesInZAxis(int x, int y, int z, const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
+	void CreateFace(NaiveMeshingData& faceData, const int32& index, const FIntVector& position, const FVoxel& voxel, const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>> faceContainer);
+	void InitFaceContainers(TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
+	void FaceGeneration(const TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
+	void GreedyMeshAllFaces(const TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
+	void GenerateMeshFromFaces(const TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
 	
 	UPROPERTY()
 	TObjectPtr<UFastNoiseWrapper> Noise;

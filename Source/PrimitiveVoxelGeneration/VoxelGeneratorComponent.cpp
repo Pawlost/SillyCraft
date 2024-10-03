@@ -145,7 +145,7 @@ void UVoxelGeneratorComponent::SpawnChunks(const FIntVector ChunkMinDistance, co
 
 						handle.Wait();
 						
-						if(Chunk != nullptr && IsValid(Chunk))
+						if(IsValid(this) && Chunk != nullptr && IsValid(Chunk))
 						{
 							Chunk->GenerateVoxels();
 						}

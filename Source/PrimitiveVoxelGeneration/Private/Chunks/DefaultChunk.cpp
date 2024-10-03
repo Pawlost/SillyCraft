@@ -32,19 +32,19 @@ void UDefaultChunk::GenerateMesh()
 	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh generation")
 #endif
 	
-	TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>> faces[FACE_COUNT];
+	TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>> faces[FACE_COUNT];
 
-	InitFaces(faces);
+	InitFaceContainers(faces);
 	FaceGeneration(faces);
 	GreedyMeshAllFaces(faces);
 	GenerateMeshFromFaces(faces);
 }
 
-void UDefaultChunk::InitFaces(TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces)
+void UDefaultChunk::InitFaceContainers(TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces)
 {
 	for(int i = 0; i < FACE_COUNT; i++)
 	{
-		faces[i] = MakeUnique<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>();
+		faces[i] = MakeShared<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>();
 		
 		for (auto voxelId : voxelIdsInMesh)
 		{
@@ -56,193 +56,164 @@ void UDefaultChunk::InitFaces(TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFac
 	}
 }
 
-void UDefaultChunk::FaceGeneration(const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces)
+void UDefaultChunk::FaceGeneration(const TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces)
 {
+#if CPUPROFILERTRACE_ENABLED
+	TRACE_CPUPROFILER_EVENT_SCOPE("Naive greedy mesh generation")
+#endif
+	
 	auto chunkLenght = ChunkSettings->GetChunkSideSizeInVoxels();
+	
+	NaiveMeshingData frontFaceData =
+	{
+		false,
+		ChunkSettings->GetVoxelIndex(-1,0,0),
+		0,
+		FIntVector(-1, 0, 0),
+		FChunkFace::FrontFace,
+		ChunkSettings->GetVoxelIndex(0,-1,0),
+		FChunkFace::EMergeMethod::End,
+		FChunkFace::EUnstableAxis::Y
+	};
+				
+	NaiveMeshingData backFaceData =
+	{
+		false,
+		ChunkSettings->GetVoxelIndex(1,0,0),
+		0,
+		FIntVector(1, 0, 0),
+		FChunkFace::BackFace,
+		ChunkSettings->GetVoxelIndex(0,-1,0),
+		FChunkFace::EMergeMethod::Begin,
+		FChunkFace::EUnstableAxis::Y
+	};
 
+
+	NaiveMeshingData rightFaceData =
+	{
+		false,
+		ChunkSettings->GetVoxelIndex(0,-1,0),
+		0,
+		FIntVector(0, -1, 0),
+		FChunkFace::RightFace,
+		ChunkSettings->GetVoxelIndex(-1,0,0),
+		FChunkFace::EMergeMethod::Begin,
+		FChunkFace::EUnstableAxis::X
+	};
+				
+	NaiveMeshingData leftFaceData =
+	{
+		false,
+		ChunkSettings->GetVoxelIndex(0,1,0),
+		0,
+		FIntVector(0, 1, 0),
+		FChunkFace::LeftFace,
+		ChunkSettings->GetVoxelIndex(-1,0,0),
+		FChunkFace::EMergeMethod::End,
+		FChunkFace::EUnstableAxis::X
+	};
+
+
+	NaiveMeshingData bottomFaceData =
+	{
+		false,
+		ChunkSettings->GetVoxelIndex(0,0,-1),
+		0,
+		FIntVector(0, 0, -1),
+		FChunkFace::BottomFace,
+		ChunkSettings->GetVoxelIndex(0,-1,0),
+		FChunkFace::EMergeMethod::Begin,
+		FChunkFace::EUnstableAxis::Y
+	};
+				
+	NaiveMeshingData topFaceData =
+	{
+		false,
+		ChunkSettings->GetVoxelIndex(0,0,1),
+		0,
+		FIntVector(0, 0, 1),
+		FChunkFace::TopFace,
+		ChunkSettings->GetVoxelIndex(0,-1,0),
+		FChunkFace::EMergeMethod::End,
+		FChunkFace::EUnstableAxis::Y
+	};
+	
 	// culling and naive greedy meshing
 	for(int x = 0; x < chunkLenght; x++)
 	{
+		frontFaceData.isBorder = x == 0;
+		backFaceData.isBorder = x == chunkLenght - 1;
+		rightFaceData.isBorder = x == 0;
+		leftFaceData.isBorder = x == chunkLenght - 1;
+		bottomFaceData.isBorder = x == 0;
+		topFaceData.isBorder = x == chunkLenght - 1;
+		
 		for(int z = 0; z < chunkLenght; z++)
 		{
 			for(int y = 0; y < chunkLenght; y++)
 			{
-#if CPUPROFILERTRACE_ENABLED
-				TRACE_CPUPROFILER_EVENT_SCOPE("Mesh faces generation and culling")
-#endif
-				GenerateFacesInXAxis(x, y, z, faces);
-				GenerateFacesInYAxis(x, y, z, faces);
-				GenerateFacesInZAxis(x, y, z, faces);
+				frontFaceData.neighborChunkVoxelIndex = ChunkSettings->GetVoxelIndex(chunkLenght - 1, y, z);
+				backFaceData.neighborChunkVoxelIndex = ChunkSettings->GetVoxelIndex(0, y, z);
+				GenerateFacesInAxis(x, y, z,  frontFaceData, backFaceData, faces[0].ToSharedRef(), faces[1].ToSharedRef());
+
+				rightFaceData.neighborChunkVoxelIndex = ChunkSettings->GetVoxelIndex(y, chunkLenght-1, z);
+				leftFaceData.neighborChunkVoxelIndex = ChunkSettings->GetVoxelIndex(y, 0, z);
+				GenerateFacesInAxis(y, x, z, rightFaceData, leftFaceData, faces[2].ToSharedRef(), faces[3].ToSharedRef());
+				
+				bottomFaceData.neighborChunkVoxelIndex = ChunkSettings->GetVoxelIndex(z, y, chunkLenght - 1);
+				topFaceData.neighborChunkVoxelIndex = ChunkSettings->GetVoxelIndex(z, y, 0);
+				GenerateFacesInAxis(z, y, x,  bottomFaceData, topFaceData, faces[4].ToSharedRef(), faces[5].ToSharedRef());
 			}
 		}
 	}
 }
 
-
-void UDefaultChunk::GenerateFacesInXAxis(int x, int y, int z,
-                                         const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces)
+void UDefaultChunk::GenerateFacesInAxis(int x, int y, int z,
+                                        NaiveMeshingData faceData, NaiveMeshingData reversedFaceData,
+                                        const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>> faceContainer,
+                                        const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>> reversedFaceContainer)
 {
-	auto chunkLenght = ChunkSettings->GetChunkSideSizeInVoxels();
 	auto index = ChunkSettings->GetVoxelIndex(x, y, z);
 	auto voxel = Voxels[index];
 				
 	if(!voxel.IsEmptyVoxel())
 	{
 		auto position = FIntVector(x, y, z);
-					
-		// Front
-		if(CrossChunkCullInNegativeDirection(x, index + ChunkSettings->GetVoxelIndex(-1,0,0),
-			ChunkSettings->GetVoxelIndex(chunkLenght - 1, y, z), FIntVector(-1, 0, 0)))
-		{
-			auto face = FChunkFace::CreateFrontFace(position, voxel);
-			AddNaiveMeshedFace(face, *faces[0], index + ChunkSettings->GetVoxelIndex(0,-1,0), FChunkFace::EMergeMethod::End,  FChunkFace::EUnstableAxis::Y);
-		}
-							
-		// Back
-		if(CrossChunkCullInPositiveDirection(x, index + ChunkSettings->GetVoxelIndex(1,0,0),
-			ChunkSettings->GetVoxelIndex(0, y, z), FIntVector(1, 0, 0)))
-		{
-			auto face = FChunkFace::CreateBackFace(position, voxel);
-			AddNaiveMeshedFace(face, *faces[1], index + ChunkSettings->GetVoxelIndex(0,-1,0), FChunkFace::EMergeMethod::Begin,  FChunkFace::EUnstableAxis::Y);
-		}
+		CreateFace(faceData, index, position, voxel, faceContainer);
+		CreateFace(reversedFaceData, index, position, voxel, reversedFaceContainer);
 	}
-}
+} 
 
-void UDefaultChunk::GenerateFacesInYAxis(int x, int y, int z,
-                                         const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces)
+bool UDefaultChunk::ChunkCull(const NaiveMeshingData& faceData) const
 {
-	auto chunkLenght = ChunkSettings->GetChunkSideSizeInVoxels();
-	auto index = ChunkSettings->GetVoxelIndex(z, y, x);
-	auto voxel = Voxels[index];
-				
-	if(!voxel.IsEmptyVoxel())
-	{
-		auto position = FIntVector(z, y, x);
-		// Bottom
-		if(CrossChunkCullInNegativeDirection(x, index + ChunkSettings->GetVoxelIndex(0,0,-1),
-			ChunkSettings->GetVoxelIndex(z, y, chunkLenght - 1), FIntVector(0, 0, -1)))
-		{
-			auto face = FChunkFace::CreateBottomFace(position, voxel);
-			AddNaiveMeshedFace(face, *faces[4], index + ChunkSettings->GetVoxelIndex(0,-1,0), FChunkFace::EMergeMethod::Begin,  FChunkFace::EUnstableAxis::Y);
-		}
-			
-		// Top
-		if(CrossChunkCullInPositiveDirection(x, index + ChunkSettings->GetVoxelIndex(0,0,1),
-			ChunkSettings->GetVoxelIndex(z, y,0), FIntVector(0, 0, 1)))
-		{
-			auto face = FChunkFace::CreateTopFace(position, voxel);
-			AddNaiveMeshedFace(face, *faces[5], index + ChunkSettings->GetVoxelIndex(0,-1,0), FChunkFace::EMergeMethod::End,  FChunkFace::EUnstableAxis::Y);
-		}
-	}
-}
-
-void UDefaultChunk::GenerateFacesInZAxis(int x, int y, int z,
-                                         const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces)
-{
-	auto chunkLenght = ChunkSettings->GetChunkSideSizeInVoxels();
-	auto index = ChunkSettings->GetVoxelIndex(y, x, z);
-	auto voxel = Voxels[index];
-				
-	if(!voxel.IsEmptyVoxel())
-	{
-		auto position = FIntVector(y, x, z);
-
-		// Right
-		if(CrossChunkCullInNegativeDirection(x, index + ChunkSettings->GetVoxelIndex(0,-1,0),
-			ChunkSettings->GetVoxelIndex(y, chunkLenght-1, z), FIntVector(0, -1, 0)))
-		{
-			auto face = FChunkFace::CreateRightFace(position, voxel);
-			AddNaiveMeshedFace(face, *faces[3], index + ChunkSettings->GetVoxelIndex(-1,0,0), FChunkFace::EMergeMethod::Begin, FChunkFace::EUnstableAxis::X);
-		}
-					
-		// Left
-		if(CrossChunkCullInPositiveDirection(x, index + ChunkSettings->GetVoxelIndex(0,1,0),
-			ChunkSettings->GetVoxelIndex(y,0, z), FIntVector(0, 1, 0)))
-		{
-			auto face = FChunkFace::CreateLeftFace(position, voxel);
-			AddNaiveMeshedFace(face, *faces[2], index + ChunkSettings->GetVoxelIndex(-1,0,0), FChunkFace::EMergeMethod::End,  FChunkFace::EUnstableAxis::X);
-		}
-	}
-}
-
-
-void UDefaultChunk::AddNaiveMeshedFace(const FChunkFace& face,
-                                       TMap<int32, TSharedPtr<TArray<FChunkFace>>>& faces, int32 previousVoxelDirection,
-                                       FChunkFace::EMergeMethod mergeMethod, FChunkFace::EUnstableAxis unstableAxis)
-{
-#if CPUPROFILERTRACE_ENABLED
-	TRACE_CPUPROFILER_EVENT_SCOPE("Naive greedy mesh generation")
-#endif
-	
-	auto chunkFace = faces.Find(face.Voxel.VoxelId)->ToSharedRef();
-
-	auto faceJoined = (Voxels.IsValidIndex(previousVoxelDirection) &&
-		face.Voxel == Voxels[previousVoxelDirection] &&
-		!chunkFace->IsEmpty() &&
-		chunkFace->Last().MergeFace(face, mergeMethod, unstableAxis));
-	
-	if(faceJoined)
-	{
-		return;
-	}
-
-	chunkFace->Add(face);
-}
-
-bool UDefaultChunk::CrossChunkCullInNegativeDirection(int min, int32 forwardVoxelIndex, int32 chunkIndex, FIntVector neighborChunkDistance)
-{
-	// min == 0 is first face voxel in chunk, needs to be always shown or cross chunk compared
-	if(min == 0)
-	{
-		return ChunkCull(chunkIndex, neighborChunkDistance);
-	}
-	
-	return VoxelCull(forwardVoxelIndex);
-}
-
-bool UDefaultChunk::CrossChunkCullInPositiveDirection(int max, int32 forwardVoxelIndex, int32 chunkIndex,
-	FIntVector neighborChunkDistance)
-{
-	auto chunkSize = ChunkSettings->GetChunkSideSizeInVoxels();
-
-	if(max == chunkSize - 1)
-	{
-		return ChunkCull(chunkIndex, neighborChunkDistance);
-	}
-
-	// chunkSize == 0 is last face voxel in chunk, needs to be always shown or cross chunk compared
-	return VoxelCull(forwardVoxelIndex);
-}
-
-bool UDefaultChunk::ChunkCull(int32 chunkIndex, const FIntVector& neighborChunkDistance) const
-{
-	FIntVector neighborChunkCoords = ChunkGridPos + neighborChunkDistance;
+	FIntVector neighborChunkCoords = ChunkGridPos + faceData.neighborChunkDistance;
 	auto chunk = ChunkGridData->GetChunkPtr(neighborChunkCoords);
-	return chunk != nullptr && (VisibleChunkBorders && !chunk->HasMesh() || chunk->VoxelAt(chunkIndex).IsEmptyVoxel());
+	return faceData.isBorder &&chunk != nullptr && (VisibleChunkBorders && !chunk->HasMesh() || chunk->VoxelAt(faceData.neighborChunkVoxelIndex).IsEmptyVoxel());
 }
 
-bool UDefaultChunk::VoxelCull(int32 forwardVoxelIndex)
+bool UDefaultChunk::VoxelCull(const NaiveMeshingData& faceData)
 {
-	return Voxels.IsValidIndex(forwardVoxelIndex) && Voxels[forwardVoxelIndex].IsEmptyVoxel();
+	return !faceData.isBorder && Voxels.IsValidIndex(faceData.forwardVoxelIndex) && Voxels[faceData.forwardVoxelIndex].IsEmptyVoxel();
 }
 
-void UDefaultChunk::GreedyMeshAllFaces(const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces)
+void UDefaultChunk::GreedyMeshAllFaces(const TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces)
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Greedy mesh generation")
 #endif
+	
 	for (auto voxelId : voxelIdsInMesh)
 	{
-		//Front
+		// Front
 		GreedyMeshing(voxelId,*faces[0], FChunkFace::EMergeMethod::Down, FChunkFace::EUnstableAxis::Z);
 		
-		//Back
+		// Back
 		GreedyMeshing(voxelId,*faces[1], FChunkFace::EMergeMethod::Down, FChunkFace::EUnstableAxis::Z);
 	
-		//Left
+		// Right
 		GreedyMeshing(voxelId,*faces[2], FChunkFace::EMergeMethod::Down, FChunkFace::EUnstableAxis::Z);
 
-		//Right
+		// Left
 		GreedyMeshing(voxelId,*faces[3], FChunkFace::EMergeMethod::Down, FChunkFace::EUnstableAxis::Z);
 
 		// Bottom
@@ -254,10 +225,10 @@ void UDefaultChunk::GreedyMeshAllFaces(const TUniquePtr<TMap<int32, TSharedPtr<T
 }
 
 void UDefaultChunk::GreedyMeshing(int32 voxelId, TMap<int32, TSharedPtr<TArray<FChunkFace>>>& faces,
-	FChunkFace::EMergeMethod mergeMethod, FChunkFace::EUnstableAxis unstableAxis)
+                                  FChunkFace::EMergeMethod mergeMethod, FChunkFace::EUnstableAxis unstableAxis)
 {
 #if CPUPROFILERTRACE_ENABLED
-	TRACE_CPUPROFILER_EVENT_SCOPE("Face Greedy mesh generation")
+	TRACE_CPUPROFILER_EVENT_SCOPE("Face greedy mesh generation")
 #endif
 	
 	auto voxelFaces = faces.Find(voxelId);
@@ -288,19 +259,40 @@ void UDefaultChunk::GreedyMeshing(int32 voxelId, TMap<int32, TSharedPtr<TArray<F
 	faces[voxelId] = meshedFaces;
 }
 
-void UDefaultChunk::GenerateMeshFromFaces(const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces)
+void UDefaultChunk::CreateFace(NaiveMeshingData& faceData, const int32& index, const FIntVector& position, const FVoxel& voxel, const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>> faceContainer)
+{
+	auto chunkFaces =  faceContainer->Find(voxel.VoxelId)->ToSharedRef();
+	faceData.forwardVoxelIndex += index;
+	faceData.previousVoxelIndex += index;
+	faceData.face.Voxel = voxel;
+	faceData.face.StartVertexDown += position;
+	faceData.face.EndVertexDown += position;
+	faceData.face.StartVertexUp += position;
+	faceData.face.EndVertexUp += position;
+	
+	if((ChunkCull(faceData) || VoxelCull(faceData)) &&
+		!NaiveMeshing(faceData, chunkFaces))
+	{
+		chunkFaces->Add(faceData.face);
+	}
+}
+
+bool UDefaultChunk::NaiveMeshing(const NaiveMeshingData& naiveMeshingData, const TSharedRef<TArray<FChunkFace>> chunkFaces)
+{
+	return Voxels.IsValidIndex(naiveMeshingData.previousVoxelIndex) &&
+		naiveMeshingData.face.Voxel == Voxels[naiveMeshingData.previousVoxelIndex] &&
+		!chunkFaces->IsEmpty() &&
+		chunkFaces->Last().MergeFace(naiveMeshingData.face, naiveMeshingData.mergeMethod, naiveMeshingData.unstableAxis);
+}
+
+void UDefaultChunk::GenerateMeshFromFaces(const TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces)
 {
 #if CPUPROFILERTRACE_ENABLED
-	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh generation")
+	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh section generation")
 #endif
-		
+	
 	for (auto voxelId : voxelIdsInMesh)
 	{
-
-#if CPUPROFILERTRACE_ENABLED
-		TRACE_CPUPROFILER_EVENT_SCOPE("Mesh section generation")
-	#endif
-		
 		int32 faceIndex = 0;
 	
 		TSharedPtr<TArray<FVector>> Vertice = MakeShared<TArray<FVector>>();
