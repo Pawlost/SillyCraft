@@ -48,20 +48,20 @@ private:
 	bool VoxelCull(const NaiveMeshingData& faceData);
 	
 	void GenerateFacesInAxis(int x, int y, int z,
-					NaiveMeshingData faceData, NaiveMeshingData reversedFaceData,
-					const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>> faceContainer,
-					const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>> reversedFaceContainer);
+					NaiveMeshingData& faceData, NaiveMeshingData& reversedFaceData,
+					const TMap<int32, TSharedPtr<TArray<FChunkFace>>>& faceContainer,
+					const TMap<int32, TSharedPtr<TArray<FChunkFace>>>& reversedFaceContainer);
 	
-	bool NaiveMeshing(const NaiveMeshingData& naiveMeshingData, const TSharedRef<TArray<FChunkFace>> chunkFaces);
+	bool NaiveMeshing(const NaiveMeshingData& naiveMeshingData, TArray<FChunkFace>& chunkFaces);
 	
 	static void GreedyMeshing(int32 voxelId, TMap<int32, TSharedPtr<TArray<FChunkFace>>>& faces,
 	                          FChunkFace::EMergeMethod mergeMethod, FChunkFace::EUnstableAxis unstableAxis);
 
-	void CreateFace(NaiveMeshingData& faceData, const int32& index, const FIntVector& position, const FVoxel& voxel, const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>> faceContainer);
-	void InitFaceContainers(TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
-	void FaceGeneration(const TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
-	void GreedyMeshAllFaces(const TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
-	void GenerateMeshFromFaces(const TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
+	void CreateFace(NaiveMeshingData& faceData, const int32& index, const FIntVector& position, const FVoxel& voxel, const TMap<int32, TSharedPtr<TArray<FChunkFace>>>& faceContainer);
+	void InitFaceContainers(TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
+	void FaceGeneration(const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
+	void GreedyMeshAllFaces(const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
+	void GenerateMeshFromFaces(const TUniquePtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
 	
 	UPROPERTY()
 	TObjectPtr<UFastNoiseWrapper> Noise;
