@@ -42,6 +42,7 @@ void UDefaultChunk::GenerateMesh()
 
 void UDefaultChunk::InitFaceContainers(TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces)
 {
+	int32 chunkPlane = ChunkSettings->GetChunkPlaneSizeInVoxels();
 	for(int i = 0; i < FACE_COUNT; i++)
 	{
 		faces[i] = MakeShared<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>();
@@ -50,7 +51,9 @@ void UDefaultChunk::InitFaceContainers(TSharedPtr<TMap<int32, TSharedPtr<TArray<
 		{
 			if(!faces[i]->Contains(voxelId))
 			{
-				faces[i]->Add(voxelId, MakeShared<TArray<FChunkFace>>());
+				auto faceArray = MakeShared<TArray<FChunkFace>>();
+				faceArray->Reserve(chunkPlane);
+				faces[i]->Add(voxelId, faceArray);
 			}
 		}
 	}
@@ -170,9 +173,14 @@ void UDefaultChunk::FaceGeneration(const TSharedPtr<TMap<int32, TSharedPtr<TArra
 
 void UDefaultChunk::GenerateFacesInAxis(int x, int y, int z,
                                         NaiveMeshingData faceData, NaiveMeshingData reversedFaceData,
-                                        const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>> faceContainer,
-                                        const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>> reversedFaceContainer)
+                                        const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>& faceContainer,
+                                        const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>& reversedFaceContainer)
 {
+
+#if CPUPROFILERTRACE_ENABLED
+	TRACE_CPUPROFILER_EVENT_SCOPE("Face generationII")
+#endif
+	
 	auto index = ChunkSettings->GetVoxelIndex(x, y, z);
 	auto voxel = Voxels[index];
 				
@@ -186,13 +194,27 @@ void UDefaultChunk::GenerateFacesInAxis(int x, int y, int z,
 
 bool UDefaultChunk::ChunkCull(const NaiveMeshingData& faceData) const
 {
-	FIntVector neighborChunkCoords = ChunkGridPos + faceData.neighborChunkDistance;
-	auto chunk = ChunkGridData->GetChunkPtr(neighborChunkCoords);
-	return faceData.isBorder &&chunk != nullptr && (VisibleChunkBorders && !chunk->HasMesh() || chunk->VoxelAt(faceData.neighborChunkVoxelIndex).IsEmptyVoxel());
+#if CPUPROFILERTRACE_ENABLED
+	TRACE_CPUPROFILER_EVENT_SCOPE("Chunk cull generation")
+#endif
+	
+	if(faceData.isBorder)
+	{
+		auto tempPos = ChunkGridPos;
+		FIntVector neighborChunkCoords = tempPos + faceData.neighborChunkDistance;
+		auto chunk = ChunkGridData->GetChunkPtr(neighborChunkCoords);
+		return chunk != nullptr &&  chunk->VoxelAt(faceData.neighborChunkVoxelIndex).IsEmptyVoxel();
+	}
+	
+	return false;
 }
 
 bool UDefaultChunk::VoxelCull(const NaiveMeshingData& faceData)
 {
+#if CPUPROFILERTRACE_ENABLED
+	TRACE_CPUPROFILER_EVENT_SCOPE("Voxel cull generation")
+#endif
+	
 	return !faceData.isBorder && Voxels.IsValidIndex(faceData.forwardVoxelIndex) && Voxels[faceData.forwardVoxelIndex].IsEmptyVoxel();
 }
 
@@ -259,26 +281,50 @@ void UDefaultChunk::GreedyMeshing(int32 voxelId, TMap<int32, TSharedPtr<TArray<F
 	faces[voxelId] = meshedFaces;
 }
 
-void UDefaultChunk::CreateFace(NaiveMeshingData& faceData, const int32& index, const FIntVector& position, const FVoxel& voxel, const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>> faceContainer)
+void UDefaultChunk::CreateFace(NaiveMeshingData& faceData, const int32& index, const FIntVector& position, const FVoxel& voxel, const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>& faceContainer)
 {
+#if CPUPROFILERTRACE_ENABLED
+	TRACE_CPUPROFILER_EVENT_SCOPE("Face generation")
+#endif
+
 	auto chunkFaces =  faceContainer->Find(voxel.VoxelId)->ToSharedRef();
-	faceData.forwardVoxelIndex += index;
-	faceData.previousVoxelIndex += index;
-	faceData.face.Voxel = voxel;
-	faceData.face.StartVertexDown += position;
-	faceData.face.EndVertexDown += position;
-	faceData.face.StartVertexUp += position;
-	faceData.face.EndVertexUp += position;
 	
-	if((ChunkCull(faceData) || VoxelCull(faceData)) &&
-		!NaiveMeshing(faceData, chunkFaces))
 	{
-		chunkFaces->Add(faceData.face);
+	#if CPUPROFILERTRACE_ENABLED
+		TRACE_CPUPROFILER_EVENT_SCOPE("Add index generation")
+	#endif
+		
+		faceData.forwardVoxelIndex += index;
+		faceData.previousVoxelIndex += index;
+		faceData.face.Voxel = voxel;
+		faceData.face.StartVertexDown += position;
+		faceData.face.EndVertexDown += position;
+		faceData.face.StartVertexUp += position;
+		faceData.face.EndVertexUp += position;
+	}
+	
+	{
+
+#if CPUPROFILERTRACE_ENABLED
+		TRACE_CPUPROFILER_EVENT_SCOPE("Culling generation")
+		#endif
+		if((ChunkCull(faceData) || VoxelCull(faceData)) &&
+			!NaiveMeshing(faceData, chunkFaces))
+		{
+#if CPUPROFILERTRACE_ENABLED
+			TRACE_CPUPROFILER_EVENT_SCOPE("Add Face generation")
+			#endif
+			chunkFaces->Add(faceData.face);
+		}
 	}
 }
 
-bool UDefaultChunk::NaiveMeshing(const NaiveMeshingData& naiveMeshingData, const TSharedRef<TArray<FChunkFace>> chunkFaces)
+bool UDefaultChunk::NaiveMeshing(const NaiveMeshingData& naiveMeshingData, const TSharedRef<TArray<FChunkFace>>& chunkFaces)
 {
+#if CPUPROFILERTRACE_ENABLED
+	TRACE_CPUPROFILER_EVENT_SCOPE("Naive mesh generation")
+#endif
+	
 	return Voxels.IsValidIndex(naiveMeshingData.previousVoxelIndex) &&
 		naiveMeshingData.face.Voxel == Voxels[naiveMeshingData.previousVoxelIndex] &&
 		!chunkFaces->IsEmpty() &&
@@ -297,7 +343,7 @@ void UDefaultChunk::GenerateMeshFromFaces(const TSharedPtr<TMap<int32, TSharedPt
 	
 		TSharedPtr<TArray<FVector>> Vertice = MakeShared<TArray<FVector>>();
 		TSharedPtr<TArray<FVector2D>> UVs = MakeShared<TArray<FVector2D>>();
-		TSharedPtr<TArray<int32>> Triangles = MakeShared<TArray<int32>>();
+		TSharedPtr<TArray<int32>> Indice = MakeShared<TArray<int32>>();
 		
 		FVoxelType voxelType = ChunkGridData->GetVoxelTypeById(voxelId);
 
@@ -319,27 +365,25 @@ void UDefaultChunk::GenerateMeshFromFaces(const TSharedPtr<TMap<int32, TSharedPt
 				Vertice->Push(Face.GetFinalEndVertexUp(voxelSize));
 				Vertice->Push(Face.GetFinalStartVertexUp(voxelSize));
 
-				UVs->Add(FVector2D(0, 0));
-				UVs->Add(FVector2D(1, 0));
-				UVs->Add(FVector2D(1, 1));
-				UVs->Add(FVector2D(0, 1));
+				UVs->Emplace(0, 0);
+				UVs->Emplace(1, 0);
+				UVs->Emplace(1, 1);
+				UVs->Emplace(0, 1);
 				
-				Triangles->Add(faceIndex); Triangles->Add(faceIndex + 1); Triangles->Add(faceIndex + 2);
-				Triangles->Add(faceIndex + 2); Triangles->Add(faceIndex + 3); Triangles->Add(faceIndex);
-
+				Indice->Append({faceIndex, faceIndex + 1, faceIndex + 2, faceIndex + 2, faceIndex + 3, faceIndex});
 				faceIndex += 4;
 			}
 		}
 
-		AsyncTask(ENamedThreads::GameThread, [this, voxelId, Vertice, Triangles, UVs, voxelType]()
+		AsyncTask(ENamedThreads::GameThread, [this, voxelId, Vertice, Indice, UVs, voxelType]()
 		{
 #if CPUPROFILERTRACE_ENABLED
 			TRACE_CPUPROFILER_EVENT_SCOPE("Procedural mesh generation")
 #endif
 			auto procMesh = ChunkActor->GetProceduralMeshComponent();
 
-		 if(procMesh.IsValid() && procMesh.IsValid(false,true) &&  Vertice.IsValid() && Triangles.IsValid()){
-			 procMesh->CreateMeshSection_LinearColor(voxelId,*Vertice, *Triangles, TArray<FVector>(), *UVs, TArray<FLinearColor>(), TArray<FProcMeshTangent>(), true);
+		 if(procMesh.IsValid() && procMesh.IsValid(false,true) &&  Vertice.IsValid() && Indice.IsValid()){
+			 procMesh->CreateMeshSection_LinearColor(voxelId,*Vertice, *Indice, TArray<FVector>(), *UVs, TArray<FLinearColor>(), TArray<FProcMeshTangent>(), true);
 			 procMesh->SetMaterial(voxelId, voxelType.Material);
 			 procMesh->SetMeshSectionVisible(voxelId, true);
 		 }});
