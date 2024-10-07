@@ -40,8 +40,7 @@ private:
 		FIntVector neighborChunkDistance;
 		FChunkFace face;
 		int32 previousVoxelIndex;
-		FChunkFace::EMergeMethod mergeMethod;
-		FChunkFace::EUnstableAxis unstableAxis;
+		TFunctionRef<bool(FChunkFace& prevFace, const FChunkFace& newFace)> mergeFaces;
 	};
 	
 	bool ChunkCull(const NaiveMeshingData& faceData) const;
@@ -52,8 +51,6 @@ private:
 					const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>& faceContainer,
 					const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>& reversedFaceContainer);
 	
-	bool NaiveMeshing(const NaiveMeshingData& naiveMeshingData, const TSharedRef<TArray<FChunkFace>>& chunkFaces);
-	
 	static void GreedyMeshing(int32 voxelId, TMap<int32, TSharedPtr<TArray<FChunkFace>>>& faces,
 	                          FChunkFace::EMergeMethod mergeMethod, FChunkFace::EUnstableAxis unstableAxis);
 
@@ -62,6 +59,9 @@ private:
 	void FaceGeneration(const TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
 	void GreedyMeshAllFaces(const TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
 	void GenerateMeshFromFaces(const TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
+
+	bool inline IsMinBorder(int x);
+	bool inline IsMaxBorder(int x) const;
 	
 	UPROPERTY()
 	TObjectPtr<UFastNoiseWrapper> Noise;
@@ -73,4 +73,5 @@ private:
 	TSet<int32> voxelIdsInMesh;
 
 	TSharedPtr<FChunkSettings> ChunkSettings;
+	int32 ChunkLenght;
 };

@@ -102,6 +102,62 @@ bool FChunkFace::IsAxisStable(const FIntVector& mergeVertex, const FIntVector& o
 	}
 }
 
+bool FChunkFace::MergeFaceEndY(FChunkFace& prevFace, const FChunkFace& newFace)
+{
+	if(prevFace.Voxel == newFace.Voxel &&
+		prevFace.EndVertexDown.Z == newFace.EndVertexDown.Z && prevFace.EndVertexDown.X == newFace.EndVertexDown.X &&
+		prevFace.EndVertexUp.Z == newFace.EndVertexUp.Z && prevFace.EndVertexUp.X == newFace.EndVertexUp.X &&
+		prevFace.EndVertexUp.Y == newFace.StartVertexUp.Y && prevFace.EndVertexUp.Y == newFace.StartVertexDown.Y )
+	{
+		prevFace.EndVertexDown = newFace.EndVertexDown;
+		prevFace.EndVertexUp = newFace.EndVertexUp;
+		return true;
+	}
+	return false;
+}
+
+bool FChunkFace::MergeFaceBeginY(FChunkFace& prevFace, const FChunkFace& newFace)
+{
+	if(prevFace.Voxel == newFace.Voxel &&
+			prevFace.StartVertexDown.Z == newFace.StartVertexDown.Z && prevFace.StartVertexDown.X == newFace.StartVertexDown.X &&
+			prevFace.StartVertexUp.Z == newFace.StartVertexUp.Z && prevFace.StartVertexUp.X == newFace.StartVertexUp.X &&
+			prevFace.StartVertexUp.Y == newFace.EndVertexUp.Y && prevFace.StartVertexDown.Y == newFace.EndVertexDown.Y )
+	{
+		prevFace.StartVertexDown = newFace.StartVertexDown;
+		prevFace.StartVertexUp = newFace.StartVertexUp;
+		return true;
+	}
+	return false;
+}
+
+bool FChunkFace::MergeFaceBeginX(FChunkFace& prevFace, const FChunkFace& newFace)
+{
+	if(prevFace.Voxel == newFace.Voxel &&
+			prevFace.StartVertexDown.Z == newFace.StartVertexDown.Z && prevFace.StartVertexDown.Y == newFace.StartVertexDown.Y &&
+			prevFace.StartVertexUp.Z == newFace.StartVertexUp.Z && prevFace.StartVertexUp.Y == newFace.StartVertexUp.Y &&
+			prevFace.StartVertexUp.X == newFace.EndVertexUp.X && prevFace.StartVertexDown.X == newFace.EndVertexDown.X )
+	{
+		prevFace.StartVertexDown = newFace.StartVertexDown;
+		prevFace.StartVertexUp = newFace.StartVertexUp;
+		return true;
+	}
+	return false;
+}
+
+bool FChunkFace::MergeFaceEndX(FChunkFace& prevFace, const FChunkFace& newFace)
+{
+	if(prevFace.Voxel == newFace.Voxel &&
+			prevFace.EndVertexDown.Z == newFace.EndVertexDown.Z && prevFace.EndVertexDown.Y == newFace.EndVertexDown.Y &&
+			prevFace.EndVertexUp.Z == newFace.EndVertexUp.Z && prevFace.EndVertexUp.Y == newFace.EndVertexUp.Y &&
+			prevFace.EndVertexUp.X == newFace.StartVertexUp.X && prevFace.EndVertexUp.X == newFace.StartVertexDown.X )
+	{
+		prevFace.EndVertexDown = newFace.EndVertexDown;
+		prevFace.EndVertexUp = newFace.EndVertexUp;
+		return true;
+	}
+	return false;
+}
+
 bool FChunkFace::MergeFace(const FChunkFace& otherFace, const EMergeMethod mergeMethod, const EUnstableAxis unstableAxis)
 {
 	switch (mergeMethod)

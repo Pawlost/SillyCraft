@@ -61,6 +61,11 @@ struct PRIMITIVEVOXELGENERATION_API FChunkFace
 		Undefined
 	};
 
+	static bool MergeFaceEndY(FChunkFace& prevFace, const FChunkFace& newFace);
+	static bool MergeFaceBeginY(FChunkFace& prevFace, const FChunkFace& newFace);
+	static bool MergeFaceBeginX(FChunkFace& prevFace, const FChunkFace& newFace);
+	static bool MergeFaceEndX(FChunkFace& prevFace, const FChunkFace& newFace);
+
 	bool MergeFace(const FChunkFace& otherFace, const EMergeMethod mergeMethod, const EUnstableAxis unstableAxis);
 	
 private:
@@ -70,7 +75,6 @@ private:
 	static FChunkFace CreateChunkFace(const FIntVector& InitialPosition, const FVoxel& voxel, FChunkFace face);
 };
 
-	
 inline void operator+=(FChunkFace& ChunkFace, const FIntVector& Vector);
 
 inline void operator-=(FChunkFace& ChunkFace, const FIntVector& Vector);
