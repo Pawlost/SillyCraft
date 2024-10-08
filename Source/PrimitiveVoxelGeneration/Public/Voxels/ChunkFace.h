@@ -31,15 +31,6 @@ struct PRIMITIVEVOXELGENERATION_API FChunkFace
 	static FChunkFace CreateTopFace(const FIntVector& InitialPosition, const FVoxel& voxel);
 	static FChunkFace CreateBottomFace(const FIntVector& InitialPosition, const FVoxel& voxel);
 
-	UENUM(BlueprintType)
-	enum class EMergeMethod: uint8
-	{
-		Up,
-		Down,
-		End,
-		Begin
-	};
-	
 	FChunkFace(): StartVertexDown(), StartVertexUp(), EndVertexDown(), EndVertexUp()
 	{
 	}
@@ -52,26 +43,15 @@ struct PRIMITIVEVOXELGENERATION_API FChunkFace
 		EndVertexUp = endVertexUp;
 	}
 
-	UENUM(BlueprintType)
-	enum class EUnstableAxis: uint8
-	{
-		X,
-		Y,
-		Z,
-		Undefined
-	};
-
 	static bool MergeFaceEndY(FChunkFace& prevFace, const FChunkFace& newFace);
 	static bool MergeFaceBeginY(FChunkFace& prevFace, const FChunkFace& newFace);
 	static bool MergeFaceBeginX(FChunkFace& prevFace, const FChunkFace& newFace);
 	static bool MergeFaceEndX(FChunkFace& prevFace, const FChunkFace& newFace);
-
-	bool MergeFace(const FChunkFace& otherFace, const EMergeMethod mergeMethod, const EUnstableAxis unstableAxis);
+	
+	static bool MergeFaceDownZ(FChunkFace& prevFace, const FChunkFace& newFace);
+	static bool MergeFaceDownX(FChunkFace& prevFace, const FChunkFace& newFace);
 	
 private:
-	// returns true if merge was succesful
-	static bool IsAxisStable(const FIntVector& mergeVertex, const FIntVector& otherMergeVertex,
-		const EUnstableAxis unstableAxis);
 	static FChunkFace CreateChunkFace(const FIntVector& InitialPosition, const FVoxel& voxel, FChunkFace face);
 };
 

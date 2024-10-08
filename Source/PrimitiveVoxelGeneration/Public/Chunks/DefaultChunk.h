@@ -52,7 +52,7 @@ private:
 					const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>& reversedFaceContainer);
 	
 	static void GreedyMeshing(int32 voxelId, TMap<int32, TSharedPtr<TArray<FChunkFace>>>& faces,
-	                          FChunkFace::EMergeMethod mergeMethod, FChunkFace::EUnstableAxis unstableAxis);
+	                         TFunctionRef<bool(FChunkFace& prevFace, const FChunkFace& newFace)> mergeFaces);
 
 	void CreateFace(NaiveMeshingData& faceData, const int32& index, const FIntVector& position, const FVoxel& voxel, const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>& faceContainer);
 	void InitFaceContainers(TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
