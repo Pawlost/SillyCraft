@@ -86,12 +86,10 @@ FChunkFace FChunkFace::CreateBottomFace(const FIntVector& InitialPosition, const
 	return CreateChunkFace(InitialPosition, voxel,BottomFace);
 }
 
-bool FChunkFace::MergeFaceEndY(FChunkFace& prevFace, const FChunkFace& newFace)
+bool FChunkFace::MergeFaceEnd(FChunkFace& prevFace, const FChunkFace& newFace)
 {
-	if(prevFace.Voxel == newFace.Voxel &&
-		prevFace.EndVertexDown.Z == newFace.EndVertexDown.Z && prevFace.EndVertexDown.X == newFace.EndVertexDown.X &&
-		prevFace.EndVertexUp.Z == newFace.EndVertexUp.Z && prevFace.EndVertexUp.X == newFace.EndVertexUp.X &&
-		prevFace.EndVertexUp.Y == newFace.StartVertexUp.Y && prevFace.EndVertexUp.Y == newFace.StartVertexDown.Y )
+	if(prevFace.EndVertexDown == newFace.StartVertexDown &&
+		prevFace.EndVertexUp == newFace.StartVertexUp)
 	{
 		prevFace.EndVertexDown = newFace.EndVertexDown;
 		prevFace.EndVertexUp = newFace.EndVertexUp;
@@ -100,12 +98,10 @@ bool FChunkFace::MergeFaceEndY(FChunkFace& prevFace, const FChunkFace& newFace)
 	return false;
 }
 
-bool FChunkFace::MergeFaceBeginY(FChunkFace& prevFace, const FChunkFace& newFace)
+bool FChunkFace::MergeFaceStart(FChunkFace& prevFace, const FChunkFace& newFace)
 {
-	if(prevFace.Voxel == newFace.Voxel &&
-			prevFace.StartVertexDown.Z == newFace.StartVertexDown.Z && prevFace.StartVertexDown.X == newFace.StartVertexDown.X &&
-			prevFace.StartVertexUp.Z == newFace.StartVertexUp.Z && prevFace.StartVertexUp.X == newFace.StartVertexUp.X &&
-			prevFace.StartVertexUp.Y == newFace.EndVertexUp.Y && prevFace.StartVertexDown.Y == newFace.EndVertexDown.Y )
+	if(prevFace.StartVertexUp == newFace.EndVertexUp &&
+		prevFace.StartVertexDown == newFace.EndVertexDown )
 	{
 		prevFace.StartVertexDown = newFace.StartVertexDown;
 		prevFace.StartVertexUp = newFace.StartVertexUp;
@@ -114,54 +110,10 @@ bool FChunkFace::MergeFaceBeginY(FChunkFace& prevFace, const FChunkFace& newFace
 	return false;
 }
 
-bool FChunkFace::MergeFaceBeginX(FChunkFace& prevFace, const FChunkFace& newFace)
+bool FChunkFace::MergeFaceDown(FChunkFace& prevFace, const FChunkFace& newFace)
 {
-	if(prevFace.Voxel == newFace.Voxel &&
-			prevFace.StartVertexDown.Z == newFace.StartVertexDown.Z && prevFace.StartVertexDown.Y == newFace.StartVertexDown.Y &&
-			prevFace.StartVertexUp.Z == newFace.StartVertexUp.Z && prevFace.StartVertexUp.Y == newFace.StartVertexUp.Y &&
-			prevFace.StartVertexUp.X == newFace.EndVertexUp.X && prevFace.StartVertexDown.X == newFace.EndVertexDown.X )
-	{
-		prevFace.StartVertexDown = newFace.StartVertexDown;
-		prevFace.StartVertexUp = newFace.StartVertexUp;
-		return true;
-	}
-	return false;
-}
-
-bool FChunkFace::MergeFaceEndX(FChunkFace& prevFace, const FChunkFace& newFace)
-{
-	if(prevFace.Voxel == newFace.Voxel &&
-			prevFace.EndVertexDown.Z == newFace.EndVertexDown.Z && prevFace.EndVertexDown.Y == newFace.EndVertexDown.Y &&
-			prevFace.EndVertexUp.Z == newFace.EndVertexUp.Z && prevFace.EndVertexUp.Y == newFace.EndVertexUp.Y &&
-			prevFace.EndVertexUp.X == newFace.StartVertexUp.X && prevFace.EndVertexUp.X == newFace.StartVertexDown.X )
-	{
-		prevFace.EndVertexDown = newFace.EndVertexDown;
-		prevFace.EndVertexUp = newFace.EndVertexUp;
-		return true;
-	}
-	return false;
-}
-
-bool FChunkFace::MergeFaceDownZ(FChunkFace& prevFace, const FChunkFace& newFace)
-{
-	if(prevFace.Voxel == newFace.Voxel &&
-		prevFace.StartVertexDown.X == newFace.StartVertexDown.X && prevFace.StartVertexDown.Y == newFace.StartVertexDown.Y &&
-		prevFace.EndVertexDown.X == newFace.EndVertexDown.X && prevFace.EndVertexDown.Y == newFace.EndVertexDown.Y &&
-		prevFace.StartVertexDown.Z == newFace.StartVertexUp.Z && prevFace.EndVertexDown.Z == newFace.EndVertexUp.Z)
-	{
-		prevFace.StartVertexDown = newFace.StartVertexDown;
-		prevFace.EndVertexDown = newFace.EndVertexDown;
-		return true;
-	}
-	return false;
-}
-
-bool FChunkFace::MergeFaceDownX(FChunkFace& prevFace, const FChunkFace& newFace)
-{
-	if(prevFace.Voxel == newFace.Voxel &&
-		prevFace.StartVertexDown.Z == newFace.StartVertexDown.Z && prevFace.StartVertexDown.Y == newFace.StartVertexDown.Y &&
-		prevFace.EndVertexDown.Z == newFace.EndVertexDown.Z && prevFace.EndVertexDown.Y == newFace.EndVertexDown.Y &&
-		prevFace.StartVertexDown.X == newFace.StartVertexUp.X && prevFace.EndVertexDown.X == newFace.EndVertexUp.X)
+	if(prevFace.StartVertexDown == newFace.StartVertexUp &&
+		prevFace.EndVertexDown == newFace.EndVertexUp)
 	{
 		prevFace.StartVertexDown = newFace.StartVertexDown;
 		prevFace.EndVertexDown = newFace.EndVertexDown;

@@ -74,7 +74,7 @@ void UDefaultChunk::FaceGeneration(const TSharedPtr<TMap<int32, TSharedPtr<TArra
 		FIntVector(-1, 0, 0),
 		FChunkFace::FrontFace,
 		ChunkSettings->GetVoxelIndex(0,-1,0),
-		FChunkFace::MergeFaceEndY
+		FChunkFace::MergeFaceEnd
 	};
 				
 	NaiveMeshingData backFaceData =
@@ -85,7 +85,7 @@ void UDefaultChunk::FaceGeneration(const TSharedPtr<TMap<int32, TSharedPtr<TArra
 		FIntVector(1, 0, 0),
 		FChunkFace::BackFace,
 		ChunkSettings->GetVoxelIndex(0,-1,0),
-		FChunkFace::MergeFaceBeginY
+		FChunkFace::MergeFaceStart
 	};
 
 	NaiveMeshingData rightFaceData =
@@ -96,7 +96,7 @@ void UDefaultChunk::FaceGeneration(const TSharedPtr<TMap<int32, TSharedPtr<TArra
 		FIntVector(0, -1, 0),
 		FChunkFace::RightFace,
 		ChunkSettings->GetVoxelIndex(-1,0,0),
-		FChunkFace::MergeFaceBeginX
+		FChunkFace::MergeFaceStart
 	};
 				
 	NaiveMeshingData leftFaceData =
@@ -107,7 +107,7 @@ void UDefaultChunk::FaceGeneration(const TSharedPtr<TMap<int32, TSharedPtr<TArra
 		FIntVector(0, 1, 0),
 		FChunkFace::LeftFace,
 		ChunkSettings->GetVoxelIndex(-1,0,0),
-		FChunkFace::MergeFaceEndX
+		FChunkFace::MergeFaceEnd
 	};
 
 
@@ -119,7 +119,7 @@ void UDefaultChunk::FaceGeneration(const TSharedPtr<TMap<int32, TSharedPtr<TArra
 		FIntVector(0, 0, -1),
 		FChunkFace::BottomFace,
 		ChunkSettings->GetVoxelIndex(0,-1,0),
-		FChunkFace::MergeFaceBeginY
+		FChunkFace::MergeFaceStart
 
 	};
 				
@@ -131,7 +131,7 @@ void UDefaultChunk::FaceGeneration(const TSharedPtr<TMap<int32, TSharedPtr<TArra
 		FIntVector(0, 0, 1),
 		FChunkFace::TopFace,
 		ChunkSettings->GetVoxelIndex(0,-1,0),
-		FChunkFace::MergeFaceEndY
+		FChunkFace::MergeFaceEnd
 	};
 	
 	// culling and naive greedy meshing
@@ -215,7 +215,7 @@ void UDefaultChunk::CreateFace(NaiveMeshingData& faceData, const int32& index, c
 
 	if((ChunkCull(faceData) || VoxelCull(faceData)))
 	{
-		if(!chunkFaces->IsEmpty() && faceData.mergeFaces(chunkFaces->Last(),faceData.face)){
+		if(!chunkFaces->IsEmpty() && voxel == faceData.face.Voxel && faceData.mergeFaces(chunkFaces->Last(),faceData.face)){
 			return;
 		}
 
@@ -231,22 +231,22 @@ void UDefaultChunk::GreedyMeshAllFaces(const TSharedPtr<TMap<int32, TSharedPtr<T
 	for (auto voxelId : voxelIdsInMesh)
 	{
 		// Front
-		GreedyMeshing(voxelId,*faces[0], FChunkFace::MergeFaceDownZ);
+		GreedyMeshing(voxelId,*faces[0], FChunkFace::MergeFaceDown);
 		
 		// Back
-		GreedyMeshing(voxelId,*faces[1], FChunkFace::MergeFaceDownZ);
+		GreedyMeshing(voxelId,*faces[1], FChunkFace::MergeFaceDown);
 	
 		// Right
-		GreedyMeshing(voxelId,*faces[2],FChunkFace::MergeFaceDownZ);
+		GreedyMeshing(voxelId,*faces[2],FChunkFace::MergeFaceDown);
 
 		// Left
-		GreedyMeshing(voxelId,*faces[3],FChunkFace::MergeFaceDownZ);
+		GreedyMeshing(voxelId,*faces[3],FChunkFace::MergeFaceDown);
 
 		// Bottom
-		GreedyMeshing(voxelId,*faces[4], FChunkFace::MergeFaceDownX);
+		GreedyMeshing(voxelId,*faces[4], FChunkFace::MergeFaceDown);
 
 		// Top
-		GreedyMeshing(voxelId,*faces[5],FChunkFace::MergeFaceDownX);
+		GreedyMeshing(voxelId,*faces[5],FChunkFace::MergeFaceDown);
 	}
 }
 
