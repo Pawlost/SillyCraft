@@ -6,6 +6,8 @@
 #include "ChunkBase.h"
 #include "ChunkGridData.h"
 #include "FastNoiseWrapper.h"
+#include "MeshingStructs/NaiveMeshingData.h"
+#include "MeshingStructs/StaticNaiveMeshingData.h"
 #include "Voxels/ChunkFace.h"
 #include "DefaultChunk.generated.h"
 
@@ -32,18 +34,6 @@ public:
 	virtual double GetHighestElevationAtPosition(double posX, double posY) override;
 
 private:
-	struct NaiveMeshingData
-	{
-		bool isBorder;
-		int32 forwardVoxelIndex;
-		int32 currentVoxelIndex;
-		int32 chunkBorderIndex;
-		FIntVector borderChunkDirection;
-		const FChunkFace& faceTemplate;
-		int32 previousVoxelIndex;
-		TFunctionRef<bool(FChunkFace& prevFace, const FChunkFace& newFace)> mergeFaces;
-	};
-
 	struct VoxelIndexParams
 	{
 		bool isBorder;
@@ -52,27 +42,38 @@ private:
 		int32 currentVoxelIndex;
 		FIntVector borderChunkDirection;
 	};
-
-	void InitFrontFace(FChunkFace& face);
 	
 	bool IsBorderVoxelVisible(const VoxelIndexParams& faceData) const;
 	bool IsVoxelVisible(const VoxelIndexParams& faceData);
+
+	FNaiveMeshingData FrontFaceTemplate = FNaiveMeshingData(FStaticNaiveMeshingData::FrontFaceData);
+	FNaiveMeshingData BackFaceTemplate = FNaiveMeshingData(FStaticNaiveMeshingData::BackFaceData);
+	FNaiveMeshingData RightFaceTemplate = FNaiveMeshingData(FStaticNaiveMeshingData::RightFaceData);
+	FNaiveMeshingData LeftFaceTemplate = FNaiveMeshingData(FStaticNaiveMeshingData::LeftFaceData);
+	FNaiveMeshingData TopFaceTemplate = FNaiveMeshingData(FStaticNaiveMeshingData::TopFaceData);
+	FNaiveMeshingData BottomFaceTemplate = FNaiveMeshingData(FStaticNaiveMeshingData::BottomFaceData);
+
+	void UpdateAllFacesParams();
+	void UpdateFaceParams(FNaiveMeshingData& face, FIntVector forwardVoxelIndexVector,
+		FIntVector previousVoxelIndexVector, FIntVector chunkBorderIndexVector) const;
 	
-	void GenerateFacesInAxis(int x, int y, int z,
-	                         const NaiveMeshingData& faceData, const NaiveMeshingData& reversedFaceData,
+	void GenerateFacesInAxis(int x, int y, int z, int32 axisVoxelIndex, bool isMinBorder, bool isMaxBorder,
+	                         const FNaiveMeshingData& faceTemplate, const FNaiveMeshingData& reversedFaceTemplate,
 					const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>& faceContainer,
 					const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>& reversedFaceContainer);
 	
 	static void GreedyMeshing(int32 voxelId, TMap<int32, TSharedPtr<TArray<FChunkFace>>>& faces,
-	                         TFunctionRef<bool(FChunkFace& prevFace, const FChunkFace& newFace)> mergeFaces);
+	                          const TFunctionRef<bool(FChunkFace& prevFace, const FChunkFace& newFace)>& mergeFaces);
 
-	void CreateFace(const NaiveMeshingData& faceData, const int32& index, const FIntVector& position, const FVoxel& voxel, const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>& faceContainer);
+	void CreateFace(const FNaiveMeshingData& faceTemplate, bool isBorder, const int32& index,
+		const FIntVector& position, const FVoxel& voxel, const int32& axisVoxelIndex,
+		const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>& faceContainer);
 	void InitFaceContainers(TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
 	void FaceGeneration(const TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
 	void GreedyMeshAllFaces(const TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
 	void GenerateMeshFromFaces(const TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
 
-	bool inline IsMinBorder(int x);
+	static bool inline IsMinBorder(int x);
 	bool inline IsMaxBorder(int x) const;
 	
 	UPROPERTY()

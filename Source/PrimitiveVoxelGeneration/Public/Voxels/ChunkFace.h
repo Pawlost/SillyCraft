@@ -43,7 +43,6 @@ struct PRIMITIVEVOXELGENERATION_API FChunkFace
 		EndVertexDown = endVertexDown;
 		EndVertexUp = endVertexUp;
 	}
-
 	
 	FChunkFace(const FIntVector& startVertexDown, const FIntVector& endVertexDown, const FIntVector& endVertexUp, const FIntVector& startVertexUp)
 	{

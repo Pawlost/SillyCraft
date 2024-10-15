@@ -34,6 +34,11 @@ int32 FChunkSettings::GetVoxelIndex(const int32 x, const int32 y, const int32 z)
 	return y + (z * ChunkSideSizeInVoxels) + (x * ChunkPlaneSizeInVoxels);
 }
 
+int32 FChunkSettings::GetVoxelIndex(const FIntVector& indexVector) const
+{
+	return indexVector.Y + (indexVector.Z * ChunkSideSizeInVoxels) + (indexVector.X * ChunkPlaneSizeInVoxels);
+}
+
 FIntVector3 FChunkSettings::IndexToCoords(const int32 index) const
 {
 	return FIntVector3(index / ChunkSideSizeInVoxels, index % ChunkSideSizeInVoxels, (index / ChunkSideSizeInVoxels) % ChunkSideSizeInVoxels);

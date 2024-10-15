@@ -18,6 +18,7 @@ struct PRIMITIVEVOXELGENERATION_API FChunkSettings
 	int32 GetChunkSize() const;
 	
 	int32 GetVoxelIndex(const int32 x, const int32 y, const int32 z) const;
+	int32 GetVoxelIndex(const FIntVector& indexVector) const;
 	FIntVector3 IndexToCoords(const int32 index) const;
 	
 	// Getters & Setters
