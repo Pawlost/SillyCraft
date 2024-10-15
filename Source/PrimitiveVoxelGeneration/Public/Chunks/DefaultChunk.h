@@ -36,25 +36,37 @@ private:
 	{
 		bool isBorder;
 		int32 forwardVoxelIndex;
-		int32 neighborChunkVoxelIndex;
-		FIntVector neighborChunkDistance;
-		FChunkFace face;
+		int32 currentVoxelIndex;
+		int32 chunkBorderIndex;
+		FIntVector borderChunkDirection;
+		const FChunkFace& faceTemplate;
 		int32 previousVoxelIndex;
 		TFunctionRef<bool(FChunkFace& prevFace, const FChunkFace& newFace)> mergeFaces;
 	};
+
+	struct VoxelIndexParams
+	{
+		bool isBorder;
+		int32 forwardVoxelIndex;
+		int32 previousVoxelIndex;
+		int32 currentVoxelIndex;
+		FIntVector borderChunkDirection;
+	};
+
+	void InitFrontFace(FChunkFace& face);
 	
-	bool ChunkCull(const NaiveMeshingData& faceData) const;
-	bool VoxelCull(const NaiveMeshingData& faceData);
+	bool IsBorderVoxelVisible(const VoxelIndexParams& faceData) const;
+	bool IsVoxelVisible(const VoxelIndexParams& faceData);
 	
 	void GenerateFacesInAxis(int x, int y, int z,
-					NaiveMeshingData faceData, NaiveMeshingData reversedFaceData,
+	                         const NaiveMeshingData& faceData, const NaiveMeshingData& reversedFaceData,
 					const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>& faceContainer,
 					const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>& reversedFaceContainer);
 	
 	static void GreedyMeshing(int32 voxelId, TMap<int32, TSharedPtr<TArray<FChunkFace>>>& faces,
 	                         TFunctionRef<bool(FChunkFace& prevFace, const FChunkFace& newFace)> mergeFaces);
 
-	void CreateFace(NaiveMeshingData& faceData, const int32& index, const FIntVector& position, const FVoxel& voxel, const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>& faceContainer);
+	void CreateFace(const NaiveMeshingData& faceData, const int32& index, const FIntVector& position, const FVoxel& voxel, const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>& faceContainer);
 	void InitFaceContainers(TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
 	void FaceGeneration(const TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
 	void GreedyMeshAllFaces(const TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);

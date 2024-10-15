@@ -29,7 +29,7 @@ int32 FChunkSettings::GetChunkSize() const
 	return ChunkSideSizeInVoxels * VoxelSize;
 }
 
-int32 FChunkSettings::GetVoxelIndex( const int32 x, const int32 y, const int32 z) const
+int32 FChunkSettings::GetVoxelIndex(const int32 x, const int32 y, const int32 z) const
 {
 	return y + (z * ChunkSideSizeInVoxels) + (x * ChunkPlaneSizeInVoxels);
 }

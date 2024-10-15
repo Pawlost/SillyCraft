@@ -35,10 +35,20 @@ struct PRIMITIVEVOXELGENERATION_API FChunkFace
 	{
 	}
 
-	FChunkFace(const FIntVector& beginVertexDown, const FIntVector& endVertexDown, const FIntVector& endVertexUp, const FIntVector& beginVertexUp)
+	FChunkFace(const FVoxel& voxel, const FIntVector& startVertexDown, const FIntVector& endVertexDown, const FIntVector& endVertexUp, const FIntVector& startVertexUp)
 	{
-		StartVertexDown = beginVertexDown;
-		StartVertexUp = beginVertexUp;
+		Voxel = voxel;
+		StartVertexDown = startVertexDown;
+		StartVertexUp = startVertexUp;
+		EndVertexDown = endVertexDown;
+		EndVertexUp = endVertexUp;
+	}
+
+	
+	FChunkFace(const FIntVector& startVertexDown, const FIntVector& endVertexDown, const FIntVector& endVertexUp, const FIntVector& startVertexUp)
+	{
+		StartVertexDown = startVertexDown;
+		StartVertexUp = startVertexUp;
 		EndVertexDown = endVertexDown;
 		EndVertexUp = endVertexUp;
 	}
