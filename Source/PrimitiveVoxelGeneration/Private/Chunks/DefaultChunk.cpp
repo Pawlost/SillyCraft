@@ -3,11 +3,11 @@
 #include "Chunks/DefaultChunk.h"
 
 #include "FastNoiseWrapper.h"
-#include "Chunks/ChunkActor.h"
 #include "Chunks/ChunkGridData.h"
 #include "Chunks/ChunkSettings.h"
 #include "Chunks/MeshingStructs/StaticNaiveMeshingData.h"
 #include "Voxels/Voxel.h"
+#include "RealtimeMeshSimple.h"
 #include "Voxels/VoxelType.h"
 
 void UDefaultChunk::AddToGrid(const TWeakObjectPtr<UChunkGridData> chunkGridData, FIntVector& chunkGridPos)
@@ -121,9 +121,9 @@ void UDefaultChunk::FaceGeneration(const TSharedPtr<TMap<int32, TSharedPtr<TArra
 		{
 			for(int y = 0; y < ChunkLenght; y++)
 			{
-				GenerateFacesInAxis(x, y, z, xAxisIndex, minBorder, maxBorder, FrontFaceTemplate, BackFaceTemplate, faces[0].ToSharedRef(), faces[1].ToSharedRef());
-				GenerateFacesInAxis(y, x, z, yAxisIndex, minBorder, maxBorder, RightFaceTemplate, LeftFaceTemplate, faces[2].ToSharedRef(), faces[3].ToSharedRef());
-				GenerateFacesInAxis(z, y, x, zAxisIndex, minBorder, maxBorder, BottomFaceTemplate, TopFaceTemplate, faces[4].ToSharedRef(), faces[5].ToSharedRef());
+				GenerateFacesInAxis(x, y, z, xAxisIndex, minBorder, maxBorder, FrontFaceTemplate, BackFaceTemplate, faces[FRONT_FACE_INDEX].ToSharedRef(), faces[BACK_FACE_INDEX].ToSharedRef());
+				GenerateFacesInAxis(y, x, z, yAxisIndex, minBorder, maxBorder, RightFaceTemplate, LeftFaceTemplate, faces[RIGHT_FACE_INDEX].ToSharedRef(), faces[LEFT_FACE_INDEX].ToSharedRef());
+				GenerateFacesInAxis(z, y, x, zAxisIndex, minBorder, maxBorder, BottomFaceTemplate, TopFaceTemplate, faces[BOTTOM_FACE_INDEX].ToSharedRef(), faces[TOP_FACE_INDEX].ToSharedRef());
 			}
 		}
 	}
@@ -213,22 +213,22 @@ void UDefaultChunk::GreedyMeshAllFaces(const TSharedPtr<TMap<int32, TSharedPtr<T
 	for (auto voxelId : voxelIdsInMesh)
 	{
 		// Front
-		GreedyMeshing(voxelId,*faces[0], FChunkFace::MergeFaceDown);
+		GreedyMeshing(voxelId,*faces[FRONT_FACE_INDEX], FChunkFace::MergeFaceDown);
 		
 		// Back
-		GreedyMeshing(voxelId,*faces[1], FChunkFace::MergeFaceDown);
+		GreedyMeshing(voxelId,*faces[BACK_FACE_INDEX], FChunkFace::MergeFaceDown);
 	
 		// Right
-		GreedyMeshing(voxelId,*faces[2],FChunkFace::MergeFaceDown);
+		GreedyMeshing(voxelId,*faces[RIGHT_FACE_INDEX],FChunkFace::MergeFaceDown);
 
 		// Left
-		GreedyMeshing(voxelId,*faces[3],FChunkFace::MergeFaceDown);
+		GreedyMeshing(voxelId,*faces[LEFT_FACE_INDEX],FChunkFace::MergeFaceDown);
 
 		// Bottom
-		GreedyMeshing(voxelId,*faces[4], FChunkFace::MergeFaceDown);
+		GreedyMeshing(voxelId,*faces[BOTTOM_FACE_INDEX], FChunkFace::MergeFaceDown);
 
 		// Top
-		GreedyMeshing(voxelId,*faces[5],FChunkFace::MergeFaceDown);
+		GreedyMeshing(voxelId,*faces[TOP_FACE_INDEX],FChunkFace::MergeFaceDown);
 	}
 }
 
@@ -275,19 +275,30 @@ void UDefaultChunk::GenerateMeshFromFaces(const TSharedPtr<TMap<int32, TSharedPt
 	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh section generation")
 #endif
 	
+		TSharedPtr<FRealtimeMeshStreamSet> StreamSet = MakeShared<FRealtimeMeshStreamSet>();
+
+	TRealtimeMeshBuilderLocal<int32> Builder(*StreamSet.ToWeakPtr().Pin());
+
+	Builder.EnableTexCoords();
+	Builder.EnableColors();
+	Builder.EnableTangents();
+	
+	Builder.EnablePolyGroups();
+
+	auto voxelSize = ChunkSettings->GetVoxelSize();
+	FVector3f normals[6];
+	normals[FRONT_FACE_INDEX] = FVector3f(-1.0f, 0.0f, 0.0f);
+	normals[BACK_FACE_INDEX] = FVector3f(1.0f, 0.0f, 0.0f);
+	normals[RIGHT_FACE_INDEX] = FVector3f(0.0f, 1.0f, 1.0f);
+	normals[LEFT_FACE_INDEX] = FVector3f(0.0f, -1.0f, 1.0f);
+	normals[BOTTOM_FACE_INDEX] = FVector3f(0.0f, 0.0f, -1.0f);
+	normals[TOP_FACE_INDEX] = FVector3f(0.0f, 0.0f, 1.0f);
+	
 	for (auto voxelId : voxelIdsInMesh)
 	{
-		int32 faceIndex = 0;
-	
-		TSharedPtr<TArray<FVector>> Vertice = MakeShared<TArray<FVector>>();
-		TSharedPtr<TArray<FVector2D>> UVs = MakeShared<TArray<FVector2D>>();
-		TSharedPtr<TArray<int32>> Indice = MakeShared<TArray<int32>>();
-		
-		FVoxelType voxelType = ChunkGridData->GetVoxelTypeById(voxelId);
-
-		for(int i = 0; i < FACE_COUNT; i++)
+		for(int faceIndex = 0; faceIndex < FACE_COUNT; faceIndex++)
 		{
-			auto sideFaces = faces[i]->Find(voxelId);
+			auto sideFaces = faces[faceIndex]->Find(voxelId);
 			
 			if(sideFaces == nullptr)
 			{
@@ -296,36 +307,56 @@ void UDefaultChunk::GenerateMeshFromFaces(const TSharedPtr<TMap<int32, TSharedPt
 	
 			for (auto Face : *sideFaces->Get())
 			{
-				auto voxelSize = ChunkSettings->GetVoxelSize();
+				// Add our first vertex
+				int32 V0 = Builder.AddVertex(Face.GetFinalStartVertexDown(voxelSize))
+					.SetColor(FColor::White)
+					.SetTexCoord(FVector2f(0, 0))
+					.SetNormal(normals[faceIndex]);
 
-				Vertice->Push(Face.GetFinalStartVertexDown(voxelSize));
-				Vertice->Push(Face.GetFinalEndVertexDown(voxelSize));
-				Vertice->Push(Face.GetFinalEndVertexUp(voxelSize));
-				Vertice->Push(Face.GetFinalStartVertexUp(voxelSize));
+				// Add our second vertex
+				int32 V1 = Builder.AddVertex(Face.GetFinalEndVertexDown(voxelSize))
+					.SetColor(FColor::White)
+					.SetTexCoord(FVector2f(1, 0))
+					.SetNormal(normals[faceIndex]);
 
-				UVs->Emplace(0, 0);
-				UVs->Emplace(1, 0);
-				UVs->Emplace(1, 1);
-				UVs->Emplace(0, 1);
+				// Add our third vertex
+				int32 V2 = Builder.AddVertex(Face.GetFinalEndVertexUp(voxelSize))
+					.SetColor(FColor::White)
+					.SetTexCoord(FVector2f(1, 1))
+					.SetNormal(normals[faceIndex]);
 				
-				Indice->Append({faceIndex, faceIndex + 1, faceIndex + 2, faceIndex + 2, faceIndex + 3, faceIndex});
-				faceIndex += 4;
+				int32 V3 = Builder.AddVertex(Face.GetFinalStartVertexUp(voxelSize))
+				.SetColor(FColor::White)
+				.SetTexCoord(FVector2f(0, 1))
+					.SetNormal(normals[faceIndex]);
+				
+				Builder.AddTriangle(V0, V1, V2, voxelId);
+				Builder.AddTriangle(V2, V3, V0, voxelId);
 			}
 		}
-
-		AsyncTask(ENamedThreads::GameThread, [this, voxelId, Vertice, Indice, UVs, voxelType]()
-		{
-#if CPUPROFILERTRACE_ENABLED
-			TRACE_CPUPROFILER_EVENT_SCOPE("Procedural mesh generation")
-#endif
-			auto procMesh = ChunkActor->GetProceduralMeshComponent();
-
-		 if(procMesh.IsValid() && procMesh.IsValid(false,true) &&  Vertice.IsValid() && Indice.IsValid()){
-			 procMesh->CreateMeshSection_LinearColor(voxelId,*Vertice, *Indice, TArray<FVector>(), *UVs, TArray<FLinearColor>(), TArray<FProcMeshTangent>(), true);
-			 procMesh->SetMaterial(voxelId, voxelType.Material);
-			 procMesh->SetMeshSectionVisible(voxelId, true);
-		 }});
 	}
+	AsyncTask(ENamedThreads::GameThread, [this, StreamSet]()
+	{
+#if CPUPROFILERTRACE_ENABLED
+		TRACE_CPUPROFILER_EVENT_SCOPE("Procedural mesh generation")
+#endif
+		
+		URealtimeMeshSimple* RealtimeMesh = ChunkActor->GetRealtimeMeshComponent()->InitializeRealtimeMesh<URealtimeMeshSimple>();
+			
+		const FRealtimeMeshSectionGroupKey GroupKey = FRealtimeMeshSectionGroupKey::Create(0, FName("Chunk Mesh"));
+
+		// Now we create the section group, since the stream set has polygroups, this will create the sections as well
+		RealtimeMesh->CreateSectionGroup(GroupKey, *StreamSet.ToWeakPtr().Pin());
+
+		for (auto voxelId : voxelIdsInMesh)
+		{
+			const FRealtimeMeshSectionKey PolyGroup0SectionKey = FRealtimeMeshSectionKey::CreateForPolyGroup(GroupKey, voxelId);
+			RealtimeMesh->UpdateSectionConfig(PolyGroup0SectionKey, FRealtimeMeshSectionConfig(ERealtimeMeshSectionDrawType::Static, voxelId), true);
+
+			FVoxelType voxelType = ChunkGridData->GetVoxelTypeById(voxelId);
+			RealtimeMesh->SetupMaterialSlot(voxelId, voxelType.BlockName, voxelType.Material);
+		}
+	});
 }
 
 bool UDefaultChunk::IsMinBorder(const int x)

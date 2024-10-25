@@ -2,38 +2,51 @@
 
 
 #include "Chunks/DebugChunk.h"
-#include "ProceduralMeshComponent.h"
+
+#include <Mesh/RealtimeMeshBuilder.h>
+
+#include "RealtimeMeshSimple.h"
+
+class URealtimeMeshSimple;
 
 void UDebugChunk::GenerateMesh()
 {
-	TSharedPtr<TArray<FVector>> Vertice = MakeShared<TArray<FVector>>();
-	Vertice->Add(FVector(-100, -100, 0));     // Front-left
-	Vertice->Add(FVector(100, -100, 0));      // Front-right
-	Vertice->Add(FVector(100, 100, 0));        // Back-right
-	Vertice->Add(FVector(-100, 100, 0));        // Back-left
+	AsyncTask(ENamedThreads::GameThread, [this]()
+{
+	URealtimeMeshSimple* RealtimeMesh = ChunkActor->GetRealtimeMeshComponent()->InitializeRealtimeMesh<URealtimeMeshSimple>();
+	FRealtimeMeshStreamSet StreamSet;
+		
+	TRealtimeMeshBuilderLocal<int32> Builder(StreamSet);
 
-	// Define the cube triangles
+	Builder.EnableTexCoords();
+	Builder.EnableColors();
+	
+	Builder.EnablePolyGroups();
 
-	TSharedPtr<TArray<int32>> Triangles = MakeShared<TArray<int32>>();
-	Triangles->Add(0); Triangles->Add(1); Triangles->Add(2);
-	Triangles->Add(2); Triangles->Add(3); Triangles->Add(0);
+		int32 V0 = Builder.AddVertex(FVector3f(-100, -100, 0))
+			.SetColor(FColor::White)
+			.SetTexCoord(FVector2f(0, 0));
 
-	// Define the cube UV coordinates
-	TSharedPtr<TArray<FVector2D>> UVs = MakeShared<TArray<FVector2D>>();
-	UVs->Add(FVector2D(0, 0));
-	UVs->Add(FVector2D(1, 0));
-	UVs->Add(FVector2D(1, 1));
-	UVs->Add(FVector2D(0, 1));
+		// Add our second vertex
+		int32 V1 = Builder.AddVertex(FVector3f(100, -100, 0))
+			.SetColor(FColor::White)
+			.SetTexCoord(FVector2f(1, 0));
 
-	TSharedPtr<TArray<FLinearColor>> Colors = MakeShared<TArray<FLinearColor>>();
-//	Colors.Get()->Append(TArray<FLinearColor>(&FLinearColor::Green, vertice->Num()*3));
+		// Add our third vertex
+		int32 V2 = Builder.AddVertex(FVector3f(100, 100, 0))
+			.SetColor(FColor::White)
+			.SetTexCoord(FVector2f(1, 1));
+				
+		int32 V3 = Builder.AddVertex(FVector3f(-100, 100, 0))
+		.SetColor(FColor::White)
+		.SetTexCoord(FVector2f(0, 1));
+				
+		Builder.AddTriangle(V0, V1, V2, 0);
+		Builder.AddTriangle(V2, V3, V0, 0);
+		
+		const FRealtimeMeshSectionGroupKey GroupKey = FRealtimeMeshSectionGroupKey::Create(0, FName("Chunk Mesh"));
 
-	AsyncTask(ENamedThreads::GameThread, [this, Vertice, Triangles, Colors]()
-	{
-		auto procMesh= ChunkActor->GetProceduralMeshComponent();
-	 if(procMesh.IsValid(false,true) &&  Vertice.IsValid() && Triangles.IsValid() && Colors.IsValid()){
-			procMesh->CreateMeshSection_LinearColor(0,*Vertice.Get(), *Triangles.Get(), TArray<FVector>(), TArray<FVector2D>(),*Colors.Get(), TArray<FProcMeshTangent>(), true);
-			procMesh->SetMeshSectionVisible(0, true);
-		}
+		// Now we create the section group, since the stream set has polygroups, this will create the sections as well
+		RealtimeMesh->CreateSectionGroup(GroupKey, StreamSet);
 	});
 }

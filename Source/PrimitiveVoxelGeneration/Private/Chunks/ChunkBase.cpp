@@ -23,7 +23,7 @@ void UChunkBase::Spawn(bool lockLocation)
 	auto parameters = FActorSpawnParameters();
 	parameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding;
 	
-	ChunkActor = GetWorld()->SpawnActor<AChunkActor>(parameters);
+	ChunkActor = GetWorld()->SpawnActor<ARealtimeMeshActor>(parameters);
 	ChunkActor->SetActorLocation(spawnedChunkLocation);
 	ChunkActor->SetLockLocation(lockLocation);
 }
@@ -45,13 +45,14 @@ void UChunkBase::RemoveMesh() const
 	}
 	
 	FScopeLock Lock(&DataGuard);
-	if(ChunkActor != nullptr && IsValid(ChunkActor)){
+	// TODO: Reimplement remove mesh
+	/*if(ChunkActor != nullptr && IsValid(ChunkActor)){
 		auto procMesh = ChunkActor->GetProceduralMeshComponent();
 		if(procMesh.IsValid(false,true))
 		{
 			procMesh->ClearAllMeshSections();
 		}
-	}
+	}*/
 }
 
 void UChunkBase::Despawn() const
@@ -75,9 +76,16 @@ void UChunkBase::Despawn() const
 	});
 }
 
+/*
 bool UChunkBase::HasMesh() const
 {
 	return ChunkActor != nullptr && ChunkActor->GetProceduralMeshComponent()->GetNumSections() != 0;
+}*/
+
+bool UChunkBase::HasMesh() const
+{
+	// TODO: reimplement
+	return false;
 }
 
 bool UChunkBase::IsEmpty() const

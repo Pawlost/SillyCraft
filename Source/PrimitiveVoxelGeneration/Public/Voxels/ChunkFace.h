@@ -9,10 +9,10 @@ struct PRIMITIVEVOXELGENERATION_API FChunkFace
 	FIntVector EndVertexDown;
 	FIntVector EndVertexUp;
 
-	FVector GetFinalStartVertexDown(const double& voxelSize) const;
-	FVector GetFinalStartVertexUp(const double& voxelSize) const;
-	FVector GetFinalEndVertexDown(const double& voxelSize) const;
-	FVector GetFinalEndVertexUp(const double& voxelSize) const;
+	FVector3f GetFinalStartVertexDown(const double& voxelSize) const;
+	FVector3f GetFinalStartVertexUp(const double& voxelSize) const;
+	FVector3f GetFinalEndVertexDown(const double& voxelSize) const;
+	FVector3f GetFinalEndVertexUp(const double& voxelSize) const;
 	
 	bool IsMark = false;
 	FVoxel Voxel = FVoxel();

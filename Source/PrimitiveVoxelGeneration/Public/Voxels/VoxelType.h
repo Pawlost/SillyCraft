@@ -20,7 +20,7 @@ struct PRIMITIVEVOXELGENERATION_API FVoxelType : public FTableRowBase
 	GENERATED_BODY()
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Basic")
-	FString BlockName;
+	FName BlockName;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Basic")
 	EHardness BlockHardness;

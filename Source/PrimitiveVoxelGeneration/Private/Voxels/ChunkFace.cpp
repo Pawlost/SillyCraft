@@ -36,24 +36,24 @@ FChunkFace FChunkFace::BottomFace = FChunkFace(
 	FIntVector(1, 0, 0),
 	FIntVector(1, 1, 0));
 
-FVector FChunkFace::GetFinalStartVertexDown(const double& voxelSize) const
+FVector3f FChunkFace::GetFinalStartVertexDown(const double& voxelSize) const
 {
-	return static_cast<FVector>(StartVertexDown) * voxelSize;
+	return static_cast<FVector3f>(StartVertexDown) * voxelSize;
 }
 
-FVector FChunkFace::GetFinalStartVertexUp(const double& voxelSize) const
+FVector3f FChunkFace::GetFinalStartVertexUp(const double& voxelSize) const
 {
-	return static_cast<FVector>(StartVertexUp) * voxelSize;
+	return static_cast<FVector3f>(StartVertexUp) * voxelSize;
 }
 
-FVector FChunkFace::GetFinalEndVertexDown(const double& voxelSize) const
+FVector3f FChunkFace::GetFinalEndVertexDown(const double& voxelSize) const
 {
-	return static_cast<FVector>(EndVertexDown) * voxelSize;
+	return static_cast<FVector3f>(EndVertexDown) * voxelSize;
 }
 
-FVector FChunkFace::GetFinalEndVertexUp(const double& voxelSize) const
+FVector3f FChunkFace::GetFinalEndVertexUp(const double& voxelSize) const
 {
-	return static_cast<FVector>(EndVertexUp) * voxelSize;
+	return static_cast<FVector3f>(EndVertexUp) * voxelSize;
 }
 
 FChunkFace FChunkFace::CreateFrontFace(const FIntVector& InitialPosition, const FVoxel& voxel)

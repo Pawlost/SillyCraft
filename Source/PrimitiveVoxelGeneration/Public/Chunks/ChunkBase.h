@@ -1,8 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "ChunkActor.h"
-#include "ProceduralMeshComponent.h"
+#include "RealtimeMeshActor.h"
 #include "UObject/Object.h"
 #include "Voxels/Voxel.h"
 #include "ChunkBase.generated.h"
@@ -48,7 +47,7 @@ protected:
 	FTransform SpawnTransform = FTransform::Identity;
 	
 	UPROPERTY()
-	TObjectPtr<AChunkActor> ChunkActor = nullptr;
+	TObjectPtr<ARealtimeMeshActor> ChunkActor = nullptr;
 
 	UPROPERTY()
 	FIntVector ChunkGridPos;

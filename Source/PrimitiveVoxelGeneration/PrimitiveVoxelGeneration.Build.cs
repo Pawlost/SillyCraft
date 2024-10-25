@@ -11,6 +11,7 @@ public class PrimitiveVoxelGeneration : ModuleRules
             {
                 "Core",
                 "ProceduralMeshComponent",
+                "RealtimeMeshComponent",
                 "FastNoiseGenerator",
                 "FastNoise"
             }
