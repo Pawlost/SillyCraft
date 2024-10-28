@@ -289,8 +289,8 @@ void UDefaultChunk::GenerateMeshFromFaces(const TSharedPtr<TMap<int32, TSharedPt
 	FVector3f normals[6];
 	normals[FRONT_FACE_INDEX] = FVector3f(-1.0f, 0.0f, 0.0f);
 	normals[BACK_FACE_INDEX] = FVector3f(1.0f, 0.0f, 0.0f);
-	normals[RIGHT_FACE_INDEX] = FVector3f(0.0f, 1.0f, 1.0f);
-	normals[LEFT_FACE_INDEX] = FVector3f(0.0f, -1.0f, 1.0f);
+	normals[RIGHT_FACE_INDEX] = FVector3f(0.0f, -1.0f, 0.0f);
+	normals[LEFT_FACE_INDEX] = FVector3f(0.0f, 1.0f, 0.0f);
 	normals[BOTTOM_FACE_INDEX] = FVector3f(0.0f, 0.0f, -1.0f);
 	normals[TOP_FACE_INDEX] = FVector3f(0.0f, 0.0f, 1.0f);
 	
