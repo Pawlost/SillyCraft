@@ -5,7 +5,6 @@
 
 #include "Chunks/ChunkGridData.h"
 #include "Chunks/ChunkSettings.h"
-#include "Kismet/GameplayStatics.h"
 
 void UChunkBase::AddToGrid(const TWeakObjectPtr<UChunkGridData> chunkGridData, FIntVector& chunkGridPos)
 {

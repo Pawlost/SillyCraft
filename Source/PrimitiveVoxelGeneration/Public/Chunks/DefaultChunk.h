@@ -66,19 +66,19 @@ private:
 	
 	void GenerateFacesInAxis(int x, int y, int z, int32 axisVoxelIndex, bool isMinBorder, bool isMaxBorder,
 	                         const FNaiveMeshingData& faceTemplate, const FNaiveMeshingData& reversedFaceTemplate,
-					const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>& faceContainer,
-					const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>& reversedFaceContainer);
+	                         const TArray<TSharedPtr<TArray<FChunkFace>>>& faceContainer,
+	                         const TArray<TSharedPtr<TArray<FChunkFace>>>& reversedFaceContainer);
 	
-	static void GreedyMeshing(int32 voxelId, TMap<int32, TSharedPtr<TArray<FChunkFace>>>& faces,
+	static void GreedyMeshing(TSharedPtr<TArray<FChunkFace>>& faces,
 	                          const TFunctionRef<bool(FChunkFace& prevFace, const FChunkFace& newFace)>& mergeFaces);
 
 	void CreateFace(const FNaiveMeshingData& faceTemplate, bool isBorder, const int32& index,
 		const FIntVector& position, const FVoxel& voxel, const int32& axisVoxelIndex,
-		const TSharedRef<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>& faceContainer);
-	void InitFaceContainers(TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
-	void FaceGeneration(const TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
-	void GreedyMeshAllFaces(const TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
-	void GenerateMeshFromFaces(const TSharedPtr<TMap<int32, TSharedPtr<TArray<FChunkFace>>>>* faces);
+		const TArray<TSharedPtr<TArray<FChunkFace>>>& faceContainer);
+	void InitFaceContainers(TArray<TSharedPtr<TArray<FChunkFace>>>* faces);
+	void FaceGeneration(const TArray<TSharedPtr<TArray<FChunkFace>>>* faces);
+	void GreedyMeshAllFaces(TArray<TSharedPtr<TArray<FChunkFace>>>* faces);
+	void GenerateMeshFromFaces(const TArray<TSharedPtr<TArray<FChunkFace>>>* faces);
 
 	static bool inline IsMinBorder(int x);
 	bool inline IsMaxBorder(int x) const;
@@ -90,7 +90,7 @@ private:
 	TArray<FVoxel> Voxels;
 
 	UPROPERTY()
-	TSet<int32> voxelIdsInMesh;
+	TMap<int32, int16> voxelIdsInMesh;
 
 	TSharedPtr<FChunkSettings> ChunkSettings;
 	int32 ChunkLenght;
