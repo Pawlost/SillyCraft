@@ -346,7 +346,7 @@ void UDefaultChunk::GenerateMeshFromFaces(const TArray<TSharedPtr<TArray<FChunkF
 		const FRealtimeMeshSectionGroupKey GroupKey = FRealtimeMeshSectionGroupKey::Create(0, FName("Chunk Mesh"));
 
 		// Now we create the section group, since the stream set has polygroups, this will create the sections as well
-		RealtimeMesh->CreateSectionGroup(GroupKey, *StreamSet.ToWeakPtr().Pin());
+		RealtimeMesh->CreateSectionGroup(GroupKey, *StreamSet);
 
 		for (auto voxelId : voxelIdsInMesh)
 		{
@@ -354,7 +354,7 @@ void UDefaultChunk::GenerateMeshFromFaces(const TArray<TSharedPtr<TArray<FChunkF
 			const FRealtimeMeshSectionKey PolyGroup0SectionKey = FRealtimeMeshSectionKey::CreateForPolyGroup(GroupKey, voxelIndex);
 			RealtimeMesh->UpdateSectionConfig(PolyGroup0SectionKey, FRealtimeMeshSectionConfig(ERealtimeMeshSectionDrawType::Static, voxelIndex), true);
 
-			FVoxelType voxelType = ChunkGridData->GetVoxelTypeById(voxelIndex);
+			FVoxelType voxelType = ChunkGridData->GetVoxelTypeById(voxelId.Key);
 			RealtimeMesh->SetupMaterialSlot(voxelIndex, voxelType.BlockName, voxelType.Material);
 		}
 	});
