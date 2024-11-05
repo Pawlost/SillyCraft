@@ -79,7 +79,7 @@ void UDefaultChunk::GenerateMesh()
 	
 	InitFaceContainers(faces);
 	FaceGeneration(faces);
-	GreedyMeshAllFaces(faces);
+	GreedyMeshing(faces);
 	GenerateMeshFromFaces(faces);
 }
 
@@ -141,10 +141,6 @@ void UDefaultChunk::GenerateFacesInAxis(int x, int y, int z, int32 axisVoxelInde
 				
 	if(!voxel.IsEmptyVoxel())
 	{
-#if CPUPROFILERTRACE_ENABLED
-		TRACE_CPUPROFILER_EVENT_SCOPE("Face and Reverse face generation")
-	#endif
-		
 		auto position = FIntVector(x, y, z);
 		CreateFace(faceTemplate, isMinBorder, index, position, voxel, axisVoxelIndex, faceContainer);
 		CreateFace(reversedFaceTemplate, isMaxBorder, index, position, voxel, axisVoxelIndex, reversedFaceContainer);
@@ -208,66 +204,42 @@ bool UDefaultChunk::IsVoxelVisible(const VoxelIndexParams& faceData)
 }
 
 
-void UDefaultChunk::GreedyMeshAllFaces(TArray<TSharedPtr<TArray<FChunkFace>>>* faces)
+void UDefaultChunk::GreedyMeshing(TArray<TSharedPtr<TArray<FChunkFace>>>* faces)
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Greedy mesh generation")
 #endif
-	for (auto voxelId : voxelIdsInMesh)
-	{
-		// Front
-		GreedyMeshing(faces[FRONT_FACE_INDEX][voxelId.Value], FChunkFace::MergeFaceDown);
-		
-		// Back
-		GreedyMeshing(faces[BACK_FACE_INDEX][voxelId.Value], FChunkFace::MergeFaceDown);
 	
-		// Right
-		GreedyMeshing(faces[RIGHT_FACE_INDEX][voxelId.Value],FChunkFace::MergeFaceDown);
-
-		// Left
-		GreedyMeshing(faces[LEFT_FACE_INDEX][voxelId.Value],FChunkFace::MergeFaceDown);
-
-		// Bottom
-		GreedyMeshing(faces[BOTTOM_FACE_INDEX][voxelId.Value], FChunkFace::MergeFaceDown);
-
-		// Top
-		GreedyMeshing(faces[TOP_FACE_INDEX][voxelId.Value],FChunkFace::MergeFaceDown);
-	}
-}
-
-void UDefaultChunk::GreedyMeshing(TSharedPtr<TArray<FChunkFace>>& faces,
-                                  const TFunctionRef<bool(FChunkFace& prevFace, const FChunkFace& newFace)>& mergeFaces)
-{
-#if CPUPROFILERTRACE_ENABLED
-	TRACE_CPUPROFILER_EVENT_SCOPE("Face greedy mesh generation")
-#endif
-
-	auto faceArraySize = faces->Num();
-
-	if(faceArraySize <= 1)
+	for(int f = 0; f < FACE_COUNT; f++)
 	{
-		return;
-	}
-	
-	auto meshedFaces = MakeShared<TArray<FChunkFace>>();
-	meshedFaces->Reserve(faceArraySize);
-		
-	for (int i = 1; i < faceArraySize; i++)
-	{
-		FChunkFace& prevFace = (*faces)[i-1];
-		FChunkFace& nextFace = (*faces)[i];
-
-		if(!mergeFaces(nextFace, prevFace))
+		for (auto voxelId : voxelIdsInMesh)
 		{
-			meshedFaces->Push(prevFace);
+			auto faceContainer = faces[f][voxelId.Value];
+			auto faceArraySize = faceContainer->Num();
+
+			if(faceArraySize > 1)
+			{
+				auto meshedFaces = MakeShared<TArray<FChunkFace>>();
+				meshedFaces->Reserve(faceArraySize);
+		
+				for (int i = 1; i < faceArraySize; i++)
+				{
+					FChunkFace& prevFace = (*faceContainer)[i-1];
+					FChunkFace& nextFace = (*faceContainer)[i];
+
+					if(!FChunkFace::MergeFaceDown(nextFace, prevFace))
+					{
+						meshedFaces->Push(prevFace);
+					}
+				}
+
+				meshedFaces->Push(faceContainer->Last());
+
+				faceContainer = meshedFaces;
+			}
 		}
 	}
-
-	meshedFaces->Push(faces->Last());
-
-	faces = meshedFaces;
 }
-
 
 void UDefaultChunk::GenerateMeshFromFaces(const TArray<TSharedPtr<TArray<FChunkFace>>>* faces)
 {

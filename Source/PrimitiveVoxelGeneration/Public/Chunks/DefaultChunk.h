@@ -69,15 +69,12 @@ private:
 	                         const TArray<TSharedPtr<TArray<FChunkFace>>>& faceContainer,
 	                         const TArray<TSharedPtr<TArray<FChunkFace>>>& reversedFaceContainer);
 	
-	static void GreedyMeshing(TSharedPtr<TArray<FChunkFace>>& faces,
-	                          const TFunctionRef<bool(FChunkFace& prevFace, const FChunkFace& newFace)>& mergeFaces);
-
 	void CreateFace(const FNaiveMeshingData& faceTemplate, bool isBorder, const int32& index,
 		const FIntVector& position, const FVoxel& voxel, const int32& axisVoxelIndex,
 		const TArray<TSharedPtr<TArray<FChunkFace>>>& faceContainer);
 	void InitFaceContainers(TArray<TSharedPtr<TArray<FChunkFace>>>* faces);
 	void FaceGeneration(const TArray<TSharedPtr<TArray<FChunkFace>>>* faces);
-	void GreedyMeshAllFaces(TArray<TSharedPtr<TArray<FChunkFace>>>* faces);
+	void GreedyMeshing(TArray<TSharedPtr<TArray<FChunkFace>>>* faces);
 	void GenerateMeshFromFaces(const TArray<TSharedPtr<TArray<FChunkFace>>>* faces);
 
 	static bool inline IsMinBorder(int x);
