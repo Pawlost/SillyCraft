@@ -79,6 +79,14 @@ private:
 
 	static bool inline IsMinBorder(int x);
 	bool inline IsMaxBorder(int x) const;
+
+	struct FNormalsAndTangents
+	{
+		FVector3f Normal;
+		FVector3f Tangent;
+	};
+	
+	static const FNormalsAndTangents FaceNormalsAndTangents[6];
 	
 	UPROPERTY()
 	TObjectPtr<UFastNoiseWrapper> Noise;

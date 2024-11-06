@@ -10,6 +10,15 @@
 #include "RealtimeMeshSimple.h"
 #include "Voxels/VoxelType.h"
 
+const UDefaultChunk::FNormalsAndTangents UDefaultChunk::FaceNormalsAndTangents[] = {
+	{ FVector3f(-1.0f, 0.0f, 0.0f),  FVector3f(0.0, 1.0, 0.0)},//Front
+	{ FVector3f(1.0f, 0.0f, 0.0f),  FVector3f(0.0, 1.0, 0.0)},//Back
+	{ FVector3f(0.0f, -1.0f, 0.0f),  FVector3f(1.0f, 0.0f, 0.0f)},// Right 
+	{ FVector3f(0.0f, 1.0f, 0.0f),  FVector3f(1.0, 0.0, 0.0)},// Left
+	{ FVector3f(0.0f, 0.0f, -1.0f),  FVector3f(1.0f, 0.0f, 0.0f)}, //Bottom
+	{ FVector3f(0.0f, 0.0f, 1.0f),  FVector3f(1.0f, 0.0f, 0.0f)}//Top
+};
+
 void UDefaultChunk::AddToGrid(const TWeakObjectPtr<UChunkGridData> chunkGridData, FIntVector& chunkGridPos)
 {
 	ChunkSettings = chunkGridData->GetChunkSettings();
@@ -244,7 +253,7 @@ void UDefaultChunk::GreedyMeshing(TArray<TSharedPtr<TArray<FChunkFace>>>* faces)
 void UDefaultChunk::GenerateMeshFromFaces(const TArray<TSharedPtr<TArray<FChunkFace>>>* faces)
 {
 #if CPUPROFILERTRACE_ENABLED
-	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh section generation")
+	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh stream generation")
 #endif
 	
 		TSharedPtr<FRealtimeMeshStreamSet> StreamSet = MakeShared<FRealtimeMeshStreamSet>();
@@ -258,13 +267,6 @@ void UDefaultChunk::GenerateMeshFromFaces(const TArray<TSharedPtr<TArray<FChunkF
 	Builder.EnablePolyGroups();
 
 	auto voxelSize = ChunkSettings->GetVoxelSize();
-	FVector3f normals[6];
-	normals[FRONT_FACE_INDEX] = FVector3f(-1.0f, 0.0f, 0.0f);
-	normals[BACK_FACE_INDEX] = FVector3f(1.0f, 0.0f, 0.0f);
-	normals[RIGHT_FACE_INDEX] = FVector3f(0.0f, -1.0f, 0.0f);
-	normals[LEFT_FACE_INDEX] = FVector3f(0.0f, 1.0f, 0.0f);
-	normals[BOTTOM_FACE_INDEX] = FVector3f(0.0f, 0.0f, -1.0f);
-	normals[TOP_FACE_INDEX] = FVector3f(0.0f, 0.0f, 1.0f);
 	
 	// Because of RealTimeMesh component voxelId needs to be first
 	for (auto voxelId : voxelIdsInMesh)
@@ -275,31 +277,32 @@ void UDefaultChunk::GenerateMeshFromFaces(const TArray<TSharedPtr<TArray<FChunkF
 
 			auto voxelIndex = voxelId.Value;
 			auto sideFaces = faceContainer[voxelIndex];
-	
+
+			auto faceNormalAndTangent = FaceNormalsAndTangents[faceIndex];
 			for (auto Face : *sideFaces)
 			{
 				// Add our first vertex
 				int32 V0 = Builder.AddVertex(Face.GetFinalStartVertexDown(voxelSize))
 					.SetColor(FColor::White)
 					.SetTexCoord(FVector2f(0, 0))
-					.SetNormal(normals[faceIndex]);
+					.SetNormalAndTangent(faceNormalAndTangent.Normal, faceNormalAndTangent.Tangent);
 
 				// Add our second vertex
 				int32 V1 = Builder.AddVertex(Face.GetFinalEndVertexDown(voxelSize))
 					.SetColor(FColor::White)
 					.SetTexCoord(FVector2f(1, 0))
-					.SetNormal(normals[faceIndex]);
+					.SetNormalAndTangent(faceNormalAndTangent.Normal, faceNormalAndTangent.Tangent);
 
 				// Add our third vertex
 				int32 V2 = Builder.AddVertex(Face.GetFinalEndVertexUp(voxelSize))
 					.SetColor(FColor::White)
 					.SetTexCoord(FVector2f(1, 1))
-					.SetNormal(normals[faceIndex]);
+					.SetNormalAndTangent(faceNormalAndTangent.Normal, faceNormalAndTangent.Tangent);
 				
 				int32 V3 = Builder.AddVertex(Face.GetFinalStartVertexUp(voxelSize))
 				.SetColor(FColor::White)
 				.SetTexCoord(FVector2f(0, 1))
-					.SetNormal(normals[faceIndex]);
+				.SetNormalAndTangent(faceNormalAndTangent.Normal, faceNormalAndTangent.Tangent);
 				
 				Builder.AddTriangle(V0, V1, V2, voxelIndex);
 				Builder.AddTriangle(V2, V3, V0, voxelIndex);
