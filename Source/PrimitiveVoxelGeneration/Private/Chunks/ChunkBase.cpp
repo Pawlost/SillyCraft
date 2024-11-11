@@ -75,18 +75,6 @@ void UChunkBase::Despawn() const
 	});
 }
 
-/*
-bool UChunkBase::HasMesh() const
-{
-	return ChunkActor != nullptr && ChunkActor->GetProceduralMeshComponent()->GetNumSections() != 0;
-}*/
-
-bool UChunkBase::HasMesh() const
-{
-	// TODO: reimplement
-	return false;
-}
-
 bool UChunkBase::IsEmpty() const
 {
 	return Empty;
@@ -96,14 +84,4 @@ bool UChunkBase::IsEmpty() const
 double UChunkBase::GetHighestElevationAtPosition(double posX, double posY)
 {
 	return ChunkGridData->GetChunkSettings()->GetMaximumElevation();
-}
-
-void UChunkBase::ShowChunkBorders()
-{
-	VisibleChunkBorders = true;
-}
-
-void UChunkBase::HideChunkBorders()
-{
-	VisibleChunkBorders = false;
 }

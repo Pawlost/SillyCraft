@@ -119,12 +119,22 @@ void UVoxelGeneratorComponent::SpawnChunks(const FIntVector ChunkMinDistance, co
 	AsyncTask(ENamedThreads::AnyThread, [this, ChunkMinDistance, ChunkMaxDistance]()
 	{
 		DespawnChunks(ChunkMinDistance, ChunkMaxDistance);
-
-		for (int x = ChunkMinDistance.X - 1; x <= ChunkMaxDistance.X; x++)
+		
+		FIntVector bufferZone;
+		if(ShowChunkBorders)
 		{
-			for (int y = ChunkMinDistance.Y - 1; y <= ChunkMaxDistance.Y; y++)
+			bufferZone = FIntVector(0,0,0);
+		}else
+		{
+			bufferZone = FIntVector(1,1,1);
+		}
+		
+
+		for (int x = ChunkMinDistance.X - bufferZone.X; x < ChunkMaxDistance.X + bufferZone.X; x++)
+		{
+			for (int y = ChunkMinDistance.Y - bufferZone.Y; y < ChunkMaxDistance.Y + bufferZone.Y; y++)
 			{
-				for (int z = ChunkMinDistance.Z - 1; z <= ChunkMaxDistance.Z; z++)
+				for (int z = ChunkMinDistance.Z - bufferZone.Z; z < ChunkMaxDistance.Z + bufferZone.Z; z++)
 				{
 					auto gridCoords = FIntVector(x, y, z);
 					
@@ -167,17 +177,7 @@ void UVoxelGeneratorComponent::SpawnChunks(const FIntVector ChunkMinDistance, co
 					{
 						continue;
 					}
-
-					if(!Chunk->HasMesh())
-					{
-						auto handle = Async(EAsyncExecution::TaskGraphMainThread , [&Chunk]()
-						{
-							Chunk->RemoveMesh();
-						});
-
-						handle.Wait();
-					}
-
+					
 					if(Chunk == nullptr || !Chunk.IsValid())
 					{
 						continue;
@@ -215,11 +215,6 @@ void UVoxelGeneratorComponent::CreateChunk(UChunkBase*& Chunk, FIntVector ChunkC
 	Chunk = NewObject<UChunkBase>(this, ChunkTemplate);
 	auto chunkGridData = MakeWeakObjectPtr<UChunkGridData>(ChunkGridData);
 	Chunk->AddToGrid(chunkGridData, ChunkCoordinates);
-
-	if(ShowChunkBorders)
-	{
-		Chunk->ShowChunkBorders();
-	}
 }
 
 // Called every frame

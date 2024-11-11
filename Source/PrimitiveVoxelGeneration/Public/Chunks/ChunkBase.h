@@ -31,13 +31,8 @@ public:
 	virtual void GenerateVoxels(){}
 	
 	virtual FVoxel VoxelAt(int32 index){return FVoxel();}
-
-	bool HasMesh() const;
-	bool IsEmpty() const;
-
-	void ShowChunkBorders();
-	void HideChunkBorders();
 	
+	bool IsEmpty() const;
 	virtual double GetHighestElevationAtPosition(double posX, double posY);
 	
 protected:
@@ -54,9 +49,6 @@ protected:
 
 	UPROPERTY()
 	bool Empty = true;
-
-	UPROPERTY()
-	bool VisibleChunkBorders = false;
 
 private:
 	mutable FCriticalSection DataGuard;

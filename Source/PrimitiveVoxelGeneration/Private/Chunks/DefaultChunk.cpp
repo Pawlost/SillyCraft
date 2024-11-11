@@ -202,7 +202,7 @@ bool UDefaultChunk::IsBorderVoxelVisible(const VoxelIndexParams& faceData) const
 	{
 		FIntVector neighborChunkCoords = ChunkGridPos + faceData.borderChunkDirection;
 		auto chunk = ChunkGridData->GetChunkPtr(neighborChunkCoords);
-		return chunk != nullptr && (VisibleChunkBorders && !chunk->HasMesh() || chunk->VoxelAt(faceData.currentVoxelIndex).IsEmptyVoxel());
+		return chunk == nullptr || chunk->VoxelAt(faceData.currentVoxelIndex).IsEmptyVoxel();
 	}
 	return false;
 }
@@ -211,7 +211,6 @@ bool UDefaultChunk::IsVoxelVisible(const VoxelIndexParams& faceData)
 {
 	return !faceData.isBorder && Voxels.IsValidIndex(faceData.forwardVoxelIndex) && Voxels[faceData.forwardVoxelIndex].IsEmptyVoxel();
 }
-
 
 void UDefaultChunk::GreedyMeshing(TArray<TSharedPtr<TArray<FChunkFace>>>* faces)
 {
