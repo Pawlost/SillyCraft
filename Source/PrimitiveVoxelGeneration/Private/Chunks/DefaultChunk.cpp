@@ -218,24 +218,21 @@ void UDefaultChunk::DirectionalGreedyMeshing(TArray<TSharedPtr<TArray<FChunkFace
 	TRACE_CPUPROFILER_EVENT_SCOPE("Greedy mesh generation")
 #endif
 	
-	for(int f = 0; f < FACE_COUNT; f++)
+	for(int8 f = 0; f < FACE_COUNT; f++)
 	{
 		for (auto voxelId : voxelIdsInMesh)
 		{
 			auto faceContainer = faces[f][voxelId.Value];
-			auto faceArraySize = faceContainer->Num();
+			auto lastElementIndex = faceContainer->Num() - 1;
 
-			if(faceArraySize > 1)
+			for (int32 i = lastElementIndex - 1; i >= 0; i--)
 			{
-				for (int i = faceArraySize - 2; i >= 0; i--)
-				{
-					FChunkFace& prevFace = (*faceContainer)[i];
-					FChunkFace& nextFace = (*faceContainer)[i + 1];
+				FChunkFace& face = (*faceContainer)[i];
+				FChunkFace& nextFace = (*faceContainer)[i + 1];
 
-					if(FChunkFace::MergeFaceUp(prevFace, nextFace))
-					{
-						faceContainer->RemoveAt(i + 1, EAllowShrinking::No);
-					}
+				if(FChunkFace::MergeFaceUp(face, nextFace))
+				{
+					faceContainer->RemoveAt(i + 1, EAllowShrinking::No);
 				}
 			}
 		}
