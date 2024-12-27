@@ -88,7 +88,7 @@ void UDefaultChunk::GenerateMesh()
 	
 	InitFaceContainers(faces);
 	FaceGeneration(faces);
-	GreedyMeshing(faces);
+	DirectionalGreedyMeshing(faces);
 	GenerateMeshFromFaces(faces);
 }
 
@@ -115,10 +115,10 @@ void UDefaultChunk::InitFaceContainers(TArray<TSharedPtr<TArray<FChunkFace>>>* f
 void UDefaultChunk::FaceGeneration(const TArray<TSharedPtr<TArray<FChunkFace>>>* faces)
 {
 #if CPUPROFILERTRACE_ENABLED
-	TRACE_CPUPROFILER_EVENT_SCOPE("Naive greedy mesh generation")
+	TRACE_CPUPROFILER_EVENT_SCOPE("Run lenght meshing generation")
 #endif
 	
-	// culling and naive greedy meshing
+	// culling and run meshing
 	for(int x = 0; x < ChunkLenght; x++)
 	{
 		auto minBorder = IsMinBorder(x);
@@ -212,7 +212,7 @@ bool UDefaultChunk::IsVoxelVisible(const VoxelIndexParams& faceData)
 	return !faceData.isBorder && Voxels.IsValidIndex(faceData.forwardVoxelIndex) && Voxels[faceData.forwardVoxelIndex].IsEmptyVoxel();
 }
 
-void UDefaultChunk::GreedyMeshing(TArray<TSharedPtr<TArray<FChunkFace>>>* faces)
+void UDefaultChunk::DirectionalGreedyMeshing(TArray<TSharedPtr<TArray<FChunkFace>>>* faces)
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Greedy mesh generation")
@@ -227,23 +227,16 @@ void UDefaultChunk::GreedyMeshing(TArray<TSharedPtr<TArray<FChunkFace>>>* faces)
 
 			if(faceArraySize > 1)
 			{
-				auto meshedFaces = MakeShared<TArray<FChunkFace>>();
-				meshedFaces->Reserve(faceArraySize);
-		
-				for (int i = 1; i < faceArraySize; i++)
+				for (int i = faceArraySize - 2; i >= 0; i--)
 				{
-					FChunkFace& prevFace = (*faceContainer)[i-1];
-					FChunkFace& nextFace = (*faceContainer)[i];
+					FChunkFace& prevFace = (*faceContainer)[i];
+					FChunkFace& nextFace = (*faceContainer)[i + 1];
 
-					if(!FChunkFace::MergeFaceDown(nextFace, prevFace))
+					if(FChunkFace::MergeFaceUp(prevFace, nextFace))
 					{
-						meshedFaces->Push(prevFace);
+						faceContainer->RemoveAt(i + 1, EAllowShrinking::No);
 					}
 				}
-
-				meshedFaces->Push(faceContainer->Last());
-
-				faceContainer = meshedFaces;
 			}
 		}
 	}

@@ -110,13 +110,13 @@ bool FChunkFace::MergeFaceStart(FChunkFace& prevFace, const FChunkFace& newFace)
 	return false;
 }
 
-bool FChunkFace::MergeFaceDown(FChunkFace& prevFace, const FChunkFace& newFace)
+bool FChunkFace::MergeFaceUp(FChunkFace& prevFace, const FChunkFace& newFace)
 {
-	if(prevFace.StartVertexDown == newFace.StartVertexUp &&
-		prevFace.EndVertexDown == newFace.EndVertexUp)
+	if(prevFace.StartVertexUp == newFace.StartVertexDown &&
+		prevFace.EndVertexUp == newFace.EndVertexDown)
 	{
-		prevFace.StartVertexDown = newFace.StartVertexDown;
-		prevFace.EndVertexDown = newFace.EndVertexDown;
+		prevFace.StartVertexUp = newFace.StartVertexUp;
+		prevFace.EndVertexUp = newFace.EndVertexUp;
 		return true;
 	}
 	return false;

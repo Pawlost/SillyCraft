@@ -74,7 +74,7 @@ private:
 		const TArray<TSharedPtr<TArray<FChunkFace>>>& faceContainer);
 	void InitFaceContainers(TArray<TSharedPtr<TArray<FChunkFace>>>* faces);
 	void FaceGeneration(const TArray<TSharedPtr<TArray<FChunkFace>>>* faces);
-	void GreedyMeshing(TArray<TSharedPtr<TArray<FChunkFace>>>* faces);
+	void DirectionalGreedyMeshing(TArray<TSharedPtr<TArray<FChunkFace>>>* faces);
 	void GenerateMeshFromFaces(const TArray<TSharedPtr<TArray<FChunkFace>>>* faces);
 
 	static bool inline IsMinBorder(int x);
