@@ -215,7 +215,7 @@ bool UDefaultChunk::IsVoxelVisible(const VoxelIndexParams& faceData)
 void UDefaultChunk::DirectionalGreedyMeshing(TArray<TSharedPtr<TArray<FChunkFace>>>* faces)
 {
 #if CPUPROFILERTRACE_ENABLED
-	TRACE_CPUPROFILER_EVENT_SCOPE("Greedy mesh generation")
+	TRACE_CPUPROFILER_EVENT_SCOPE("Run directional greedy mesh generation")
 #endif
 	
 	for(int8 f = 0; f < FACE_COUNT; f++)
