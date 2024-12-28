@@ -22,8 +22,8 @@ const UDefaultChunk::FNormalsAndTangents UDefaultChunk::FaceNormalsAndTangents[]
 void UDefaultChunk::AddToGrid(const TWeakObjectPtr<UChunkGridData> chunkGridData, FIntVector& chunkGridPos)
 {
 	ChunkSettings = chunkGridData->GetChunkSettings();
-	ChunkLenght = ChunkSettings->GetChunkSideSizeInVoxels();
-	Voxels.SetNum(ChunkLenght * ChunkSettings->GetChunkPlaneSizeInVoxels());
+	ChunkLenght = ChunkSettings->GetAxisVoxelCount();
+	Voxels.SetNum(ChunkLenght * ChunkSettings->GetPlaneVoxelCount());
 	UpdateAllFacesParams();
 	Super::AddToGrid(chunkGridData, chunkGridPos);
 }
@@ -98,7 +98,7 @@ void UDefaultChunk::InitFaceContainers(TArray<TSharedPtr<TArray<FChunkFace>>>* f
 	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh generation intialization")
 #endif
 	
-	int32 chunkPlane = ChunkSettings->GetChunkPlaneSizeInVoxels();
+	int32 chunkPlane = ChunkSettings->MaxVoxelCount();
 	for(int f = 0; f < FACE_COUNT; f++)
 	{
 		faces[f].SetNum(voxelIdsInMesh.Num());
@@ -106,7 +106,7 @@ void UDefaultChunk::InitFaceContainers(TArray<TSharedPtr<TArray<FChunkFace>>>* f
 		for (auto voxelId : voxelIdsInMesh)
 		{
 			auto faceArray = MakeShared<TArray<FChunkFace>>();
-			faceArray->Reserve(chunkPlane);
+			faceArray->Reserve(chunkPlane );
 			faces[f][voxelId.Value] = faceArray;
 		}
 	}
@@ -340,7 +340,7 @@ void UDefaultChunk::GenerateVoxels()
 	TRACE_CPUPROFILER_EVENT_SCOPE("Voxel generation")
 #endif
 	
-	auto chunkLenght = ChunkSettings->GetChunkSideSizeInVoxels();
+	auto chunkLenght = ChunkSettings->GetAxisVoxelCount();
 	auto maxElevation = ChunkSettings->GetMaximumElevation();
 
 	auto gridPos = ChunkGridPos * chunkLenght;

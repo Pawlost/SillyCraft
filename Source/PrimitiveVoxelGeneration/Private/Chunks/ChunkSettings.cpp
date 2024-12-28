@@ -3,15 +3,15 @@
 
 #include "Chunks/ChunkSettings.h"
 
-int32 FChunkSettings::GetChunkSideSizeInVoxels() const
+int32 FChunkSettings::GetAxisVoxelCount() const
 {
-	return ChunkSideSizeInVoxels;	
+	return AxisVoxelCount;	
 }
 
-void FChunkSettings::SetChunkSizeInVoxels(const int32 chunkSideSizeInBlocks)
+void FChunkSettings::SetAxisVoxelCount(const int32 chunkSideSizeInBlocks)
 {
-	this->ChunkSideSizeInVoxels = chunkSideSizeInBlocks;
-	ChunkPlaneSizeInVoxels = chunkSideSizeInBlocks * chunkSideSizeInBlocks;
+	this->AxisVoxelCount = chunkSideSizeInBlocks;
+	PlaneVoxelCount = chunkSideSizeInBlocks * chunkSideSizeInBlocks;
 }
 
 double FChunkSettings::GetVoxelSize() const
@@ -26,22 +26,22 @@ void FChunkSettings::SetVoxelSize(const double voxelSize)
 
 int32 FChunkSettings::GetChunkSize() const
 {
-	return ChunkSideSizeInVoxels * VoxelSize;
+	return AxisVoxelCount * VoxelSize;
 }
 
 int32 FChunkSettings::GetVoxelIndex(const int32 x, const int32 y, const int32 z) const
 {
-	return y + (z * ChunkSideSizeInVoxels) + (x * ChunkPlaneSizeInVoxels);
+	return y + (z * AxisVoxelCount) + (x * PlaneVoxelCount);
 }
 
 int32 FChunkSettings::GetVoxelIndex(const FIntVector& indexVector) const
 {
-	return indexVector.Y + (indexVector.Z * ChunkSideSizeInVoxels) + (indexVector.X * ChunkPlaneSizeInVoxels);
+	return indexVector.Y + (indexVector.Z * AxisVoxelCount) + (indexVector.X * PlaneVoxelCount);
 }
 
 FIntVector3 FChunkSettings::IndexToCoords(const int32 index) const
 {
-	return FIntVector3(index / ChunkSideSizeInVoxels, index % ChunkSideSizeInVoxels, (index / ChunkSideSizeInVoxels) % ChunkSideSizeInVoxels);
+	return FIntVector3(index / AxisVoxelCount, index % AxisVoxelCount, (index / AxisVoxelCount) % AxisVoxelCount);
 }
 
 double FChunkSettings::GetMaximumElevation() const
@@ -54,7 +54,12 @@ void FChunkSettings::SetMaximumElevation(const double maximumElevation)
 	this->MaximumElevation = maximumElevation;
 }
 
-int32 FChunkSettings::GetChunkPlaneSizeInVoxels() const
+int32 FChunkSettings::GetPlaneVoxelCount() const
 {
-	return ChunkPlaneSizeInVoxels;
+	return PlaneVoxelCount;
+}
+
+int32 FChunkSettings::MaxVoxelCount() const
+{
+	return AxisVoxelCount * AxisVoxelCount *AxisVoxelCount;
 }

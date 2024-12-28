@@ -22,14 +22,15 @@ struct PRIMITIVEVOXELGENERATION_API FChunkSettings
 	FIntVector3 IndexToCoords(const int32 index) const;
 	
 	// Getters & Setters
-	int32 GetChunkSideSizeInVoxels() const;
-	void SetChunkSizeInVoxels(const int32 chunkSideSizeInVoxels);
+	int32 GetAxisVoxelCount() const;
+	void SetAxisVoxelCount(const int32 chunkSideSizeInVoxels);
 	double GetVoxelSize() const;
 	void SetVoxelSize(const double VoxelSize);
 	double GetMaximumElevation() const;
 	void SetMaximumElevation(const double MaximumElevation);
-	int32 GetChunkPlaneSizeInVoxels() const;
-	
+	int32 GetPlaneVoxelCount() const;
+	int32 MaxVoxelCount() const;
+
 private:
 	UPROPERTY()
 	int32 VoxelSize = 10;
@@ -38,8 +39,8 @@ private:
 	double MaximumElevation = 200;
 
 	UPROPERTY()
-	int32 ChunkSideSizeInVoxels = 10;
+	int32 AxisVoxelCount = 10;
 
 	UPROPERTY()
-	int32 ChunkPlaneSizeInVoxels = 100;
+	int32 PlaneVoxelCount = 100;
 };

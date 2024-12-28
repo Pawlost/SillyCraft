@@ -32,7 +32,7 @@ void UVoxelGeneratorComponent::BeginPlay()
 	auto settings = MakeShared<FChunkSettings>();
 	{
 		settings->SetVoxelSize(VoxelSize);
-		settings->SetChunkSizeInVoxels(ChunkSideSizeInVoxels);
+		settings->SetAxisVoxelCount(ChunkSideSizeInVoxels);
 		settings->SetMaximumElevation(MaximumElevation);
 	}
 
