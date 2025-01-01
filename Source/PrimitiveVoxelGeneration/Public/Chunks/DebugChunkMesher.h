@@ -3,18 +3,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ChunkBase.h"
-#include "DebugChunk.generated.h"
+#include "ChunkMesherBase.h"
+#include "DebugChunkMesher.generated.h"
 
 /**
  * 
  */
 UCLASS(Blueprintable)
-class PRIMITIVEVOXELGENERATION_API UDebugChunk : public UChunkBase
+class PRIMITIVEVOXELGENERATION_API UDebugChunkMesher : public UChunkMesherBase
 {
 	GENERATED_BODY()
 public:
-	UDebugChunk(){}
+	UDebugChunkMesher(){}
 
 	virtual void GenerateMesh() override;
 };

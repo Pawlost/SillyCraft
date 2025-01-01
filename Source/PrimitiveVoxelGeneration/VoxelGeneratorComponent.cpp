@@ -3,7 +3,7 @@
 
 #include "VoxelGeneratorComponent.h"
 
-#include "Chunks/ChunkBase.h"
+#include "Chunks/ChunkMesherBase.h"
 #include "Chunks/ChunkGridData.h"
 #include "Chunks/ChunkSettings.h"
 #include "OperatorOverloads.h"
@@ -27,7 +27,7 @@ void UVoxelGeneratorComponent::BeginPlay()
 	ChunkSize = VoxelSize * ChunkSideSizeInVoxels;
 	RenderDistanceBounds = ChunkSize * GenerationDistance;
 
-	SpawnedChunks = MakeShared<TMap<FIntVector, TWeakObjectPtr<UChunkBase>>>();
+	SpawnedChunks = MakeShared<TMap<FIntVector, TWeakObjectPtr<UChunkMesherBase>>>();
 		
 	auto settings = MakeShared<FChunkSettings>();
 	{
@@ -47,7 +47,7 @@ void UVoxelGeneratorComponent::BeginPlay()
 	
 	if(MoveActorToSurface)
 	{
-		UChunkBase* Chunk;
+		UChunkMesherBase* Chunk;
 		CreateChunk(Chunk, FIntVector(0));
 		
 		auto location = GetOwner()->GetTransform().GetLocation().GridSnap(VoxelSize);
@@ -140,7 +140,7 @@ void UVoxelGeneratorComponent::SpawnChunks(const FIntVector ChunkMinDistance, co
 					
 					if (!ChunkGridData->IsChunkInGrid(gridCoords))
 					{
-						UChunkBase* Chunk;
+						UChunkMesherBase* Chunk;
 
 						auto handle = Async(EAsyncExecution::TaskGraphMainThread , [this, &Chunk, gridCoords]() mutable
 						{
@@ -210,9 +210,9 @@ void UVoxelGeneratorComponent::UpdateCurrentChunkLocation()
 	}
 }
 
-void UVoxelGeneratorComponent::CreateChunk(UChunkBase*& Chunk, FIntVector ChunkCoordinates)
+void UVoxelGeneratorComponent::CreateChunk(UChunkMesherBase*& Chunk, FIntVector ChunkCoordinates)
 {
-	Chunk = NewObject<UChunkBase>(this, ChunkTemplate);
+	Chunk = NewObject<UChunkMesherBase>(this, ChunkTemplate);
 	auto chunkGridData = MakeWeakObjectPtr<UChunkGridData>(ChunkGridData);
 	Chunk->AddToGrid(chunkGridData, ChunkCoordinates);
 }

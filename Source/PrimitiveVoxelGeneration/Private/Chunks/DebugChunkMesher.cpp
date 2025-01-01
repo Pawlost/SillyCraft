@@ -1,6 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Chunks/DebugChunk.h"
+#include "Chunks/DebugChunkMesher.h"
 
 #include <Mesh/RealtimeMeshBuilder.h>
 
@@ -10,7 +10,7 @@
 
 class URealtimeMeshSimple;
 
-void UDebugChunk::GenerateMesh()
+void UDebugChunkMesher::GenerateMesh()
 {
 	AsyncTask(ENamedThreads::GameThread, [this]()
 	{

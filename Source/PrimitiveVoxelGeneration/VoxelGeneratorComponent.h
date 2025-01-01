@@ -34,7 +34,7 @@ public:
 	
    	//if set will overide all chunk meshers
    	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation")
-    TSubclassOf<UChunkBase> ChunkTemplate = nullptr;
+    TSubclassOf<UChunkMesherBase> ChunkTemplate = nullptr;
 
 	// How many layers of chunks are generated around player
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation|Blocks")
@@ -65,7 +65,7 @@ protected:
 private:
 	void ShowDebugVector(TVector<double>& vector, FColor color);
 	void UpdateCurrentChunkLocation();
-	void CreateChunk(UChunkBase*& Chunk, FIntVector ChunkCoordinates);
+	void CreateChunk(UChunkMesherBase*& Chunk, FIntVector ChunkCoordinates);
 
 	double ChunkSize = 0;
 	double RenderDistanceBounds = 0;
@@ -83,7 +83,7 @@ private:
 	UPROPERTY()
 	TObjectPtr<UChunkGridData> ChunkGridData;
 	
-	TSharedPtr<TMap<FIntVector, TWeakObjectPtr<UChunkBase>>> SpawnedChunks;
+	TSharedPtr<TMap<FIntVector, TWeakObjectPtr<UChunkMesherBase>>> SpawnedChunks;
 
 public:
 	// Called every frame

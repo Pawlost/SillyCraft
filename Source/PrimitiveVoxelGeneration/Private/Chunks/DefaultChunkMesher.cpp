@@ -1,6 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Chunks/DefaultChunk.h"
+#include "Chunks/DefaultChunkMesher.h"
 
 #include "FastNoiseWrapper.h"
 #include "Chunks/ChunkGridData.h"
@@ -10,7 +10,7 @@
 #include "RealtimeMeshSimple.h"
 #include "Voxels/VoxelType.h"
 
-const UDefaultChunk::FNormalsAndTangents UDefaultChunk::FaceNormalsAndTangents[] = {
+const UDefaultChunkMesher::FNormalsAndTangents UDefaultChunkMesher::FaceNormalsAndTangents[] = {
 	{ FVector3f(-1.0f, 0.0f, 0.0f),  FVector3f(0.0, 1.0, 0.0)},//Front
 	{ FVector3f(1.0f, 0.0f, 0.0f),  FVector3f(0.0, 1.0, 0.0)},//Back
 	{ FVector3f(0.0f, -1.0f, 0.0f),  FVector3f(1.0f, 0.0f, 0.0f)},// Right 
@@ -19,7 +19,7 @@ const UDefaultChunk::FNormalsAndTangents UDefaultChunk::FaceNormalsAndTangents[]
 	{ FVector3f(0.0f, 0.0f, 1.0f),  FVector3f(1.0f, 0.0f, 0.0f)}//Top
 };
 
-void UDefaultChunk::AddToGrid(const TWeakObjectPtr<UChunkGridData> chunkGridData, FIntVector& chunkGridPos)
+void UDefaultChunkMesher::AddToGrid(const TWeakObjectPtr<UChunkGridData> chunkGridData, FIntVector& chunkGridPos)
 {
 	ChunkSettings = chunkGridData->GetChunkSettings();
 	ChunkLenght = ChunkSettings->GetAxisVoxelCount();
@@ -28,7 +28,7 @@ void UDefaultChunk::AddToGrid(const TWeakObjectPtr<UChunkGridData> chunkGridData
 	Super::AddToGrid(chunkGridData, chunkGridPos);
 }
 
-void UDefaultChunk::UpdateAllFacesParams()
+void UDefaultChunkMesher::UpdateAllFacesParams()
 {
 	//Axis X
 	UpdateFaceParams(FrontFaceTemplate, FIntVector(-1,0,0),
@@ -58,7 +58,7 @@ void UDefaultChunk::UpdateAllFacesParams()
 	FIntVector(0,-1,0));
 }
 
-void UDefaultChunk::UpdateFaceParams(FNaiveMeshingData& face, FIntVector forwardVoxelIndexVector,
+void UDefaultChunkMesher::UpdateFaceParams(FNaiveMeshingData& face, FIntVector forwardVoxelIndexVector,
 	FIntVector chunkBorderIndexVector,
 	FIntVector previousVoxelIndexVector) const
 {
@@ -67,12 +67,12 @@ void UDefaultChunk::UpdateFaceParams(FNaiveMeshingData& face, FIntVector forward
 	face.ChunkBorderIndex = ChunkSettings->GetVoxelIndex(chunkBorderIndexVector);
 }
 
-UDefaultChunk::UDefaultChunk()
+UDefaultChunkMesher::UDefaultChunkMesher()
 {
 	Noise = CreateDefaultSubobject<UFastNoiseWrapper>("NoiseGenerator");
 }
 
-void UDefaultChunk::GenerateMesh()
+void UDefaultChunkMesher::GenerateMesh()
 {
 	if(Empty)
 	{
@@ -92,7 +92,7 @@ void UDefaultChunk::GenerateMesh()
 	GenerateMeshFromFaces(faces);
 }
 
-void UDefaultChunk::InitFaceContainers(TArray<TSharedPtr<TArray<FChunkFace>>>* faces)
+void UDefaultChunkMesher::InitFaceContainers(TArray<TSharedPtr<TArray<FChunkFace>>>* faces)
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh generation intialization")
@@ -112,7 +112,7 @@ void UDefaultChunk::InitFaceContainers(TArray<TSharedPtr<TArray<FChunkFace>>>* f
 	}
 }
 
-void UDefaultChunk::FaceGeneration(const TArray<TSharedPtr<TArray<FChunkFace>>>* faces)
+void UDefaultChunkMesher::FaceGeneration(const TArray<TSharedPtr<TArray<FChunkFace>>>* faces)
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Run lenght meshing generation")
@@ -132,15 +132,15 @@ void UDefaultChunk::FaceGeneration(const TArray<TSharedPtr<TArray<FChunkFace>>>*
 		{
 			for(int y = 0; y < ChunkLenght; y++)
 			{
-				GenerateFacesInAxis(x, y, z, xAxisIndex, minBorder, maxBorder, FrontFaceTemplate, BackFaceTemplate, faces[FRONT_FACE_INDEX], faces[BACK_FACE_INDEX]);
-				GenerateFacesInAxis(y, x, z, yAxisIndex, minBorder, maxBorder, RightFaceTemplate, LeftFaceTemplate, faces[RIGHT_FACE_INDEX], faces[LEFT_FACE_INDEX]);
-				GenerateFacesInAxis(z, y, x, zAxisIndex, minBorder, maxBorder, BottomFaceTemplate, TopFaceTemplate, faces[BOTTOM_FACE_INDEX], faces[TOP_FACE_INDEX]);
+				IncrementRun(x, y, z, xAxisIndex, minBorder, maxBorder, FrontFaceTemplate, BackFaceTemplate, faces[FRONT_FACE_INDEX], faces[BACK_FACE_INDEX]);
+				IncrementRun(y, x, z, yAxisIndex, minBorder, maxBorder, RightFaceTemplate, LeftFaceTemplate, faces[RIGHT_FACE_INDEX], faces[LEFT_FACE_INDEX]);
+				IncrementRun(z, y, x, zAxisIndex, minBorder, maxBorder, BottomFaceTemplate, TopFaceTemplate, faces[BOTTOM_FACE_INDEX], faces[TOP_FACE_INDEX]);
 			}
 		}
 	}
 }
 
-void UDefaultChunk::GenerateFacesInAxis(int x, int y, int z, int32 axisVoxelIndex, bool isMinBorder, bool isMaxBorder,
+void UDefaultChunkMesher::IncrementRun(int x, int y, int z, int32 axisVoxelIndex, bool isMinBorder, bool isMaxBorder,
                                         const FNaiveMeshingData& faceTemplate, const FNaiveMeshingData& reversedFaceTemplate,
                                         const TArray<TSharedPtr<TArray<FChunkFace>>>& faceContainer,
                                         const TArray<TSharedPtr<TArray<FChunkFace>>>& reversedFaceContainer)
@@ -151,12 +151,12 @@ void UDefaultChunk::GenerateFacesInAxis(int x, int y, int z, int32 axisVoxelInde
 	if(!voxel.IsEmptyVoxel())
 	{
 		auto position = FIntVector(x, y, z);
-		CreateFace(faceTemplate, isMinBorder, index, position, voxel, axisVoxelIndex, faceContainer);
-		CreateFace(reversedFaceTemplate, isMaxBorder, index, position, voxel, axisVoxelIndex, reversedFaceContainer);
+		AddFace(faceTemplate, isMinBorder, index, position, voxel, axisVoxelIndex, faceContainer);
+		AddFace(reversedFaceTemplate, isMaxBorder, index, position, voxel, axisVoxelIndex, reversedFaceContainer);
 	}
 }
 
-void UDefaultChunk::CreateFace(const FNaiveMeshingData& faceTemplate, bool isBorder,
+void UDefaultChunkMesher::AddFace(const FNaiveMeshingData& faceTemplate, bool isBorder,
 	const int32& index, const FIntVector& position, const FVoxel& voxel, const int32& axisVoxelIndex,
 	const TArray<TSharedPtr<TArray<FChunkFace>>>& faceContainer)
 {
@@ -196,7 +196,7 @@ void UDefaultChunk::CreateFace(const FNaiveMeshingData& faceTemplate, bool isBor
 	}
 }
 
-bool UDefaultChunk::IsBorderVoxelVisible(const VoxelIndexParams& faceData) const
+bool UDefaultChunkMesher::IsBorderVoxelVisible(const VoxelIndexParams& faceData) const
 {
 	if(faceData.isBorder)
 	{
@@ -207,12 +207,12 @@ bool UDefaultChunk::IsBorderVoxelVisible(const VoxelIndexParams& faceData) const
 	return false;
 }
 
-bool UDefaultChunk::IsVoxelVisible(const VoxelIndexParams& faceData)
+bool UDefaultChunkMesher::IsVoxelVisible(const VoxelIndexParams& faceData)
 {
 	return !faceData.isBorder && Voxels.IsValidIndex(faceData.forwardVoxelIndex) && Voxels[faceData.forwardVoxelIndex].IsEmptyVoxel();
 }
 
-void UDefaultChunk::DirectionalGreedyMeshing(TArray<TSharedPtr<TArray<FChunkFace>>>* faces)
+void UDefaultChunkMesher::DirectionalGreedyMeshing(TArray<TSharedPtr<TArray<FChunkFace>>>* faces)
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Run directional greedy mesh generation")
@@ -239,7 +239,7 @@ void UDefaultChunk::DirectionalGreedyMeshing(TArray<TSharedPtr<TArray<FChunkFace
 	}
 }
 
-void UDefaultChunk::GenerateMeshFromFaces(const TArray<TSharedPtr<TArray<FChunkFace>>>* faces)
+void UDefaultChunkMesher::GenerateMeshFromFaces(const TArray<TSharedPtr<TArray<FChunkFace>>>* faces)
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh stream generation")
@@ -324,17 +324,17 @@ void UDefaultChunk::GenerateMeshFromFaces(const TArray<TSharedPtr<TArray<FChunkF
 	});
 }
 
-bool UDefaultChunk::IsMinBorder(const int x)
+bool UDefaultChunkMesher::IsMinBorder(const int x)
 {
 	return x == 0;
 }
 
-bool UDefaultChunk::IsMaxBorder(const int x) const
+bool UDefaultChunkMesher::IsMaxBorder(const int x) const
 {
 	return x == ChunkLenght - 1;
 }
 
-void UDefaultChunk::GenerateVoxels()
+void UDefaultChunkMesher::GenerateVoxels()
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Voxel generation")
@@ -380,12 +380,12 @@ void UDefaultChunk::GenerateVoxels()
 	}
 }
 
-FVoxel UDefaultChunk::VoxelAt(int32 index)
+FVoxel UDefaultChunkMesher::VoxelAt(int32 index)
 {
 	return Voxels[index];
 }
 
-double UDefaultChunk::GetHighestElevationAtPosition(double posX, double posY)
+double UDefaultChunkMesher::GetHighestElevationAtPosition(double posX, double posY)
 {
 	double maxElevation = 0.0;
 

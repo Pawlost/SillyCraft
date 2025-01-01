@@ -1,21 +1,21 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Chunks/ChunkBase.h"
+#include "Chunks/ChunkMesherBase.h"
 
 #include "Chunks/ChunkGridData.h"
 #include "Chunks/ChunkSettings.h"
 
-void UChunkBase::AddToGrid(const TWeakObjectPtr<UChunkGridData> chunkGridData, FIntVector& chunkGridPos)
+void UChunkMesherBase::AddToGrid(const TWeakObjectPtr<UChunkGridData> chunkGridData, FIntVector& chunkGridPos)
 {
 	ChunkGridData = chunkGridData;
 	ChunkGridPos = chunkGridPos;
 
-	auto chunkPtr =  MakeWeakObjectPtr<UChunkBase>(this);
+	auto chunkPtr =  MakeWeakObjectPtr<UChunkMesherBase>(this);
 	chunkGridData->AddChunkToGrid(chunkPtr, chunkGridPos);
 }
 
-void UChunkBase::Spawn(bool lockLocation)
+void UChunkMesherBase::Spawn(bool lockLocation)
 {
 	auto spawnedChunkLocation = FVector(ChunkGridPos.X, ChunkGridPos.Y, ChunkGridPos.Z) * ChunkGridData->GetChunkSettings()->GetChunkSize();
 
@@ -27,7 +27,7 @@ void UChunkBase::Spawn(bool lockLocation)
 	ChunkActor->SetLockLocation(lockLocation);
 }
 
-void UChunkBase::RemoveMeshAsync() const
+void UChunkMesherBase::RemoveMeshAsync() const
 {
 	AsyncTask(ENamedThreads::GameThread, [this]()
 	{
@@ -35,7 +35,7 @@ void UChunkBase::RemoveMeshAsync() const
 	});
 }
 
-void UChunkBase::RemoveMesh() const
+void UChunkMesherBase::RemoveMesh() const
 {
 
 	if(!IsValid(this))
@@ -54,7 +54,7 @@ void UChunkBase::RemoveMesh() const
 	}*/
 }
 
-void UChunkBase::Despawn() const
+void UChunkMesherBase::Despawn() const
 {
 	AsyncTask(ENamedThreads::GameThread, [this]()
 	{
@@ -75,13 +75,13 @@ void UChunkBase::Despawn() const
 	});
 }
 
-bool UChunkBase::IsEmpty() const
+bool UChunkMesherBase::IsEmpty() const
 {
 	return Empty;
 }
 
 // position of exact chunk
-double UChunkBase::GetHighestElevationAtPosition(double posX, double posY)
+double UChunkMesherBase::GetHighestElevationAtPosition(double posX, double posY)
 {
 	return ChunkGridData->GetChunkSettings()->GetMaximumElevation();
 }

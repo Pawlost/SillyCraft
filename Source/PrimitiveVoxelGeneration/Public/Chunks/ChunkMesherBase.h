@@ -4,7 +4,7 @@
 #include "RealtimeMeshActor.h"
 #include "UObject/Object.h"
 #include "Voxels/Voxel.h"
-#include "ChunkBase.generated.h"
+#include "ChunkMesherBase.generated.h"
 
 class UChunkGridData;
 struct FChunkGridData;
@@ -13,7 +13,7 @@ struct FChunkSettings;
  
 */
 UCLASS(Abstract)
-class PRIMITIVEVOXELGENERATION_API UChunkBase : public UObject
+class PRIMITIVEVOXELGENERATION_API UChunkMesherBase : public UObject
 {
 	GENERATED_BODY()
 

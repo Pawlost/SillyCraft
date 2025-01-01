@@ -3,13 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ChunkBase.h"
+#include "ChunkMesherBase.h"
 #include "ChunkGridData.h"
 #include "FastNoiseWrapper.h"
 #include "MeshingStructs/NaiveMeshingData.h"
 #include "MeshingStructs/StaticNaiveMeshingData.h"
 #include "Voxels/ChunkFace.h"
-#include "DefaultChunk.generated.h"
+#include "DefaultChunkMesher.generated.h"
 
 #define FACE_COUNT 6
 
@@ -25,7 +25,7 @@ struct FVoxel;
  * 
  */
 UCLASS()
-class PRIMITIVEVOXELGENERATION_API UDefaultChunk : public UChunkBase
+class PRIMITIVEVOXELGENERATION_API UDefaultChunkMesher : public UChunkMesherBase
 {
 public:
 	virtual void AddToGrid(const TWeakObjectPtr<UChunkGridData> chunkGridData, FIntVector& chunkGridPos) override;
@@ -34,7 +34,7 @@ private:
 	GENERATED_BODY()
 
 public:
-	UDefaultChunk();
+	UDefaultChunkMesher();
 	virtual void GenerateVoxels() override;
 	virtual void GenerateMesh() override;
 	virtual FVoxel VoxelAt(int32 index) override;
@@ -64,12 +64,12 @@ private:
 	void UpdateFaceParams(FNaiveMeshingData& face, FIntVector forwardVoxelIndexVector,
 		FIntVector previousVoxelIndexVector, FIntVector chunkBorderIndexVector) const;
 	
-	void GenerateFacesInAxis(int x, int y, int z, int32 axisVoxelIndex, bool isMinBorder, bool isMaxBorder,
+	void IncrementRun(int x, int y, int z, int32 axisVoxelIndex, bool isMinBorder, bool isMaxBorder,
 	                         const FNaiveMeshingData& faceTemplate, const FNaiveMeshingData& reversedFaceTemplate,
 	                         const TArray<TSharedPtr<TArray<FChunkFace>>>& faceContainer,
 	                         const TArray<TSharedPtr<TArray<FChunkFace>>>& reversedFaceContainer);
 	
-	void CreateFace(const FNaiveMeshingData& faceTemplate, bool isBorder, const int32& index,
+	void AddFace(const FNaiveMeshingData& faceTemplate, bool isBorder, const int32& index,
 		const FIntVector& position, const FVoxel& voxel, const int32& axisVoxelIndex,
 		const TArray<TSharedPtr<TArray<FChunkFace>>>& faceContainer);
 	void InitFaceContainers(TArray<TSharedPtr<TArray<FChunkFace>>>* faces);

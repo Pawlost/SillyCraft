@@ -8,7 +8,7 @@
 
 struct FVoxel;
 struct FVoxelType;
-class UChunkBase;
+class UChunkMesherBase;
 struct FChunkSettings;
 class AChunkActor;
 
@@ -19,16 +19,16 @@ class PRIMITIVEVOXELGENERATION_API UChunkGridData : public UObject
 	
 public:
 	//TODO: naming conventions
-	void AddChunkToGrid(TWeakObjectPtr<UChunkBase> chunk, const FIntVector& gridPos) const;
+	void AddChunkToGrid(TWeakObjectPtr<UChunkMesherBase> chunk, const FIntVector& gridPos) const;
 	void RemoveChunkFromGrid(const FIntVector& gridPos) const;
 	bool IsChunkInGrid(const FIntVector& gridPos) const;
-	TWeakObjectPtr<UChunkBase> GetChunkPtr(const FIntVector& gridPos) const;
+	TWeakObjectPtr<UChunkMesherBase> GetChunkPtr(const FIntVector& gridPos) const;
 	
 	void SetChunkSettings(const TSharedPtr<FChunkSettings>& chunkSettings);
 	TSharedPtr<FChunkSettings> GetChunkSettings() const;
 
-	TSharedPtr<TMap<FIntVector, TWeakObjectPtr<UChunkBase>>> GetSpawnedChunks() const;
-	void SetSpawnedChunks(const TSharedPtr<TMap<FIntVector, TWeakObjectPtr<UChunkBase>>>& SpawnedChunks);
+	TSharedPtr<TMap<FIntVector, TWeakObjectPtr<UChunkMesherBase>>> GetSpawnedChunks() const;
+	void SetSpawnedChunks(const TSharedPtr<TMap<FIntVector, TWeakObjectPtr<UChunkMesherBase>>>& SpawnedChunks);
 	void SetVoxelTypes(const TWeakObjectPtr<UDataTable>& VoxelTypes);
 	int32 GetVoxelIdCount() const;
 	
@@ -38,7 +38,7 @@ private:
 	TSharedPtr<FChunkSettings> ChunkSettings;
 
 	// chunks must have exact position in grid, this is the reason why scene tree cant be used
-	TSharedPtr<TMap<FIntVector, TWeakObjectPtr<UChunkBase>>> SpawnedChunks;
+	TSharedPtr<TMap<FIntVector, TWeakObjectPtr<UChunkMesherBase>>> SpawnedChunks;
 	TWeakObjectPtr<UDataTable> VoxelTypes;
 	
 	UPROPERTY()

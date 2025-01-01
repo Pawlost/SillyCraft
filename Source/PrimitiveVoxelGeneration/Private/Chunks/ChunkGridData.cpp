@@ -4,7 +4,7 @@
 #include "Chunks/ChunkGridData.h"
 #include "Voxels/VoxelType.h"
 
-void UChunkGridData::AddChunkToGrid(TWeakObjectPtr<UChunkBase> chunk, const FIntVector& gridPos) const
+void UChunkGridData::AddChunkToGrid(TWeakObjectPtr<UChunkMesherBase> chunk, const FIntVector& gridPos) const
 {
 	FScopeLock Lock(&GridLock);
 	
@@ -32,7 +32,7 @@ bool UChunkGridData::IsChunkInGrid(const FIntVector& gridPos) const
 	return false;
 }
 
-TWeakObjectPtr<UChunkBase> UChunkGridData::GetChunkPtr(const FIntVector& gridPos) const
+TWeakObjectPtr<UChunkMesherBase> UChunkGridData::GetChunkPtr(const FIntVector& gridPos) const
 {
 	FScopeLock Lock(&GridLock);
 	if(SpawnedChunks.IsValid())
@@ -52,12 +52,12 @@ TSharedPtr<FChunkSettings> UChunkGridData::GetChunkSettings() const
 	return ChunkSettings;
 }
 
-TSharedPtr<TMap<FIntVector, TWeakObjectPtr<UChunkBase>>> UChunkGridData::GetSpawnedChunks() const
+TSharedPtr<TMap<FIntVector, TWeakObjectPtr<UChunkMesherBase>>> UChunkGridData::GetSpawnedChunks() const
 {
 	return SpawnedChunks;
 }
 
-void UChunkGridData::SetSpawnedChunks(const TSharedPtr<TMap<FIntVector, TWeakObjectPtr<UChunkBase>>>& spawnedChunks)
+void UChunkGridData::SetSpawnedChunks(const TSharedPtr<TMap<FIntVector, TWeakObjectPtr<UChunkMesherBase>>>& spawnedChunks)
 {
 	this->SpawnedChunks = spawnedChunks;
 }
