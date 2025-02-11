@@ -245,7 +245,7 @@ void UDefaultChunkMesher::GenerateMeshFromFaces(const TArray<TSharedPtr<TArray<F
 	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh stream generation")
 #endif
 	
-		TSharedPtr<FRealtimeMeshStreamSet> StreamSet = MakeShared<FRealtimeMeshStreamSet>();
+	TSharedPtr<FRealtimeMeshStreamSet> StreamSet = MakeShared<FRealtimeMeshStreamSet>();
 
 	TRealtimeMeshBuilderLocal<int32> Builder(*StreamSet.ToWeakPtr().Pin());
 

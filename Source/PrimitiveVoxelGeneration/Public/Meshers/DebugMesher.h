@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ChunkMesherBase.h"
-#include "DebugChunkMesher.generated.h"
+#include "DebugMesher.generated.h"
 
 /**
  * 

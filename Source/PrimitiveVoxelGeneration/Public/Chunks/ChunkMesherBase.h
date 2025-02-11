@@ -13,7 +13,7 @@ struct FChunkSettings;
  
 */
 UCLASS(Abstract)
-class PRIMITIVEVOXELGENERATION_API UChunkMesherBase : public UObject
+class PRIMITIVEVOXELGENERATION_API UChunkMesherBase : public UActorComponent
 {
 	GENERATED_BODY()
 
