@@ -3,11 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ChunkMesherBase.h"
-#include "ChunkGridData.h"
-#include "FastNoiseWrapper.h"
-#include "MeshingStructs/NaiveMeshingData.h"
-#include "MeshingStructs/StaticNaiveMeshingData.h"
+#include "Chunks/ChunkMesherBase.h"
+#include "Chunks/MeshingStructs/NaiveMeshingData.h"
+#include "Chunks/MeshingStructs/StaticNaiveMeshingData.h"
 #include "Voxels/ChunkFace.h"
 #include "DefaultChunkMesher.generated.h"
 
@@ -34,8 +32,6 @@ private:
 	GENERATED_BODY()
 
 public:
-	UDefaultChunkMesher();
-	virtual void GenerateVoxels() override;
 	virtual void GenerateMesh() override;
 	virtual FVoxel VoxelAt(int32 index) override;
 	virtual double GetHighestElevationAtPosition(double posX, double posY) override;
@@ -87,16 +83,4 @@ private:
 	};
 	
 	static const FNormalsAndTangents FaceNormalsAndTangents[6];
-	
-	UPROPERTY()
-	TObjectPtr<UFastNoiseWrapper> Noise;
-
-	UPROPERTY()
-	TArray<FVoxel> Voxels;
-
-	UPROPERTY()
-	TMap<int32, int16> voxelIdsInMesh;
-
-	TSharedPtr<FChunkSettings> ChunkSettings;
-	int32 ChunkLenght;
 };

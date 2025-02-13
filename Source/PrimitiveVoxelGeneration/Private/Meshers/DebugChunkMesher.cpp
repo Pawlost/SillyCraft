@@ -1,11 +1,9 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-#include "Chunks/DebugChunkMesher.h"
-
 #include <Mesh/RealtimeMeshBuilder.h>
 
 #include "RealtimeMeshSimple.h"
 #include "Chunks/ChunkGridData.h"
+#include "Meshers/DebugMesher.h"
 #include "Voxels/VoxelType.h"
 
 class URealtimeMeshSimple;
