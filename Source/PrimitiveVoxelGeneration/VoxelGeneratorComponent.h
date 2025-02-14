@@ -49,9 +49,6 @@ public:
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Debug")
 	float DebugTime = 0.0006f;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation")
-	TObjectPtr<UDataTable> VoxelTypeTable;
 	
 protected:
 	// Called when the game starts

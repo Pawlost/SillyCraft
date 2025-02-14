@@ -29,11 +29,6 @@ int32 FChunkSettings::GetChunkSize() const
 	return AxisVoxelCount * VoxelSize;
 }
 
-int32 FChunkSettings::GetVoxelIndex(const int32 x, const int32 y, const int32 z) const
-{
-	return y + (z * AxisVoxelCount) + (x * PlaneVoxelCount);
-}
-
 int32 FChunkSettings::GetVoxelIndex(const FIntVector& indexVector) const
 {
 	return indexVector.Y + (indexVector.Z * AxisVoxelCount) + (indexVector.X * PlaneVoxelCount);

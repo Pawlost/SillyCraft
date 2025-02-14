@@ -14,7 +14,7 @@ struct PRIMITIVEVOXELGENERATION_API FChunkStruct
 	TArray<FVoxel> Voxels;
 
 	UPROPERTY()
-	TMap<int32, int16> VoxelIdTable;
+	TMap<int32, int16> ChunkVoxelTypeTable;
 	
 	FIntVector GridPosition;
 
