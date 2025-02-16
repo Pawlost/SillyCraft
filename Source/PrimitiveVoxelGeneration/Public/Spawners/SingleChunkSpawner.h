@@ -11,9 +11,6 @@ class PRIMITIVEVOXELGENERATION_API ASingleChunkSpawner : public AChunkSpawnerBas
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation")
-	TSubclassOf<UChunkMesherBase> ChunkMesherTemplate = nullptr;
-
 	FChunkStruct SingleChunk;
 	
 protected:

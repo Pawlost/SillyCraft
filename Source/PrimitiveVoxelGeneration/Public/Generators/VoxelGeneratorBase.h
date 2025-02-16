@@ -34,7 +34,7 @@ class PRIMITIVEVOXELGENERATION_API UVoxelGeneratorBase : public UActorComponent,
 	
 		UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Voxels")
 		double_t MaxElevation = 0;
-
+	
 	private:
 		int32 VoxelCountY = 0, VoxelCountYZ = 0, VoxelCountXYZ = 0;
 	

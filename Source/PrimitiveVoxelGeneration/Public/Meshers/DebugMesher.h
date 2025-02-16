@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ChunkMesherBase.h"
 #include "DebugMesher.generated.h"
 
 /**

@@ -4,21 +4,36 @@
 void ASingleChunkSpawner::BeginPlay()
 {
 	// Check if the template is valid
-	if (ChunkMesherTemplate)
+	if (ChunkMesherBlueprint)
 	{
 		// Create the component
-		auto ChunkMesherComponent = NewObject<UChunkMesherBase>(this, ChunkMesherTemplate);
+		ChunkMesherBase = NewObject<UChunkMesherBase>(this, ChunkMesherBlueprint);
 
-		if (ChunkMesherComponent)
+		if (ChunkMesherBase)
 		{
 			// Register the component (required for it to work properly)
-			ChunkMesherComponent->RegisterComponent();
+			ChunkMesherBase->RegisterComponent();
 		}
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ChunkTemplate is nullptr!"));
 	}
+
+
+	if (VoxelGeneratorClass)
+	{
+		// Create the component dynamically
+		VoxelGridGenerator = NewObject<UVoxelGeneratorBase>(this, VoxelGeneratorClass);
+        
+		if (VoxelGridGenerator)
+		{
+			VoxelGridGenerator->RegisterComponent();
+		}
+	}
+	
+	
+	SpawnChunk(SingleChunk, GridPosition);
 	
 	Super::BeginPlay();
 }

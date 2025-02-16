@@ -2,11 +2,13 @@
 
 #include "Spawners/ChunkSpawnerBase.h"
 
-#include "Chunks/ChunkRMCActor.h"
-
-void AChunkSpawnerBase::SpawnChunk(FChunkStruct& chunk, const FVector& location)
+void AChunkSpawnerBase::SpawnChunk(FChunkStruct& chunk, const FIntVector& spawnGridPosition)
 {
-	chunk.ChildChunk = GetWorld()->SpawnActor<AChunkRMCActor>(AChunkRMCActor::StaticClass(), location, FRotator::ZeroRotator);
+	chunk.GridPosition = spawnGridPosition;
+	VoxelGridGenerator->GenerateVoxels(chunk);
+
+	auto spawnLocation = FVector(spawnGridPosition.X, spawnGridPosition.Y, spawnGridPosition.Z) * VoxelGridGenerator->GetVoxelCountY();
+	chunk.ChildChunk = GetWorld()->SpawnActor<AChunkRMCActor>(AChunkRMCActor::StaticClass(), spawnLocation, FRotator::ZeroRotator);
 	if (chunk.ChildChunk.IsValid())
 	{
 		chunk.ChildChunk->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);

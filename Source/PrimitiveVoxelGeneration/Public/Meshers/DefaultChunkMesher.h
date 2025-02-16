@@ -9,15 +9,6 @@
 #include "Voxels/ChunkFace.h"
 #include "DefaultChunkMesher.generated.h"
 
-#define FACE_COUNT 6
-
-#define FRONT_FACE_INDEX 0
-#define BACK_FACE_INDEX 1
-#define RIGHT_FACE_INDEX 2
-#define LEFT_FACE_INDEX 3
-#define BOTTOM_FACE_INDEX 4
-#define TOP_FACE_INDEX 5
-
 struct FVoxel;
 /**
  * 
@@ -25,17 +16,13 @@ struct FVoxel;
 UCLASS()
 class PRIMITIVEVOXELGENERATION_API UDefaultChunkMesher : public UChunkMesherBase
 {
+	GENERATED_BODY()
+	
 public:
 	virtual void AddToGrid(const TWeakObjectPtr<UChunkGridData> chunkGridData, FIntVector& chunkGridPos) override;
-
-private:
-	GENERATED_BODY()
-
-public:
 	virtual void GenerateMesh() override;
-	virtual FVoxel VoxelAt(int32 index) override;
 	virtual double GetHighestElevationAtPosition(double posX, double posY) override;
-
+	
 private:
 	struct VoxelIndexParams
 	{

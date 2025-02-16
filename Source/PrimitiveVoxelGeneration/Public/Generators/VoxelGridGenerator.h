@@ -12,12 +12,9 @@ class PRIMITIVEVOXELGENERATION_API UVoxelGridGenerator : public UVoxelGeneratorB
 	GENERATED_BODY()
 
 public:
-	UVoxelGridGenerator();
 	virtual void GenerateVoxels(FChunkStruct& chunk) override;
-
+	
 private:
 	UPROPERTY()
 	TObjectPtr<UFastNoiseWrapper> Noise;
-	
-	bool Empty = false;
 };

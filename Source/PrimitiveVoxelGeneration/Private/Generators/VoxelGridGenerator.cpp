@@ -7,11 +7,6 @@
 #include "Voxels/Voxel.h"
 #include "Voxels/VoxelType.h"
 
-UVoxelGridGenerator::UVoxelGridGenerator()
-{
-	Noise = CreateDefaultSubobject<UFastNoiseWrapper>("NoiseGenerator");
-}
-
 void UVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 {
 #if CPUPROFILERTRACE_ENABLED
@@ -36,7 +31,7 @@ void UVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 		{
 			for (int y = 0; y < chunkLenght; y++) 
 			{
-				auto elevation = Noise->GetNoise2D(x + gridPos.X,  y + gridPos.Y) * GetMaxEle;
+				auto elevation = Noise->GetNoise2D(x + gridPos.X,  y + gridPos.Y) * GetMaximumElevation();
 				
 				for (int z = 0; z < chunkLenght; z++) 
 				{
@@ -49,7 +44,7 @@ void UVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 						{
 							chunk.ChunkVoxelTypeTable.Add(voxel.VoxelId, chunk.ChunkVoxelTypeTable.Num());
 						}
-						Empty = false;
+						chunk.IsEmpty = false;
 					}
 				}
 			}

@@ -7,7 +7,8 @@ USTRUCT()
 struct PRIMITIVEVOXELGENERATION_API FChunkStruct
 {
     GENERATED_BODY()
-
+	
+	UPROPERTY()
 	TWeakObjectPtr<AChunkRMCActor> ChildChunk;
 
 	UPROPERTY()
@@ -16,8 +17,9 @@ struct PRIMITIVEVOXELGENERATION_API FChunkStruct
 	UPROPERTY()
 	TMap<int32, int16> ChunkVoxelTypeTable;
 	
+	UPROPERTY()
 	FIntVector GridPosition;
 
-	bool IsEmpty;
-	bool IsGenerated;
+	bool IsEmpty = true;
+	bool HasMesh = false;
 };
