@@ -1,7 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 #pragma once
 #include "CoreMinimal.h"
-#include "FastNoiseWrapper.h"
 #include "VoxelGeneratorBase.h"
 #include "Components/ActorComponent.h"
 #include "VoxelGridGenerator.generated.h"
@@ -13,8 +12,4 @@ class PRIMITIVEVOXELGENERATION_API UVoxelGridGenerator : public UVoxelGeneratorB
 
 public:
 	virtual void GenerateVoxels(FChunkStruct& chunk) override;
-	
-private:
-	UPROPERTY()
-	TObjectPtr<UFastNoiseWrapper> Noise;
 };

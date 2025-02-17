@@ -19,7 +19,7 @@ public:
 	// Sets default values for this actor's properties
 	AChunkRMCActor();
 	void InitParameters(TSubclassOf<UChunkMesherBase> chunkMesherBase) const;
-
+	
 protected:
 	virtual void OnConstruction(const FTransform& Transform) override;
 private:

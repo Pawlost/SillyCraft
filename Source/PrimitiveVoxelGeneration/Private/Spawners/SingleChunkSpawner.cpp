@@ -19,21 +19,8 @@ void ASingleChunkSpawner::BeginPlay()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ChunkTemplate is nullptr!"));
 	}
-
-
-	if (VoxelGeneratorClass)
-	{
-		// Create the component dynamically
-		VoxelGridGenerator = NewObject<UVoxelGeneratorBase>(this, VoxelGeneratorClass);
-        
-		if (VoxelGridGenerator)
-		{
-			VoxelGridGenerator->RegisterComponent();
-		}
-	}
 	
-	
-	SpawnChunk(SingleChunk, GridPosition);
+	SpawnChunk(SingleChunk, SingleChunkGridPosition);
 	
 	Super::BeginPlay();
 }

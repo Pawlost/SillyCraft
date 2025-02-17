@@ -4,13 +4,13 @@
 #include "RealtimeMeshActor.h"
 #include "Chunks/ChunkMesherBase.h"
 #include "Components/ActorComponent.h"
-#include "AreaGenerator.generated.h"
+#include "VoxelLoader.generated.h"
 struct FVoxelType;
 using namespace UE::Math;
 //TODO: add forward declarations
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class PRIMITIVEVOXELGENERATION_API AAreaGenerator : public AActor
+class PRIMITIVEVOXELGENERATION_API AVoxelLoader : public AActor
 {
 	GENERATED_BODY()
 public:
@@ -19,6 +19,6 @@ public:
 	
 protected:
 	// Called when the game starts
-	virtual void BeginPlay() override;
-	void SpawnChunk(FVector location);
+	//virtual void BeginPlay() override;
+	//void SpawnChunk(FVector location);
 };

@@ -14,10 +14,11 @@ void UVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 #endif
 	
 	auto chunkLenght = GetVoxelCountY();
-
+	
 	auto gridPos = chunk.GridPosition * chunkLenght;
 	int voxelTypeCount = GetVoxelTypeCount();
 	chunk.ChunkVoxelTypeTable.Reserve(voxelTypeCount);
+	chunk.Voxels.Reserve(GetVoxelCountXYZ());
 	
 	for(int voxelId = 0; voxelId < voxelTypeCount; voxelId++)
 	{
@@ -51,3 +52,4 @@ void UVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 		}
 	}
 }
+

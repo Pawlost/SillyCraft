@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "MesherBase.h"
 #include "Chunks/MeshingStructs/NaiveMeshingData.h"
+#include "RunLengthMesher.generated.h"
 //TODO: add forward declarations
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -11,23 +12,36 @@ class PRIMITIVEVOXELGENERATION_API URunLengthMesher : public UMesherBase
 	GENERATED_BODY()
 	
 public:
-	virtual void AddToGrid(const TWeakObjectPtr<UChunkGridData> chunkGridData, FIntVector& chunkGridPos) override;
-	virtual void GenerateMesh() override;
-	virtual double GetHighestElevationAtPosition(double posX, double posY) override;
-	
-private:
-	struct VoxelIndexParams
-	{
-		bool isBorder;
-		int32 forwardVoxelIndex;
-		int32 previousVoxelIndex;
-		int32 currentVoxelIndex;
-		FIntVector borderChunkDirection;
-	};
-	
-	bool IsBorderVoxelVisible(const VoxelIndexParams& faceData) const;
-	bool IsVoxelVisible(const VoxelIndexParams& faceData);
+	virtual void GenerateMesh(FChunkStruct& chunk) override;
+	// virtual double GetHighestElevationAtPosition(double posX, double posY) override;
+	virtual void GenerateVoxels(FChunkStruct& chunk) override;
 
+	
+	// Allows selecting a component class in Blueprint
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
+	TSubclassOf<UVoxelGeneratorBase> VoxelGeneratorClass = nullptr;
+	
+protected:
+	virtual void BeginPlay() override;
+private:
+	struct FVoxelIndexParams
+	{
+		bool IsBorder;
+		int32 ForwardVoxelIndex;
+		int32 PreviousVoxelIndex;
+		int32 CurrentVoxelIndex;
+		FIntVector BorderChunkDirection;
+	};
+
+	struct FChunkFaceParams
+	{
+		TArray<TSharedRef<TArray<FChunkFace>>> Faces[FACE_COUNT];
+		FChunkStruct ChunkStruct;
+	};
+
+	static bool IsBorderVoxelVisible(const FVoxelIndexParams& faceData, FChunkStruct& chunkStruct);
+	static bool IsVoxelVisible(const FVoxelIndexParams& faceData, FChunkStruct& chunkStruct);
+	
 	FNaiveMeshingData FrontFaceTemplate = FNaiveMeshingData(FStaticNaiveMeshingData::FrontFaceData);
 	FNaiveMeshingData BackFaceTemplate = FNaiveMeshingData(FStaticNaiveMeshingData::BackFaceData);
 	FNaiveMeshingData RightFaceTemplate = FNaiveMeshingData(FStaticNaiveMeshingData::RightFaceData);
@@ -40,17 +54,19 @@ private:
 		FIntVector previousVoxelIndexVector, FIntVector chunkBorderIndexVector) const;
 	
 	void IncrementRun(int x, int y, int z, int32 axisVoxelIndex, bool isMinBorder, bool isMaxBorder,
-	                         const FNaiveMeshingData& faceTemplate, const FNaiveMeshingData& reversedFaceTemplate,
-	                         const TArray<TSharedPtr<TArray<FChunkFace>>>& faceContainer,
-	                         const TArray<TSharedPtr<TArray<FChunkFace>>>& reversedFaceContainer);
+										const FNaiveMeshingData& faceTemplate, const FNaiveMeshingData& reversedFaceTemplate,
+										const int32 faceContainerIndex,
+										const int32 reversedFaceContainerIndex,
+										FChunkFaceParams& chunkParams) const;
+
+	static void AddFace(const FNaiveMeshingData& faceTemplate, bool isBorder,
+	                    const int32& index, const FIntVector& position, const FVoxel& voxel, const int32& axisVoxelIndex,
+	                    const TSharedPtr<TArray<FChunkFace>>& chunkFaces, FChunkStruct& chunkStruct);
 	
-	void AddFace(const FNaiveMeshingData& faceTemplate, bool isBorder, const int32& index,
-		const FIntVector& position, const FVoxel& voxel, const int32& axisVoxelIndex,
-		const TArray<TSharedPtr<TArray<FChunkFace>>>& faceContainer);
-	void InitFaceContainers(TArray<TSharedPtr<TArray<FChunkFace>>>* faces);
-	void FaceGeneration(const TArray<TSharedPtr<TArray<FChunkFace>>>* faces);
-	void DirectionalGreedyMeshing(TArray<TSharedPtr<TArray<FChunkFace>>>* faces);
-	void GenerateMeshFromFaces(const TArray<TSharedPtr<TArray<FChunkFace>>>* faces);
+	void InitFaceContainers(FChunkFaceParams& faceParams) const;
+	void FaceGeneration(FChunkFaceParams& faceParams) const;
+	static void DirectionalGreedyMeshing(const FChunkFaceParams& faceParams);
+	void GenerateMeshFromFaces(const FChunkFaceParams& faceParams) const;
 
 	static bool inline IsMinBorder(int x);
 	bool inline IsMaxBorder(int x) const;
@@ -62,4 +78,7 @@ private:
 	};
 	
 	static const FNormalsAndTangents FaceNormalsAndTangents[6];
+	
+	UPROPERTY()
+	UVoxelGeneratorBase* VoxelGenerator;
 };

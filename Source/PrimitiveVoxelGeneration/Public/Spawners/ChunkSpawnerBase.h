@@ -16,11 +16,7 @@ public:
 	TSubclassOf<UChunkMesherBase> ChunkMesherBlueprint = nullptr;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
-	FIntVector GridPosition;
-
-	// Allows selecting a component class in Blueprint
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
-	TSubclassOf<UVoxelGeneratorBase> VoxelGeneratorClass = nullptr;
+	FIntVector SingleChunkGridPosition;
 
 protected:
 	void SpawnChunk(FChunkStruct& Chunk, const FIntVector& location);
