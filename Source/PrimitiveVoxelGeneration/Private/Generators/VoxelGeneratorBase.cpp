@@ -14,9 +14,14 @@ int32 UVoxelGeneratorBase::GetVoxelIndex(const int32 x, const int32 y, const int
 	return y + (z * VoxelCountY) + (x * VoxelCountYZ);
 }
 
-int32 UVoxelGeneratorBase::GetVoxelCountY() const
+double UVoxelGeneratorBase::GetChunkSize()
 {
-	return VoxelCountY;
+	return ChunkSize;
+}
+
+int32 UVoxelGeneratorBase::GetVoxelDimensionCount() const
+{
+	return VoxelDimensionCount;
 }
 
 double_t UVoxelGeneratorBase::GetVoxelSize() const
@@ -24,12 +29,12 @@ double_t UVoxelGeneratorBase::GetVoxelSize() const
 	return VoxelSize;
 }
 
-int32 UVoxelGeneratorBase::GetVoxelCountYZ() const
+int32 UVoxelGeneratorBase::GetVoxel2DimensionCount() const
 {
 	return VoxelCountYZ;
 }
 
-int32 UVoxelGeneratorBase::GetVoxelCountXYZ() const
+int32 UVoxelGeneratorBase::GetVoxel3DimensionCount() const
 {
 	return VoxelCountXYZ;
 }
@@ -58,7 +63,8 @@ int32 UVoxelGeneratorBase::GetVoxelIndex(const FIntVector& indexVector) const
 
 void UVoxelGeneratorBase::BeginPlay()
 {
-	VoxelCountY *= VoxelSize;
+	VoxelCountY = VoxelDimensionCount;
+	ChunkSize = VoxelCountY * VoxelSize;
 	VoxelCountYZ = VoxelCountY * VoxelCountY;
 	VoxelCountXYZ = VoxelCountYZ * VoxelCountY;
 	MaxElevation /= VoxelSize;

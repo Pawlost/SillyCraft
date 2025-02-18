@@ -7,9 +7,8 @@ void AAreaChunkSpawner::BeginPlay()
 	if (ChunkMesherTemplate)
 	{
 		// Create the component
-		auto ChunkMesherComponent = NewObject<UChunkMesherBase>(this, ChunkMesherTemplate);
 
-		if (ChunkMesherComponent)
+		if (const auto ChunkMesherComponent = NewObject<UChunkMesherBase>(this, ChunkMesherTemplate))
 		{
 			// Register the component (required for it to work properly)
 			ChunkMesherComponent->RegisterComponent();

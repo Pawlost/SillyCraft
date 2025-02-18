@@ -1,4 +1,4 @@
-﻿#include "Chunks/MeshingStructs/StaticNaiveMeshingData.h"
+﻿#include "MeshingStructs/StaticNaiveMeshingData.h"
 
 FStaticNaiveMeshingData FStaticNaiveMeshingData::FrontFaceData = FStaticNaiveMeshingData(
 	FIntVector(-1, 0, 0),

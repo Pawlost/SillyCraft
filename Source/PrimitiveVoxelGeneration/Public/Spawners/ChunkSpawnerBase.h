@@ -2,7 +2,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Chunks/ChunkMesherBase.h"
-#include "Generators/VoxelGridGenerator.h"
+#include "Meshers/MesherBase.h"
 #include "Voxels/ChunkStruct.h"
 #include "ChunkSpawnerBase.generated.h"
 
@@ -13,17 +13,16 @@ class PRIMITIVEVOXELGENERATION_API AChunkSpawnerBase : public AActor
 	GENERATED_BODY()
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
-	TSubclassOf<UChunkMesherBase> ChunkMesherBlueprint = nullptr;
+	TSubclassOf<UMesherBase> MesherBlueprint = nullptr;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
 	FIntVector SingleChunkGridPosition;
 
 protected:
+	// Called when the game starts
+	virtual void BeginPlay() override;
 	void SpawnChunk(FChunkStruct& Chunk, const FIntVector& location);
 
 	UPROPERTY()
-	UVoxelGeneratorBase* VoxelGridGenerator;
-
-	UPROPERTY()
-	UChunkMesherBase* ChunkMesherBase;
+	UMesherBase* ChunkMesher;
 };

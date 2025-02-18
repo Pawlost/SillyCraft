@@ -4,6 +4,7 @@
 
 #include "RealtimeMeshSimple.h"
 #include "Mesh/RealtimeMeshBuilder.h"
+#include "MeshingStructs/ChunkFaceParams.h"
 
 const URunLengthMesher::FNormalsAndTangents URunLengthMesher::FaceNormalsAndTangents[] = {
 	{ FVector3f(-1.0f, 0.0f, 0.0f),  FVector3f(0.0, 1.0, 0.0)},//Front
@@ -16,7 +17,7 @@ const URunLengthMesher::FNormalsAndTangents URunLengthMesher::FaceNormalsAndTang
 
 void URunLengthMesher::UpdateAllFacesParams()
 {
-	auto chunkLenght = VoxelGenerator->GetVoxelCountY();
+	auto chunkLenght = VoxelGenerator->GetVoxelDimensionCount();
 	//Axis X
 	UpdateFaceParams(FrontFaceTemplate, FIntVector(-1,0,0),
 	FIntVector(chunkLenght - 1, 0, 0),
@@ -54,9 +55,9 @@ void URunLengthMesher::UpdateFaceParams(FNaiveMeshingData& face, FIntVector forw
 	face.ChunkBorderIndex = VoxelGenerator->GetVoxelIndex(chunkBorderIndexVector);
 }
 
-void URunLengthMesher::GenerateMesh(FChunkStruct& chunk)
+void URunLengthMesher::GenerateMesh(FChunkFaceParams& faceParams)
 {
-	if(chunk.IsEmpty)
+	if(faceParams.ChunkParams.OriginalChunk->IsEmpty)
 	{
 		return;
 	}
@@ -66,8 +67,7 @@ void URunLengthMesher::GenerateMesh(FChunkStruct& chunk)
 #endif
 
 	// Voxel faces need to be hidden under multiple layers of abstraction because Realtime Mesh Component requires it
-	FChunkFaceParams faceParams;
-	
+
 	InitFaceContainers(faceParams);
 	FaceGeneration(faceParams);
 	DirectionalGreedyMeshing(faceParams);
@@ -80,14 +80,14 @@ void URunLengthMesher::InitFaceContainers(FChunkFaceParams& faceParams) const
 	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh generation intialization")
 #endif
 	
-	int32 chunkPlane = VoxelGenerator->GetVoxelCountXYZ();
-	for(int f = 0; f < FACE_COUNT; f++)
+	int32 chunkPlane = VoxelGenerator->GetVoxel3DimensionCount();
+	for(int f = 0; f < FACE_SIDE_COUNT; f++)
 	{
-		faceParams.Faces[f].SetNum(faceParams.ChunkStruct.ChunkVoxelTypeTable.Num());
-		for (auto voxelId : faceParams.ChunkStruct.ChunkVoxelTypeTable)
+		faceParams.Faces[f].SetNum(faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable.Num());
+		for (auto voxelId : faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable)
 		{
 			auto faceArray = MakeShared<TArray<FChunkFace>>();
-			faceArray->Reserve(chunkPlane );
+			faceArray->Reserve(chunkPlane);
 			faceParams.Faces[f][voxelId.Value] = faceArray;
 		}
 	}
@@ -99,7 +99,7 @@ void URunLengthMesher::FaceGeneration(FChunkFaceParams& faceParams) const
 	TRACE_CPUPROFILER_EVENT_SCOPE("Run lenght meshing generation")
 #endif
 
-	auto chunkLenght = VoxelGenerator->GetVoxelCountY();
+	auto chunkLenght = VoxelGenerator->GetVoxelDimensionCount();
 	// culling and run meshing
 	for(int32 x = 0; x < chunkLenght; x++)
 	{
@@ -114,9 +114,10 @@ void URunLengthMesher::FaceGeneration(FChunkFaceParams& faceParams) const
 		{
 			for(int32 y = 0; y < chunkLenght; y++)
 			{
-				IncrementRun(x, y, z, xAxisIndex, minBorder, maxBorder, FrontFaceTemplate, BackFaceTemplate, FRONT_FACE_INDEX, BACK_FACE_INDEX, faceParams);
-				IncrementRun(y, x, z, yAxisIndex, minBorder, maxBorder, RightFaceTemplate, LeftFaceTemplate, RIGHT_FACE_INDEX, LEFT_FACE_INDEX, faceParams);
-				IncrementRun(z, y, x, zAxisIndex, minBorder, maxBorder, BottomFaceTemplate, TopFaceTemplate, BOTTOM_FACE_INDEX, TOP_FACE_INDEX, faceParams);
+				
+				IncrementRun(x, y, z, xAxisIndex, minBorder, maxBorder, FrontFaceTemplate, BackFaceTemplate, EFaceSide::Front, EFaceSide::Back, faceParams);
+				IncrementRun(y, x, z, yAxisIndex, minBorder, maxBorder, RightFaceTemplate, LeftFaceTemplate, EFaceSide::Right,  EFaceSide::Left, faceParams);
+				IncrementRun(z, y, x, zAxisIndex, minBorder, maxBorder, BottomFaceTemplate, TopFaceTemplate, EFaceSide::Bottom, EFaceSide::Top, faceParams);
 			}
 		}
 	}
@@ -124,24 +125,27 @@ void URunLengthMesher::FaceGeneration(FChunkFaceParams& faceParams) const
 
 void URunLengthMesher::IncrementRun(int x, int y, int z, int32 axisVoxelIndex, bool isMinBorder, bool isMaxBorder,
                                         const FNaiveMeshingData& faceTemplate, const FNaiveMeshingData& reversedFaceTemplate,
-                                        const int32 faceContainerIndex,
-                                        const int32 reversedFaceContainerIndex,
+                                        const EFaceSide faceSide,
+                                        const EFaceSide reversedFaceSide,
                                         FChunkFaceParams& chunkParams) const
 {
 	auto index = VoxelGenerator->GetVoxelIndex(x, y, z);
-	auto voxel = chunkParams.ChunkStruct.Voxels[index];
+	auto voxel = chunkParams.ChunkParams.OriginalChunk->Voxels[index];
 				
 	if(!voxel.IsEmptyVoxel())
 	{
 		auto position = FIntVector(x, y, z);
-		AddFace(faceTemplate, isMinBorder, index, position, voxel, axisVoxelIndex, chunkParams.Faces[faceContainerIndex][voxel.VoxelId], chunkParams.ChunkStruct);
-		AddFace(reversedFaceTemplate, isMaxBorder, index, position, voxel, axisVoxelIndex, chunkParams.Faces[reversedFaceContainerIndex][voxel.VoxelId], chunkParams.ChunkStruct);
+		auto voxelId = chunkParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable[voxel.VoxelId];
+		auto faceContainerIndex = static_cast<uint8>(faceSide);
+		auto faceContainerVoxelIndex = static_cast<uint8>(reversedFaceSide);
+		AddFace(faceTemplate, isMinBorder, index, position, voxel, axisVoxelIndex, chunkParams.Faces[faceContainerIndex][voxelId], chunkParams.ChunkParams);
+		AddFace(reversedFaceTemplate, isMaxBorder, index, position, voxel, axisVoxelIndex, chunkParams.Faces[faceContainerVoxelIndex][voxelId], chunkParams.ChunkParams);
 	}
 }
 
 void URunLengthMesher::AddFace(const FNaiveMeshingData& faceTemplate, bool isBorder,
 	const int32& index, const FIntVector& position, const FVoxel& voxel, const int32& axisVoxelIndex,
-	const TSharedPtr<TArray<FChunkFace>>& chunkFaces, FChunkStruct& chunkStruct)
+	const TSharedPtr<TArray<FChunkFace>>& chunkFaces, FChunkParams& chunkParams)
 {
 	FVoxelIndexParams voxelIndexParams =
 	{
@@ -152,7 +156,7 @@ void URunLengthMesher::AddFace(const FNaiveMeshingData& faceTemplate, bool isBor
 		faceTemplate.StaticMeshingData.borderChunkDirection
 	};
 
-	if(IsBorderVoxelVisible(voxelIndexParams, chunkStruct) || IsVoxelVisible(voxelIndexParams, chunkStruct))
+	if(IsBorderVoxelVisible(voxelIndexParams, chunkParams) || IsVoxelVisible(voxelIndexParams, chunkParams))
 	{
 		FChunkFace newFace =
 		{
@@ -176,20 +180,20 @@ void URunLengthMesher::AddFace(const FNaiveMeshingData& faceTemplate, bool isBor
 	}
 }
 
-bool URunLengthMesher::IsBorderVoxelVisible(const FVoxelIndexParams& faceData, FChunkStruct& chunkStruct)
+bool URunLengthMesher::IsBorderVoxelVisible(const FVoxelIndexParams& faceData, FChunkParams& chunkStruct)
 {
 	if(faceData.IsBorder)
 	{
 		FIntVector neighborChunkCoords = chunkStruct.GridPosition + faceData.BorderChunkDirection;
-		// auto chunk = ChunkGridData->GetChunkPtr(neighborChunkCoords);
-		// return chunk == nullptr || chunk->VoxelAt(faceData.CurrentVoxelIndex).IsEmptyVoxel();
+		auto chunk = ChunkGridData->GetChunkPtr(neighborChunkCoords);
+		return chunk == nullptr || chunk->VoxelAt(faceData.CurrentVoxelIndex).IsEmptyVoxel();
 	}
 	return false;
 }
 
-bool URunLengthMesher::IsVoxelVisible(const FVoxelIndexParams& faceData, FChunkStruct& chunkStruct)
+bool URunLengthMesher::IsVoxelVisible(const FVoxelIndexParams& faceData, FChunkParams& chunkStruct)
 {
-	return !faceData.IsBorder && chunkStruct.Voxels.IsValidIndex(faceData.ForwardVoxelIndex) && chunkStruct.Voxels[faceData.ForwardVoxelIndex].IsEmptyVoxel();
+	return !faceData.IsBorder && chunkStruct.OriginalChunk.Voxels.IsValidIndex(faceData.ForwardVoxelIndex) && chunkStruct.OriginalChunk.Voxels[faceData.ForwardVoxelIndex].IsEmptyVoxel();
 }
 
 void URunLengthMesher::GenerateVoxels(FChunkStruct& chunk)
@@ -220,9 +224,9 @@ void URunLengthMesher::DirectionalGreedyMeshing(const FChunkFaceParams& facePara
 	TRACE_CPUPROFILER_EVENT_SCOPE("Run directional greedy mesh generation")
 #endif
 	
-	for(int8 f = 0; f < FACE_COUNT; f++)
+	for(int8 f = 0; f < FACE_SIDE_COUNT; f++)
 	{
-		for (auto voxelId : faceParams.ChunkStruct.ChunkVoxelTypeTable)
+		for (auto voxelId : faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable)
 		{
 			auto faceContainer = faceParams.Faces[f][voxelId.Value];
 			auto lastElementIndex = faceContainer->Num() - 1;
@@ -260,9 +264,9 @@ void URunLengthMesher::GenerateMeshFromFaces(const FChunkFaceParams& faceParams)
 	auto voxelSize = VoxelGenerator->GetVoxelSize();
 	
 	// Because of RealTimeMesh component voxelId needs to be first
-	for (auto voxelId : faceParams.ChunkStruct.ChunkVoxelTypeTable)
+	for (auto voxelId : faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable)
 	{
-		for(int faceIndex = 0; faceIndex < FACE_COUNT; faceIndex++)
+		for(int faceIndex = 0; faceIndex < FACE_SIDE_COUNT; faceIndex++)
 		{
 			auto faceContainer = faceParams.Faces[faceIndex];
 
@@ -307,14 +311,14 @@ void URunLengthMesher::GenerateMeshFromFaces(const FChunkFaceParams& faceParams)
 		TRACE_CPUPROFILER_EVENT_SCOPE("Procedural mesh generation")
 #endif
 		
-		URealtimeMeshSimple* RealtimeMesh = faceParams.ChunkStruct.ChildChunk->RealtimeMeshComponent->InitializeRealtimeMesh<URealtimeMeshSimple>();
+		URealtimeMeshSimple* RealtimeMesh = faceParams.ChunkParams.OriginalChunk->ChildChunk->RealtimeMeshComponent->InitializeRealtimeMesh<URealtimeMeshSimple>();
 			
 		const FRealtimeMeshSectionGroupKey GroupKey = FRealtimeMeshSectionGroupKey::Create(0, FName("Chunk Mesh"));
 
 		// Now we create the section group, since the stream set has polygroups, this will create the sections as well
 		RealtimeMesh->CreateSectionGroup(GroupKey, *StreamSet);
 
-		for (auto voxelId : faceParams.ChunkStruct.ChunkVoxelTypeTable)
+		for (auto voxelId : faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable)
 		{
 			auto voxelIndex = voxelId.Value;
 			const FRealtimeMeshSectionKey PolyGroup0SectionKey = FRealtimeMeshSectionKey::CreateForPolyGroup(GroupKey, voxelIndex);
@@ -326,6 +330,11 @@ void URunLengthMesher::GenerateMeshFromFaces(const FChunkFaceParams& faceParams)
 	});
 }
 
+double URunLengthMesher::GetChunkSize()
+{
+	return VoxelGenerator->GetChunkSize();
+}
+
 bool URunLengthMesher::IsMinBorder(const int x)
 {
 	return x == 0;
@@ -333,5 +342,5 @@ bool URunLengthMesher::IsMinBorder(const int x)
 
 bool URunLengthMesher::IsMaxBorder(const int x) const
 {
- 	return x == VoxelGenerator->GetVoxelCountY() - 1;
+ 	return x == VoxelGenerator->GetVoxelDimensionCount() - 1;
 }

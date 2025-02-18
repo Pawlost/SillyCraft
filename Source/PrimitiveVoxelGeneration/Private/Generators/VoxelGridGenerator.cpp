@@ -13,12 +13,12 @@ void UVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 	TRACE_CPUPROFILER_EVENT_SCOPE("Voxel generation")
 #endif
 	
-	auto chunkLenght = GetVoxelCountY();
+	auto chunkLenght = GetVoxelDimensionCount();
 	
 	auto gridPos = chunk.GridPosition * chunkLenght;
 	int voxelTypeCount = GetVoxelTypeCount();
 	chunk.ChunkVoxelTypeTable.Reserve(voxelTypeCount);
-	chunk.Voxels.Reserve(GetVoxelCountXYZ());
+	chunk.Voxels.SetNum(GetVoxel3DimensionCount());
 	
 	for(int voxelId = 0; voxelId < voxelTypeCount; voxelId++)
 	{

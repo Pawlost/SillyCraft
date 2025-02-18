@@ -5,7 +5,7 @@
 #include "Components/ActorComponent.h"
 #include "VoxelGridGenerator.generated.h"
 
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable)
 class PRIMITIVEVOXELGENERATION_API UVoxelGridGenerator : public UVoxelGeneratorBase
 {
 	GENERATED_BODY()

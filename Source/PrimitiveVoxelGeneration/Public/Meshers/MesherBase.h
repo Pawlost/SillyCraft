@@ -2,24 +2,20 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Generators/VoxelGeneratorBase.h"
+#include "MeshingStructs/ChunkFaceParams.h"
 #include "Voxels/ChunkStruct.h"
 #include "MesherBase.generated.h"
 //TODO: add forward declarations
 
-#define FACE_COUNT 6
-
-#define FRONT_FACE_INDEX 0
-#define BACK_FACE_INDEX 1
-#define RIGHT_FACE_INDEX 2
-#define LEFT_FACE_INDEX 3
-#define BOTTOM_FACE_INDEX 4
-#define TOP_FACE_INDEX 5
-
-UCLASS(Abstract)
+UCLASS(Abstract, Blueprintable)
 class PRIMITIVEVOXELGENERATION_API UMesherBase : public UActorComponent, public IVoxelGenerator
 {
 	GENERATED_BODY()
-	virtual void GenerateVoxels(FChunkStruct&) override {}
+	
+public:
+	virtual void GenerateVoxels(FChunkStruct& chunk) override {}
 
-	virtual void GenerateMesh(FChunkStruct& chunk){}
+	virtual double GetChunkSize() override {return 0.0;}
+
+	virtual void GenerateMesh(FChunkFaceParams& faceParams){}
 };

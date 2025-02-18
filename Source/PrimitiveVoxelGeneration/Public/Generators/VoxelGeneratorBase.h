@@ -8,7 +8,7 @@
 #include "VoxelGeneratorBase.generated.h"
 
 //TODO: specify class
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable)
 class PRIMITIVEVOXELGENERATION_API UVoxelGeneratorBase : public UActorComponent, public IVoxelGenerator
 {
 	GENERATED_BODY()
@@ -16,9 +16,10 @@ class PRIMITIVEVOXELGENERATION_API UVoxelGeneratorBase : public UActorComponent,
 		UVoxelGeneratorBase();
 	
 		int32 GetVoxelIndex(const int32 x, const int32 y, const int32 z) const;
-		int32 GetVoxelCountY() const;
-		int32 GetVoxelCountYZ() const;
-		int32 GetVoxelCountXYZ() const;
+		virtual double GetChunkSize() override;
+		int32 GetVoxelDimensionCount() const;
+		int32 GetVoxel2DimensionCount() const;
+		int32 GetVoxel3DimensionCount() const;
 		double_t GetVoxelSize() const;
 
 		double_t GetMaximumElevation() const;
@@ -30,7 +31,7 @@ class PRIMITIVEVOXELGENERATION_API UVoxelGeneratorBase : public UActorComponent,
 		FVoxelType GetVoxelTypeById(const int32& voxelTypeIndex) const;
 
 		UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Voxels")
-		int32 VoxelCount = 0;
+		int32 VoxelDimensionCount = 0;
 
 		UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Voxels")
 		double VoxelSize = 0;
@@ -42,13 +43,13 @@ class PRIMITIVEVOXELGENERATION_API UVoxelGeneratorBase : public UActorComponent,
 
 		virtual void GenerateVoxels(FChunkStruct&) override {}
 
-protected:
-	virtual void BeginPlay() override;
-	
-	UPROPERTY()
-	TObjectPtr<UFastNoiseWrapper> Noise;
+	protected:
+		virtual void BeginPlay() override;
+		
+		UPROPERTY()
+		TObjectPtr<UFastNoiseWrapper> Noise;
 	
 	private:
+		double ChunkSize = 0.0, InternalVoxelSize = 0.0;
 		int32 VoxelCountY = 0, VoxelCountYZ = 0, VoxelCountXYZ = 0;
-	
 };

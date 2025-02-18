@@ -18,4 +18,5 @@ class PRIMITIVEVOXELGENERATION_API IVoxelGenerator
 
 public:
 	virtual void GenerateVoxels(FChunkStruct& chunk) = 0;
+	virtual double GetChunkSize() = 0;
 };
