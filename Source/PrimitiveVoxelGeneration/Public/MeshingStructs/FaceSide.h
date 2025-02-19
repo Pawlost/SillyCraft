@@ -3,7 +3,7 @@
 #define FACE_SIDE_COUNT 6
 
 UENUM()
-enum class EFaceSide : uint8
+enum class EFaceDirection : uint8
 {
 	Front = 0,
 	Back = 1,

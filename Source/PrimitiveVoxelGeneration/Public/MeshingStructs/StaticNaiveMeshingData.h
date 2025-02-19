@@ -4,13 +4,13 @@
 
 struct FStaticNaiveMeshingData
 {
-	EFaceSide faceSide;
+	const EFaceDirection faceSide;
 	const FChunkFace& faceTemplate;
-	TFunctionRef<bool(FChunkFace& prevFace, const FChunkFace& newFace)> naiveFaceMerge;
+	const TFunctionRef<bool(FChunkFace& prevFace, const FChunkFace& newFace)> naiveFaceMerge;
 	
-	FStaticNaiveMeshingData(EFaceSide faceSide, const FChunkFace& faceTemplate, TFunctionRef<bool(FChunkFace& prevFace, const FChunkFace& newFace)> naiveFaceMerge)
+	FStaticNaiveMeshingData(const EFaceDirection faceSide, const FChunkFace& faceTemplate, const TFunctionRef<bool(FChunkFace& prevFace, const FChunkFace& newFace)>& naiveFaceMerge)
 	:
-		borderChunkDirection(borderChunkDirection),
+		faceSide(faceSide),
 		faceTemplate(faceTemplate),
 		naiveFaceMerge(naiveFaceMerge)
 	{

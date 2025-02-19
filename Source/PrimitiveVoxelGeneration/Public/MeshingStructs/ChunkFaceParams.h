@@ -2,6 +2,7 @@
 #include "FaceSide.h"
 #include "Voxels/ChunkFace.h"
 #include "Voxels/ChunkStruct.h"
+#include "ChunkFaceParams.generated.h"
 
 USTRUCT()
 struct PRIMITIVEVOXELGENERATION_API FChunkParams

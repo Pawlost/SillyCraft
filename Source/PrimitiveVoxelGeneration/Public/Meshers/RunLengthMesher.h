@@ -31,11 +31,11 @@ private:
 		int32 ForwardVoxelIndex;
 		int32 PreviousVoxelIndex;
 		int32 CurrentVoxelIndex;
-		FIntVector BorderChunkDirection;
+		EFaceDirection FaceDirection;
 	};
 	
-	static bool IsBorderVoxelVisible(const FVoxelIndexParams& faceData, FChunkParams& chunkStruct);
-	static bool IsVoxelVisible(const FVoxelIndexParams& faceData, FChunkParams& chunkStruct);
+	static bool IsBorderVoxelVisible(const FVoxelIndexParams& faceData, const FChunkParams& chunkStruct);
+	static bool IsVoxelVisible(const FVoxelIndexParams& faceData, const FChunkParams& chunkStruct);
 	
 	FNaiveMeshingData FrontFaceTemplate = FNaiveMeshingData(FStaticNaiveMeshingData::FrontFaceData);
 	FNaiveMeshingData BackFaceTemplate = FNaiveMeshingData(FStaticNaiveMeshingData::BackFaceData);
@@ -50,13 +50,11 @@ private:
 	
 	void IncrementRun(int x, int y, int z, int32 axisVoxelIndex, bool isMinBorder, bool isMaxBorder,
 										const FNaiveMeshingData& faceTemplate, const FNaiveMeshingData& reversedFaceTemplate,
-										const EFaceSide faceSide,
-										const EFaceSide reversedFaceSide,
 										FChunkFaceParams& chunkParams) const;
 
 	static void AddFace(const FNaiveMeshingData& faceTemplate, bool isBorder,
 	                    const int32& index, const FIntVector& position, const FVoxel& voxel, const int32& axisVoxelIndex,
-	                    const TSharedPtr<TArray<FChunkFace>>& chunkFaces, FChunkParams& chunkParams);
+	                    const TSharedPtr<TArray<FChunkFace>>& chunkFaces, const FChunkParams& chunkParams);
 	
 	void InitFaceContainers(FChunkFaceParams& faceParams) const;
 	void FaceGeneration(FChunkFaceParams& faceParams) const;

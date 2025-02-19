@@ -1,7 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 #pragma once
 #include "CoreMinimal.h"
-#include "Chunks/ChunkMesherBase.h"
 #include "Meshers/MesherBase.h"
 #include "Voxels/ChunkStruct.h"
 #include "ChunkSpawnerBase.generated.h"
@@ -22,7 +21,8 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 	void SpawnChunk(FChunkStruct& Chunk, const FIntVector& location);
-
+	static void AddSideChunk(FChunkFaceParams& Chunk, EFaceDirection direction, FChunkStruct* chunk);
+	
 	UPROPERTY()
 	UMesherBase* ChunkMesher;
 };

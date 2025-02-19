@@ -36,3 +36,9 @@ void AChunkSpawnerBase::SpawnChunk(FChunkStruct& chunk, const FIntVector& spawnG
 		chunk.ChildChunk->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
 	}
 }
+
+void AChunkSpawnerBase::AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirection direction, FChunkStruct* chunk)
+{
+	auto directionIndex = static_cast<uint8>(direction);
+	chunkParams.ChunkParams.SideChunks[directionIndex] = chunk;
+}

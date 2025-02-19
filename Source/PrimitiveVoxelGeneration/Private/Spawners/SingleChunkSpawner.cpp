@@ -5,5 +5,13 @@ void ASingleChunkSpawner::BeginPlay()
 {
 	Super::BeginPlay();
 	SpawnChunk(SingleChunk, SingleChunkGridPosition);
-	ChunkMesher->GenerateMesh(SingleChunk);
+	FChunkFaceParams params;
+	params.ChunkParams.OriginalChunk = &SingleChunk;
+	AddSideChunk(params, EFaceDirection::Top, nullptr);
+	AddSideChunk(params, EFaceDirection::Bottom, nullptr);
+	AddSideChunk(params, EFaceDirection::Front, nullptr);
+	AddSideChunk(params, EFaceDirection::Back, nullptr);
+	AddSideChunk(params, EFaceDirection::Right, nullptr);
+	AddSideChunk(params, EFaceDirection::Left, nullptr);
+	ChunkMesher->GenerateMesh(params);
 }
