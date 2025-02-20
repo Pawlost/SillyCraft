@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "FaceSide.h"
+#include "FaceDirection.h"
 #include "Voxels/ChunkFace.h"
 #include "Voxels/ChunkStruct.h"
 #include "ChunkFaceParams.generated.h"
@@ -9,8 +9,8 @@ struct PRIMITIVEVOXELGENERATION_API FChunkParams
 {
 	GENERATED_BODY()
 
-	FChunkStruct* SideChunks[FACE_SIDE_COUNT];
-	FChunkStruct* OriginalChunk;
+	TSharedPtr<FChunkStruct> SideChunks[FACE_SIDE_COUNT];
+	TSharedPtr<FChunkStruct> OriginalChunk;
 };
 
 USTRUCT()

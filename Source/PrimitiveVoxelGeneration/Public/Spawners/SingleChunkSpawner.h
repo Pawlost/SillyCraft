@@ -12,7 +12,7 @@ class PRIMITIVEVOXELGENERATION_API ASingleChunkSpawner : public AChunkSpawnerBas
 	GENERATED_BODY()
 
 public:
-	FChunkStruct SingleChunk;
+	TSharedPtr<FChunkStruct> SingleChunk;
 
 protected:
 	// Called when the game starts

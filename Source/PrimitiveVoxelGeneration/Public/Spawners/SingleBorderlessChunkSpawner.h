@@ -2,6 +2,8 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "ChunkSpawnerBase.h"
+#include "MeshingStructs/DirectionToFace.h"
+#include "MeshingStructs/FaceDirection.h"
 #include "Voxels/ChunkStruct.h"
 #include "SingleBorderlessChunkSpawner.generated.h"
 //TODO: add forward declarations
@@ -12,8 +14,8 @@ class PRIMITIVEVOXELGENERATION_API ASingleBorderlessChunkSpawner : public AChunk
 	GENERATED_BODY()
 
 public:
-	FChunkStruct SingleChunk;
-	FChunkStruct SideChunk[FACE_SIDE_COUNT];
+	TSharedPtr<FChunkStruct> SingleChunk;
+	TSharedPtr<FChunkStruct> SideChunk[FACE_SIDE_COUNT];
 
 protected:
 	// Called when the game starts
@@ -21,5 +23,5 @@ protected:
 
 private:
 	FChunkFaceParams ChunkParams;
-	void SpawnSideChunk(EFaceDirection faceDirection, FIntVector side);
+	void SpawnSideChunk(const FDirectionToFace& faceDirection);
 };

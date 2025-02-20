@@ -21,9 +21,9 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-	void SpawnChunk(FChunkStruct& Chunk, const FIntVector& location);
-	static void AddSideChunk(FChunkFaceParams& Chunk, EFaceDirection direction, FChunkStruct* chunk);
-
+	void SpawnChunk(TSharedPtr<FChunkStruct>& Chunk, const FIntVector& location);
+	static void AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirection direction, const TSharedPtr<FChunkStruct>& chunk);
+	
 	UPROPERTY()
 	UMesherBase* ChunkMesher;
 };

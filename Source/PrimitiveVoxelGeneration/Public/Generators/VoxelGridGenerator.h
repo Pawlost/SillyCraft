@@ -11,5 +11,5 @@ class PRIMITIVEVOXELGENERATION_API UVoxelGridGenerator : public UVoxelGeneratorB
 	GENERATED_BODY()
 
 public:
-	virtual void GenerateVoxels(FChunkStruct& chunk) override;
+	virtual void GenerateVoxels(TSharedPtr<FChunkStruct>& chunk) override;
 };

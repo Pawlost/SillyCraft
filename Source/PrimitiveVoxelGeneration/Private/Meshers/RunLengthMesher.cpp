@@ -202,7 +202,7 @@ bool URunLengthMesher::IsVoxelVisible(const FVoxelIndexParams& faceData, const F
 		chunkStruct.OriginalChunk->Voxels[faceData.ForwardVoxelIndex].IsEmptyVoxel();
 }
 
-void URunLengthMesher::GenerateVoxels(FChunkStruct& chunk)
+void URunLengthMesher::GenerateVoxels(TSharedPtr<FChunkStruct>& chunk)
 {
 	VoxelGenerator->GenerateVoxels(chunk);
 }
@@ -345,6 +345,11 @@ void URunLengthMesher::GenerateMeshFromFaces(const FChunkFaceParams& faceParams)
 double URunLengthMesher::GetChunkSize()
 {
 	return VoxelGenerator->GetChunkSize();
+}
+
+double URunLengthMesher::GetVoxelSize()
+{
+	return VoxelGenerator->GetVoxelSize();
 }
 
 bool URunLengthMesher::IsMinBorder(const int x)

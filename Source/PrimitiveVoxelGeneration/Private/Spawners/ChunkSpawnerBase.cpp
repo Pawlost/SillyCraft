@@ -24,22 +24,22 @@ void AChunkSpawnerBase::BeginPlay()
 	Super::BeginPlay();
 }
 
-void AChunkSpawnerBase::SpawnChunk(FChunkStruct& chunk, const FIntVector& spawnGridPosition)
+void AChunkSpawnerBase::SpawnChunk(TSharedPtr<FChunkStruct>& chunk, const FIntVector& spawnGridPosition)
 {
-	chunk.GridPosition = spawnGridPosition;
+	chunk->GridPosition = spawnGridPosition;
 	ChunkMesher->GenerateVoxels(chunk);
 
 	auto spawnLocation = FVector(spawnGridPosition.X, spawnGridPosition.Y, spawnGridPosition.Z) * ChunkMesher->
 		GetChunkSize();
-	chunk.ChildChunk = GetWorld()->SpawnActor<AChunkRMCActor>(AChunkRMCActor::StaticClass(), spawnLocation,
+	chunk->ChildChunk = GetWorld()->SpawnActor<AChunkRMCActor>(AChunkRMCActor::StaticClass(), spawnLocation,
 	                                                          FRotator::ZeroRotator);
-	if (chunk.ChildChunk.IsValid())
+	if (chunk->ChildChunk.IsValid())
 	{
-		chunk.ChildChunk->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
+		chunk->ChildChunk->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
 	}
 }
 
-void AChunkSpawnerBase::AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirection direction, FChunkStruct* chunk)
+void AChunkSpawnerBase::AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirection direction, const TSharedPtr<FChunkStruct>& chunk)
 {
 	auto directionIndex = static_cast<uint8>(direction);
 	chunkParams.ChunkParams.SideChunks[directionIndex] = chunk;

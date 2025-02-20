@@ -24,7 +24,7 @@ int32 UVoxelGeneratorBase::GetVoxelDimensionCount() const
 	return VoxelDimensionCount;
 }
 
-double_t UVoxelGeneratorBase::GetVoxelSize() const
+double_t UVoxelGeneratorBase::GetVoxelSize()
 {
 	return VoxelSize;
 }
@@ -77,7 +77,8 @@ void UVoxelGeneratorBase::BeginPlay()
 // 	double maxElevation = 0.0;
 //
 // 	auto voxelSize = ChunkSettings->GetVoxelSize();
-// 	
+//
+
 // 	int voxelIds = ChunkGridData->GetVoxelIdCount();
 //
 // 	auto voxelPosX = posX / voxelSize;

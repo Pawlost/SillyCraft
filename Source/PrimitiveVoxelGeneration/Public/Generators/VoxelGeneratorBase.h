@@ -21,7 +21,7 @@ public:
 	int32 GetVoxelDimensionCount() const;
 	int32 GetVoxel2DimensionCount() const;
 	int32 GetVoxel3DimensionCount() const;
-	double_t GetVoxelSize() const;
+	virtual double_t GetVoxelSize() override;
 
 	double_t GetMaximumElevation() const;
 
@@ -42,7 +42,7 @@ public:
 
 	int32 GetVoxelIndex(const FIntVector& indexVector) const;
 
-	virtual void GenerateVoxels(FChunkStruct&) override
+	virtual void GenerateVoxels(TSharedPtr<FChunkStruct>& chunk) override
 	{
 	}
 

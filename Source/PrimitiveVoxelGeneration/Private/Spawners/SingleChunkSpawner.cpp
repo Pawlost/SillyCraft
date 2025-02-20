@@ -6,7 +6,7 @@ void ASingleChunkSpawner::BeginPlay()
 	Super::BeginPlay();
 	SpawnChunk(SingleChunk, SingleChunkGridPosition);
 	FChunkFaceParams params;
-	params.ChunkParams.OriginalChunk = &SingleChunk;
+	params.ChunkParams.OriginalChunk = SingleChunk;
 	AddSideChunk(params, EFaceDirection::Top, nullptr);
 	AddSideChunk(params, EFaceDirection::Bottom, nullptr);
 	AddSideChunk(params, EFaceDirection::Front, nullptr);

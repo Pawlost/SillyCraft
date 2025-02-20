@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "FaceSide.h"
+#include "FaceDirection.h"
 #include "Voxels/ChunkFace.h"
 
 struct FStaticNaiveMeshingData

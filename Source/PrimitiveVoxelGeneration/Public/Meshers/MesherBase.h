@@ -13,11 +13,14 @@ class PRIMITIVEVOXELGENERATION_API UMesherBase : public UActorComponent, public 
 	GENERATED_BODY()
 
 public:
-	virtual void GenerateVoxels(FChunkStruct& chunk) override
+	virtual void GenerateVoxels(TSharedPtr<FChunkStruct>& chunk) override
 	{
 	}
 
 	virtual double GetChunkSize() override { return 0.0; }
+
+	
+	virtual double GetVoxelSize() override {return 0.0;}
 
 	virtual void GenerateMesh(FChunkFaceParams& faceParams)
 	{

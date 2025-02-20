@@ -7,7 +7,7 @@
 #include "Voxels/Voxel.h"
 #include "Voxels/VoxelType.h"
 
-void UVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
+void UVoxelGridGenerator::GenerateVoxels(TSharedPtr<FChunkStruct>& chunk)
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Voxel generation")
@@ -15,10 +15,10 @@ void UVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 
 	auto chunkLenght = GetVoxelDimensionCount();
 
-	auto gridPos = chunk.GridPosition * chunkLenght;
+	auto gridPos = chunk->GridPosition * chunkLenght;
 	int voxelTypeCount = GetVoxelTypeCount();
-	chunk.ChunkVoxelTypeTable.Reserve(voxelTypeCount);
-	chunk.Voxels.SetNum(GetVoxel3DimensionCount());
+	chunk->ChunkVoxelTypeTable.Reserve(voxelTypeCount);
+	chunk->Voxels.SetNum(GetVoxel3DimensionCount());
 
 	for (int voxelId = 0; voxelId < voxelTypeCount; voxelId++)
 	{
@@ -40,12 +40,12 @@ void UVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 
 					if (gridPos.Z + z <= elevation)
 					{
-						chunk.Voxels[index] = voxel;
-						if (!chunk.ChunkVoxelTypeTable.Contains(voxel.VoxelId))
+						chunk->Voxels[index] = voxel;
+						if (!chunk->ChunkVoxelTypeTable.Contains(voxel.VoxelId))
 						{
-							chunk.ChunkVoxelTypeTable.Add(voxel.VoxelId, chunk.ChunkVoxelTypeTable.Num());
+							chunk->ChunkVoxelTypeTable.Add(voxel.VoxelId, chunk->ChunkVoxelTypeTable.Num());
 						}
-						chunk.IsEmpty = false;
+						chunk->IsEmpty = false;
 					}
 				}
 			}
