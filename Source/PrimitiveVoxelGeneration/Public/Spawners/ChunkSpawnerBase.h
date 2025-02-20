@@ -10,6 +10,7 @@ UCLASS(Abstract)
 class PRIMITIVEVOXELGENERATION_API AChunkSpawnerBase : public AActor
 {
 	GENERATED_BODY()
+
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
 	TSubclassOf<UMesherBase> MesherBlueprint = nullptr;
@@ -22,7 +23,7 @@ protected:
 	virtual void BeginPlay() override;
 	void SpawnChunk(FChunkStruct& Chunk, const FIntVector& location);
 	static void AddSideChunk(FChunkFaceParams& Chunk, EFaceDirection direction, FChunkStruct* chunk);
-	
+
 	UPROPERTY()
 	UMesherBase* ChunkMesher;
 };

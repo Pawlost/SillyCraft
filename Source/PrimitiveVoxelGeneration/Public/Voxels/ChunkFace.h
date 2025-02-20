@@ -13,10 +13,10 @@ struct PRIMITIVEVOXELGENERATION_API FChunkFace
 	FVector3f GetFinalStartVertexUp(const double& voxelSize) const;
 	FVector3f GetFinalEndVertexDown(const double& voxelSize) const;
 	FVector3f GetFinalEndVertexUp(const double& voxelSize) const;
-	
+
 	bool IsMark = false;
 	FVoxel Voxel = FVoxel();
-	
+
 	static FChunkFace FrontFace;
 	static FChunkFace BackFace;
 	static FChunkFace LeftFace;
@@ -35,7 +35,8 @@ struct PRIMITIVEVOXELGENERATION_API FChunkFace
 	{
 	}
 
-	FChunkFace(const FVoxel& voxel, const FIntVector& startVertexDown, const FIntVector& endVertexDown, const FIntVector& endVertexUp, const FIntVector& startVertexUp)
+	FChunkFace(const FVoxel& voxel, const FIntVector& startVertexDown, const FIntVector& endVertexDown,
+	           const FIntVector& endVertexUp, const FIntVector& startVertexUp)
 	{
 		Voxel = voxel;
 		StartVertexDown = startVertexDown;
@@ -43,8 +44,9 @@ struct PRIMITIVEVOXELGENERATION_API FChunkFace
 		EndVertexDown = endVertexDown;
 		EndVertexUp = endVertexUp;
 	}
-	
-	FChunkFace(const FIntVector& startVertexDown, const FIntVector& endVertexDown, const FIntVector& endVertexUp, const FIntVector& startVertexUp)
+
+	FChunkFace(const FIntVector& startVertexDown, const FIntVector& endVertexDown, const FIntVector& endVertexUp,
+	           const FIntVector& startVertexUp)
 	{
 		StartVertexDown = startVertexDown;
 		StartVertexUp = startVertexUp;

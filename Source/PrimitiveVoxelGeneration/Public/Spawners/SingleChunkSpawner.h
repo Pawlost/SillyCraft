@@ -10,9 +10,10 @@ UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PRIMITIVEVOXELGENERATION_API ASingleChunkSpawner : public AChunkSpawnerBase
 {
 	GENERATED_BODY()
+
 public:
 	FChunkStruct SingleChunk;
-	
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

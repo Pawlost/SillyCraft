@@ -11,11 +11,15 @@ UCLASS(Abstract, Blueprintable)
 class PRIMITIVEVOXELGENERATION_API UMesherBase : public UActorComponent, public IVoxelGenerator
 {
 	GENERATED_BODY()
-	
+
 public:
-	virtual void GenerateVoxels(FChunkStruct& chunk) override {}
+	virtual void GenerateVoxels(FChunkStruct& chunk) override
+	{
+	}
 
-	virtual double GetChunkSize() override {return 0.0;}
+	virtual double GetChunkSize() override { return 0.0; }
 
-	virtual void GenerateMesh(FChunkFaceParams& faceParams){}
+	virtual void GenerateMesh(FChunkFaceParams& faceParams)
+	{
+	}
 };

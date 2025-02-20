@@ -11,19 +11,20 @@ UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable)
 class PRIMITIVEVOXELGENERATION_API URunLengthMesher : public UMesherBase
 {
 	GENERATED_BODY()
-	
+
 public:
 	virtual void GenerateMesh(FChunkFaceParams& faceParams) override;
 	// virtual double GetHighestElevationAtPosition(double posX, double posY) override;
 	virtual void GenerateVoxels(FChunkStruct& chunk) override;
 	virtual double GetChunkSize() override;;
-	
+
 	// Allows selecting a component class in Blueprint
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TSubclassOf<UVoxelGeneratorBase> VoxelGeneratorClass = nullptr;
-	
+
 protected:
 	virtual void BeginPlay() override;
+
 private:
 	struct FVoxelIndexParams
 	{
@@ -33,10 +34,10 @@ private:
 		int32 CurrentVoxelIndex;
 		EFaceDirection FaceDirection;
 	};
-	
+
 	static bool IsBorderVoxelVisible(const FVoxelIndexParams& faceData, const FChunkParams& chunkStruct);
 	static bool IsVoxelVisible(const FVoxelIndexParams& faceData, const FChunkParams& chunkStruct);
-	
+
 	FNaiveMeshingData FrontFaceTemplate = FNaiveMeshingData(FStaticNaiveMeshingData::FrontFaceData);
 	FNaiveMeshingData BackFaceTemplate = FNaiveMeshingData(FStaticNaiveMeshingData::BackFaceData);
 	FNaiveMeshingData RightFaceTemplate = FNaiveMeshingData(FStaticNaiveMeshingData::RightFaceData);
@@ -46,16 +47,17 @@ private:
 
 	void UpdateAllFacesParams();
 	void UpdateFaceParams(FNaiveMeshingData& face, FIntVector forwardVoxelIndexVector,
-		FIntVector previousVoxelIndexVector, FIntVector chunkBorderIndexVector) const;
-	
+	                      FIntVector previousVoxelIndexVector, FIntVector chunkBorderIndexVector) const;
+
 	void IncrementRun(int x, int y, int z, int32 axisVoxelIndex, bool isMinBorder, bool isMaxBorder,
-										const FNaiveMeshingData& faceTemplate, const FNaiveMeshingData& reversedFaceTemplate,
-										FChunkFaceParams& chunkParams) const;
+	                  const FNaiveMeshingData& faceTemplate, const FNaiveMeshingData& reversedFaceTemplate,
+	                  FChunkFaceParams& chunkParams) const;
 
 	static void AddFace(const FNaiveMeshingData& faceTemplate, bool isBorder,
-	                    const int32& index, const FIntVector& position, const FVoxel& voxel, const int32& axisVoxelIndex,
+	                    const int32& index, const FIntVector& position, const FVoxel& voxel,
+	                    const int32& axisVoxelIndex,
 	                    const TSharedPtr<TArray<FChunkFace>>& chunkFaces, const FChunkParams& chunkParams);
-	
+
 	void InitFaceContainers(FChunkFaceParams& faceParams) const;
 	void FaceGeneration(FChunkFaceParams& faceParams) const;
 	static void DirectionalGreedyMeshing(const FChunkFaceParams& faceParams);
@@ -69,9 +71,9 @@ private:
 		FVector3f Normal;
 		FVector3f Tangent;
 	};
-	
+
 	static const FNormalsAndTangents FaceNormalsAndTangents[6];
-	
+
 	UPROPERTY()
 	UVoxelGeneratorBase* VoxelGenerator;
 };

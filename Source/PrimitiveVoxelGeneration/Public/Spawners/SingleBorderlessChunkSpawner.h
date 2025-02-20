@@ -10,13 +10,15 @@ UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PRIMITIVEVOXELGENERATION_API ASingleBorderlessChunkSpawner : public AChunkSpawnerBase
 {
 	GENERATED_BODY()
+
 public:
 	FChunkStruct SingleChunk;
 	FChunkStruct SideChunk[FACE_SIDE_COUNT];
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-	
+
 private:
 	FChunkFaceParams ChunkParams;
 	void SpawnSideChunk(EFaceDirection faceDirection, FIntVector side);

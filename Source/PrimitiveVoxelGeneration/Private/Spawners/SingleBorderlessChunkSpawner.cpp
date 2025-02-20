@@ -15,7 +15,7 @@ void ASingleBorderlessChunkSpawner::BeginPlay()
 	SpawnSideChunk(EFaceDirection::Back, FIntVector(1, 0, 0));
 	SpawnSideChunk(EFaceDirection::Right, FIntVector(0, -1, 0));
 	SpawnSideChunk(EFaceDirection::Left, FIntVector(0, 1, 0));
-	
+
 	ChunkMesher->GenerateMesh(ChunkParams);
 }
 
@@ -23,5 +23,5 @@ void ASingleBorderlessChunkSpawner::SpawnSideChunk(EFaceDirection faceDirection,
 {
 	auto index = static_cast<uint8>(faceDirection);
 	SpawnChunk(SideChunk[index], SingleChunkGridPosition + side);
-	AddSideChunk(ChunkParams,faceDirection, &SideChunk[index]);
+	AddSideChunk(ChunkParams, faceDirection, &SideChunk[index]);
 }

@@ -20,7 +20,7 @@ void AChunkSpawnerBase::BeginPlay()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ChunkTemplate is nullptr!"));
 	}
-	
+
 	Super::BeginPlay();
 }
 
@@ -29,8 +29,10 @@ void AChunkSpawnerBase::SpawnChunk(FChunkStruct& chunk, const FIntVector& spawnG
 	chunk.GridPosition = spawnGridPosition;
 	ChunkMesher->GenerateVoxels(chunk);
 
-	auto spawnLocation = FVector(spawnGridPosition.X, spawnGridPosition.Y, spawnGridPosition.Z) * ChunkMesher->GetChunkSize();
-	chunk.ChildChunk = GetWorld()->SpawnActor<AChunkRMCActor>(AChunkRMCActor::StaticClass(), spawnLocation, FRotator::ZeroRotator);
+	auto spawnLocation = FVector(spawnGridPosition.X, spawnGridPosition.Y, spawnGridPosition.Z) * ChunkMesher->
+		GetChunkSize();
+	chunk.ChildChunk = GetWorld()->SpawnActor<AChunkRMCActor>(AChunkRMCActor::StaticClass(), spawnLocation,
+	                                                          FRotator::ZeroRotator);
 	if (chunk.ChildChunk.IsValid())
 	{
 		chunk.ChildChunk->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);

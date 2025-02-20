@@ -9,7 +9,8 @@ struct FNaiveMeshingData
 	int32 PreviousVoxelIndex;
 
 	explicit FNaiveMeshingData(FStaticNaiveMeshingData& staticMeshingData) : StaticMeshingData(staticMeshingData),
-	                                                                         ForwardVoxelIndex(0), ChunkBorderIndex(0), PreviousVoxelIndex(0)
+	                                                                         ForwardVoxelIndex(0), ChunkBorderIndex(0),
+	                                                                         PreviousVoxelIndex(0)
 	{
 	}
 };

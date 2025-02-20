@@ -10,6 +10,7 @@ UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PRIMITIVEVOXELGENERATION_API AAreaChunkSpawner : public AActor
 {
 	GENERATED_BODY()
+
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation")
 	TSubclassOf<UChunkMesherBase> ChunkMesherTemplate = nullptr;

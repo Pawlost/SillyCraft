@@ -23,24 +23,30 @@ public:
 
 	// should be called before generate mesh
 	void Spawn(bool lockLocation = true);
-	virtual void GenerateMesh(){}
+
+	virtual void GenerateMesh()
+	{
+	}
+
 	void RemoveMeshAsync() const;
 	void RemoveMesh() const;
 	void Despawn() const;
-	
-	virtual void GenerateVoxels(){}
-	
-	virtual FVoxel VoxelAt(int32 index){return FVoxel();}
-	
+
+	virtual void GenerateVoxels()
+	{
+	}
+
+	virtual FVoxel VoxelAt(int32 index) { return FVoxel(); }
+
 	bool IsEmpty() const;
 	virtual double GetHighestElevationAtPosition(double posX, double posY);
-	
+
 protected:
 	TWeakObjectPtr<UChunkGridData> ChunkGridData;
 
 	UPROPERTY()
 	FTransform SpawnTransform = FTransform::Identity;
-	
+
 	UPROPERTY()
 	TObjectPtr<ARealtimeMeshActor> ChunkActor = nullptr;
 

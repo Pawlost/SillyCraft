@@ -14,12 +14,12 @@ USTRUCT()
 struct PRIMITIVEVOXELGENERATION_API FChunkSettings
 {
 	GENERATED_BODY()
-	
+
 	int32 GetChunkSize() const;
-	
+
 	int32 GetVoxelIndex(const FIntVector& indexVector) const;
 	FIntVector3 IndexToCoords(const int32 index) const;
-	
+
 	// Getters & Setters
 	int32 GetAxisVoxelCount() const;
 	void SetAxisVoxelCount(const int32 chunkSideSizeInVoxels);

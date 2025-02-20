@@ -7,9 +7,10 @@ struct FStaticNaiveMeshingData
 	const EFaceDirection faceSide;
 	const FChunkFace& faceTemplate;
 	const TFunctionRef<bool(FChunkFace& prevFace, const FChunkFace& newFace)> naiveFaceMerge;
-	
-	FStaticNaiveMeshingData(const EFaceDirection faceSide, const FChunkFace& faceTemplate, const TFunctionRef<bool(FChunkFace& prevFace, const FChunkFace& newFace)>& naiveFaceMerge)
-	:
+
+	FStaticNaiveMeshingData(const EFaceDirection faceSide, const FChunkFace& faceTemplate,
+	                        const TFunctionRef<bool(FChunkFace& prevFace, const FChunkFace& newFace)>& naiveFaceMerge)
+		:
 		faceSide(faceSide),
 		faceTemplate(faceTemplate),
 		naiveFaceMerge(naiveFaceMerge)
