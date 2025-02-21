@@ -6,6 +6,8 @@
 #include "Mesh/RealtimeMeshBuilder.h"
 #include "MeshingStructs/ChunkFaceParams.h"
 
+UE_DISABLE_OPTIMIZATION
+
 const URunLengthMesher::FNormalsAndTangents URunLengthMesher::FaceNormalsAndTangents[] = {
 	{FVector3f(-1.0f, 0.0f, 0.0f), FVector3f(0.0, 1.0, 0.0)}, //Front
 	{FVector3f(1.0f, 0.0f, 0.0f), FVector3f(0.0, 1.0, 0.0)}, //Back
@@ -136,7 +138,12 @@ void URunLengthMesher::IncrementRun(int x, int y, int z, int32 axisVoxelIndex, b
 	if (!voxel.IsEmptyVoxel())
 	{
 		auto position = FIntVector(x, y, z);
-		auto voxelId = chunkParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable[voxel.VoxelId];
+		auto sideChunk = chunkParams.ChunkParams.OriginalChunk;
+		if (!sideChunk.IsValid())
+		{
+			return;
+		}
+		auto voxelId = sideChunk->ChunkVoxelTypeTable[voxel.VoxelId];
 		auto faceContainerIndex = static_cast<uint8>(faceTemplate.StaticMeshingData.faceSide);
 		auto faceContainerVoxelIndex = static_cast<uint8>(reversedFaceTemplate.StaticMeshingData.faceSide);
 		AddFace(faceTemplate, isMinBorder, index, position, voxel, axisVoxelIndex,
@@ -257,9 +264,9 @@ void URunLengthMesher::GenerateMeshFromFaces(const FChunkFaceParams& faceParams)
 	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh stream generation")
 #endif
 
-	auto StreamSet = MakeShared<RealtimeMesh::FRealtimeMeshStreamSet>();
+	auto StreamSet = MakeShared<FRealtimeMeshStreamSet>();
 
-	RealtimeMesh::TRealtimeMeshBuilderLocal<int32> Builder(*StreamSet.ToWeakPtr().Pin());
+	TRealtimeMeshBuilderLocal<int32> Builder(*StreamSet.ToWeakPtr().Pin());
 
 	Builder.EnableTexCoords();
 	Builder.EnableColors();
@@ -267,6 +274,11 @@ void URunLengthMesher::GenerateMeshFromFaces(const FChunkFaceParams& faceParams)
 
 	Builder.EnablePolyGroups();
 
+	if (!IsValid(VoxelGenerator))
+	{
+		return;
+	}
+	
 	auto voxelSize = VoxelGenerator->GetVoxelSize();
 
 	// Because of RealTimeMesh component voxelId needs to be first
@@ -316,26 +328,38 @@ void URunLengthMesher::GenerateMeshFromFaces(const FChunkFaceParams& faceParams)
 #if CPUPROFILERTRACE_ENABLED
 		TRACE_CPUPROFILER_EVENT_SCOPE("Procedural mesh generation")
 #endif
-
-		URealtimeMeshSimple* RealtimeMesh = faceParams.ChunkParams.OriginalChunk->ChildChunk->RealtimeMeshComponent->
-		                                               InitializeRealtimeMesh<URealtimeMeshSimple>();
+		
+		if (!faceParams.ChunkParams.OriginalChunk.IsValid() || !faceParams.ChunkParams.OriginalChunk->ChunkMeshActor.IsValid() || !IsValid(faceParams.ChunkParams.OriginalChunk->ChunkMeshActor->RealtimeMeshComponent))
+		{
+			return;
+		}
+		
+		URealtimeMeshSimple* RealtimeMesh = faceParams.ChunkParams.OriginalChunk->ChunkMeshActor->RealtimeMeshComponent->InitializeRealtimeMesh<URealtimeMeshSimple>();
 
 		const FRealtimeMeshSectionGroupKey GroupKey = FRealtimeMeshSectionGroupKey::Create(0, FName("Chunk Mesh"));
 
-		// Now we create the section group, since the stream set has polygroups, this will create the sections as well
-		RealtimeMesh->CreateSectionGroup(GroupKey, *StreamSet);
-
+		struct TempConfig
+		{
+			FRealtimeMeshSectionKey key;
+			short voxelIndex;
+		};
+		TArray<TempConfig> keyMap;
 		for (auto voxelId : faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable)
 		{
 			auto voxelIndex = voxelId.Value;
-			const FRealtimeMeshSectionKey PolyGroup0SectionKey = FRealtimeMeshSectionKey::CreateForPolyGroup(
-				GroupKey, voxelIndex);
-			RealtimeMesh->UpdateSectionConfig(PolyGroup0SectionKey,
-			                                  FRealtimeMeshSectionConfig(
-				                                  ERealtimeMeshSectionDrawType::Static, voxelIndex), true);
-
 			FVoxelType voxelType = VoxelGenerator->GetVoxelTypeById(voxelId.Key);
 			RealtimeMesh->SetupMaterialSlot(voxelIndex, voxelType.BlockName, voxelType.Material);
+			keyMap.Add(TempConfig(FRealtimeMeshSectionKey::CreateForPolyGroup(GroupKey, voxelIndex),voxelIndex));
+		}
+		
+		// Now we create the section group, since the stream set has polygroups, this will create the sections as well
+		RealtimeMesh->CreateSectionGroup(GroupKey, *StreamSet);
+		
+		for (auto key : keyMap)
+		{
+			RealtimeMesh->UpdateSectionConfig(key.key,
+			                                  FRealtimeMeshSectionConfig(
+				                                  ERealtimeMeshSectionDrawType::Static, key.voxelIndex), true);
 		}
 
 		faceParams.ChunkParams.OriginalChunk->HasMesh = true;

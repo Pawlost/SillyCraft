@@ -21,7 +21,7 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-	void SpawnChunk(TSharedPtr<FChunkStruct>& Chunk, const FIntVector& location);
+	void SpawnChunk(const TSharedPtr<FChunkStruct>& chunk);
 	static void AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirection direction, const TSharedPtr<FChunkStruct>& chunk);
 	
 	UPROPERTY()

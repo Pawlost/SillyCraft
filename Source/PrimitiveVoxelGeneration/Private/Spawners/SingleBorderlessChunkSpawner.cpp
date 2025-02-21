@@ -8,8 +8,9 @@ void ASingleBorderlessChunkSpawner::BeginPlay()
 {
 	Super::BeginPlay();
 	SingleChunk = MakeShared<FChunkStruct>();
-	
-	SpawnChunk(SingleChunk, SingleChunkGridPosition);
+
+	SingleChunk->GridPosition = SingleChunkGridPosition;
+	SpawnChunk(SingleChunk);
 	ChunkParams.ChunkParams.OriginalChunk = SingleChunk;
 
 	SpawnSideChunk(FDirectionToFace::TopDirection);
@@ -27,6 +28,7 @@ void ASingleBorderlessChunkSpawner::SpawnSideChunk(const FDirectionToFace& faceD
 	auto index = static_cast<uint8>(faceDirection.FaceSide);
 	auto chunk = MakeShared<FChunkStruct>().ToSharedPtr();
 	SideChunk[index] = chunk;
-	SpawnChunk(chunk, SingleChunkGridPosition + faceDirection.Direction);
+	chunk->GridPosition = SingleChunkGridPosition + faceDirection.Direction;
+	SpawnChunk(chunk);
 	AddSideChunk(ChunkParams, faceDirection.FaceSide, SideChunk[index]);
 }

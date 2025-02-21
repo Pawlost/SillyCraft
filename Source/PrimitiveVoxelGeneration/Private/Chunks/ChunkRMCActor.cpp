@@ -9,7 +9,6 @@ AChunkRMCActor::AChunkRMCActor()
 	RealtimeMeshComponent = CreateDefaultSubobject<URealtimeMeshComponent>(TEXT("RealtimeMeshComponent"));
 	RealtimeMeshComponent->SetMobility(EComponentMobility::Stationary);
 	RealtimeMeshComponent->SetGenerateOverlapEvents(false);
-	RealtimeMeshComponent->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
 	SetRootComponent(RealtimeMeshComponent);
 }
 

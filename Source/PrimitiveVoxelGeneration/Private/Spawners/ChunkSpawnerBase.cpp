@@ -24,23 +24,30 @@ void AChunkSpawnerBase::BeginPlay()
 	Super::BeginPlay();
 }
 
-void AChunkSpawnerBase::SpawnChunk(TSharedPtr<FChunkStruct>& chunk, const FIntVector& spawnGridPosition)
+void AChunkSpawnerBase::SpawnChunk(const TSharedPtr<FChunkStruct>& chunk)
 {
-	chunk->GridPosition = spawnGridPosition;
-	ChunkMesher->GenerateVoxels(chunk);
-
-	auto spawnLocation = FVector(spawnGridPosition.X, spawnGridPosition.Y, spawnGridPosition.Z) * ChunkMesher->
-		GetChunkSize();
-	chunk->ChildChunk = GetWorld()->SpawnActor<AChunkRMCActor>(AChunkRMCActor::StaticClass(), spawnLocation,
-	                                                          FRotator::ZeroRotator);
-	if (chunk->ChildChunk.IsValid())
+	AsyncTask(ENamedThreads::GameThread, [this, chunk]()
 	{
-		chunk->ChildChunk->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
-	}
+		auto world = GetWorld();
+		if (!IsValid(world))
+		{
+			return;
+		}
+
+		auto spawnLocation = FVector(chunk->GridPosition.X, chunk->GridPosition.Y, chunk->GridPosition.Z) * ChunkMesher->
+			GetChunkSize();
+		
+		chunk->ChunkMeshActor = world->SpawnActor<AChunkRMCActor>(AChunkRMCActor::StaticClass(), spawnLocation,
+																  FRotator::ZeroRotator);
+		if (chunk->ChunkMeshActor.IsValid())
+		{
+			chunk->ChunkMeshActor->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
+		}
+	});
 }
 
 void AChunkSpawnerBase::AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirection direction, const TSharedPtr<FChunkStruct>& chunk)
 {
 	auto directionIndex = static_cast<uint8>(direction);
-	chunkParams.ChunkParams.SideChunks[directionIndex] = chunk;
+	chunkParams.ChunkParams.SideChunks[directionIndex] = chunk.IsValid() ? chunk : nullptr;
 }

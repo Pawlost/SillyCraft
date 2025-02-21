@@ -4,7 +4,9 @@
 void ASingleChunkSpawner::BeginPlay()
 {
 	Super::BeginPlay();
-	SpawnChunk(SingleChunk, SingleChunkGridPosition);
+	SingleChunk = MakeShared<FChunkStruct>();
+	SingleChunk->GridPosition = SingleChunkGridPosition;
+	SpawnChunk(SingleChunk);
 	FChunkFaceParams params;
 	params.ChunkParams.OriginalChunk = SingleChunk;
 	AddSideChunk(params, EFaceDirection::Top, nullptr);
