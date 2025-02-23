@@ -6,8 +6,6 @@
 #include "Mesh/RealtimeMeshBuilder.h"
 #include "MeshingStructs/ChunkFaceParams.h"
 
-UE_DISABLE_OPTIMIZATION
-
 const URunLengthMesher::FNormalsAndTangents URunLengthMesher::FaceNormalsAndTangents[] = {
 	{FVector3f(-1.0f, 0.0f, 0.0f), FVector3f(0.0, 1.0, 0.0)}, //Front
 	{FVector3f(1.0f, 0.0f, 0.0f), FVector3f(0.0, 1.0, 0.0)}, //Back
@@ -278,8 +276,10 @@ void URunLengthMesher::GenerateMeshFromFaces(const FChunkFaceParams& faceParams)
 	{
 		return;
 	}
-	
+
 	auto voxelSize = VoxelGenerator->GetVoxelSize();
+
+	TMap<int32, int16> voxelIdsInMesh;
 
 	// Because of RealTimeMesh component voxelId needs to be first
 	for (auto voxelId : faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable)
@@ -288,8 +288,7 @@ void URunLengthMesher::GenerateMeshFromFaces(const FChunkFaceParams& faceParams)
 		{
 			auto faceContainer = faceParams.Faces[faceIndex];
 
-			auto voxelIndex = voxelId.Value;
-			auto sideFaces = faceContainer[voxelIndex];
+			auto sideFaces = faceContainer[voxelId.Value];
 
 			auto faceNormalAndTangent = FaceNormalsAndTangents[faceIndex];
 			for (auto Face : *sideFaces)
@@ -317,53 +316,44 @@ void URunLengthMesher::GenerateMeshFromFaces(const FChunkFaceParams& faceParams)
 				                  .SetTexCoord(FVector2f(0, 1))
 				                  .SetNormalAndTangent(faceNormalAndTangent.Normal, faceNormalAndTangent.Tangent);
 
-				Builder.AddTriangle(V0, V1, V2, voxelIndex);
-				Builder.AddTriangle(V2, V3, V0, voxelIndex);
+				if (!voxelIdsInMesh.Contains(voxelId.Key))
+				{
+					voxelIdsInMesh.Add(voxelId.Key, voxelIdsInMesh.Num());
+				}
+
+				Builder.AddTriangle(V0, V1, V2, voxelIdsInMesh[voxelId.Key]);
+				Builder.AddTriangle(V2, V3, V0, voxelIdsInMesh[voxelId.Key]);
 			}
 		}
 	}
 
-	AsyncTask(ENamedThreads::GameThread, [this, StreamSet, faceParams]()
+	if (!faceParams.ChunkParams.OriginalChunk.IsValid() || !faceParams.ChunkParams.OriginalChunk->ChunkMeshActor.
+	                                                                   IsValid())
 	{
-#if CPUPROFILERTRACE_ENABLED
-		TRACE_CPUPROFILER_EVENT_SCOPE("Procedural mesh generation")
-#endif
-		
-		if (!faceParams.ChunkParams.OriginalChunk.IsValid() || !faceParams.ChunkParams.OriginalChunk->ChunkMeshActor.IsValid() || !IsValid(faceParams.ChunkParams.OriginalChunk->ChunkMeshActor->RealtimeMeshComponent))
-		{
-			return;
-		}
-		
-		URealtimeMeshSimple* RealtimeMesh = faceParams.ChunkParams.OriginalChunk->ChunkMeshActor->RealtimeMeshComponent->InitializeRealtimeMesh<URealtimeMeshSimple>();
+		return;
+	}
 
-		const FRealtimeMeshSectionGroupKey GroupKey = FRealtimeMeshSectionGroupKey::Create(0, FName("Chunk Mesh"));
+	auto RealtimeMesh = faceParams.ChunkParams.OriginalChunk->ChunkMeshActor->RealtimeMeshComponent->GetRealtimeMeshAs<
+		URealtimeMeshSimple>();
 
-		struct TempConfig
-		{
-			FRealtimeMeshSectionKey key;
-			short voxelIndex;
-		};
-		TArray<TempConfig> keyMap;
-		for (auto voxelId : faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable)
-		{
-			auto voxelIndex = voxelId.Value;
-			FVoxelType voxelType = VoxelGenerator->GetVoxelTypeById(voxelId.Key);
-			RealtimeMesh->SetupMaterialSlot(voxelIndex, voxelType.BlockName, voxelType.Material);
-			keyMap.Add(TempConfig(FRealtimeMeshSectionKey::CreateForPolyGroup(GroupKey, voxelIndex),voxelIndex));
-		}
-		
-		// Now we create the section group, since the stream set has polygroups, this will create the sections as well
-		RealtimeMesh->CreateSectionGroup(GroupKey, *StreamSet);
-		
-		for (auto key : keyMap)
-		{
-			RealtimeMesh->UpdateSectionConfig(key.key,
-			                                  FRealtimeMeshSectionConfig(
-				                                  ERealtimeMeshSectionDrawType::Static, key.voxelIndex), true);
-		}
+	const FRealtimeMeshSectionGroupKey GroupKey = FRealtimeMeshSectionGroupKey::Create(0, FName("Chunk Mesh"));
 
-		faceParams.ChunkParams.OriginalChunk->HasMesh = true;
-	});
+	// Now we create the section group, since the stream set has polygroups, this will create the sections as well
+	RealtimeMesh->CreateSectionGroup(GroupKey, *StreamSet);
+
+	for (auto voxelId : voxelIdsInMesh)
+	{
+		auto voxelIndex = voxelId.Value;
+		FVoxelType voxelType = VoxelGenerator->GetVoxelTypeById(voxelId.Key);
+		RealtimeMesh->SetupMaterialSlot(voxelIndex, voxelType.BlockName, voxelType.Material);
+
+		auto key = FRealtimeMeshSectionKey::CreateForPolyGroup(GroupKey, voxelIndex);
+		RealtimeMesh->UpdateSectionConfig(key,
+		                                  FRealtimeMeshSectionConfig(
+			                                  ERealtimeMeshSectionDrawType::Static, voxelIndex), true);
+	}
+
+	faceParams.ChunkParams.OriginalChunk->HasMesh = true;
 }
 
 double URunLengthMesher::GetChunkSize()

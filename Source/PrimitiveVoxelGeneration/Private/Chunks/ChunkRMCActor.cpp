@@ -1,6 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Chunks/ChunkRMCActor.h"
+#include "RealtimeMeshSimple.h"
 
 // Sets default values
 AChunkRMCActor::AChunkRMCActor()
@@ -14,5 +15,6 @@ AChunkRMCActor::AChunkRMCActor()
 
 void AChunkRMCActor::OnConstruction(const FTransform& Transform)
 {
+	RealtimeMeshComponent->InitializeRealtimeMesh<URealtimeMeshSimple>();
 	Super::OnConstruction(Transform);
 }

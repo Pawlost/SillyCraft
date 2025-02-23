@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "CoreMinimal.h"
+#include "Voxel.h"
 #include "Chunks/ChunkRMCActor.h"
 #include "ChunkStruct.generated.h"
 

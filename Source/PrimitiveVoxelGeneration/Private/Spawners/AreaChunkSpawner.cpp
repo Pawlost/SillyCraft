@@ -3,8 +3,6 @@
 
 #include "MeshingStructs/DirectionToFace.h"
 
-UE_DISABLE_OPTIMIZATION
-
 void AAreaChunkSpawner::BeginPlay()
 {
 	Super::BeginPlay();
@@ -39,11 +37,11 @@ void AAreaChunkSpawner::GenerateArea(const FIntVector& gridPosition)
 	auto maxPosition = gridPosition + FIntVector(SpawnRadius);
 	AsyncTask(ENamedThreads::AnyThread, [this, minPosition, maxPosition]()
 	{
-		for (int32 x = minPosition.X - 1; x < maxPosition.X + 1; x++)
+		for (int32 x = minPosition.X; x < maxPosition.X; x++)
 		{
-			for (int32 y = minPosition.Y - 1; y < maxPosition.Y + 1; y++)
+			for (int32 y = minPosition.Y; y < maxPosition.Y; y++)
 			{
-				for (int32 z = minPosition.Z - 1; z < maxPosition.Z + 1; z++)
+				for (int32 z = minPosition.Z; z < maxPosition.Z; z++)
 				{
 					if (!IsValid(this))
 					{
