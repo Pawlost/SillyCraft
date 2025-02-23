@@ -156,7 +156,7 @@ void URunLengthMesher::AddFace(const FNaiveMeshingData& faceTemplate, bool isBor
                                const int32& axisVoxelIndex,
                                const TSharedPtr<TArray<FChunkFace>>& chunkFaces, const FChunkParams& chunkParams)
 {
-	FVoxelIndexParams voxelIndexParams =
+	const FVoxelIndexParams voxelIndexParams =
 	{
 		isBorder,
 		faceTemplate.ForwardVoxelIndex + index,
@@ -279,7 +279,7 @@ void URunLengthMesher::GenerateMeshFromFaces(const FChunkFaceParams& faceParams)
 
 	auto voxelSize = VoxelGenerator->GetVoxelSize();
 
-	TMap<int32, int16> voxelIdsInMesh;
+	TMap<uint32, uint16> voxelIdsInMesh;
 
 	// Because of RealTimeMesh component voxelId needs to be first
 	for (auto voxelId : faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable)
@@ -343,14 +343,12 @@ void URunLengthMesher::GenerateMeshFromFaces(const FChunkFaceParams& faceParams)
 
 	for (auto voxelId : voxelIdsInMesh)
 	{
-		auto voxelIndex = voxelId.Value;
+		auto materialId = voxelId.Value;
 		FVoxelType voxelType = VoxelGenerator->GetVoxelTypeById(voxelId.Key);
-		RealtimeMesh->SetupMaterialSlot(voxelIndex, voxelType.BlockName, voxelType.Material);
+		RealtimeMesh->SetupMaterialSlot(materialId, voxelType.BlockName, voxelType.Material);
 
-		auto key = FRealtimeMeshSectionKey::CreateForPolyGroup(GroupKey, voxelIndex);
-		RealtimeMesh->UpdateSectionConfig(key,
-		                                  FRealtimeMeshSectionConfig(
-			                                  ERealtimeMeshSectionDrawType::Static, voxelIndex), true);
+		auto key = FRealtimeMeshSectionKey::CreateForPolyGroup(GroupKey, materialId);
+
 	}
 
 	faceParams.ChunkParams.OriginalChunk->HasMesh = true;

@@ -8,17 +8,24 @@
 #include "ChunkRMCActor.generated.h"
 
 UCLASS()
-class AChunkRMCActor : public AActor
+class AChunkRmcActor : public AActor
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this actor's properties
-	AChunkRMCActor();
+	AChunkRmcActor();
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="RealtimeMesh")
 	TObjectPtr<URealtimeMeshComponent> RealtimeMeshComponent;
+
+	void StartColliderGeneration(const FRealtimeMeshSectionKey& SectionKey, uint16 materialId) const;
+
+	TFuture<void> MeshColliderHandle;
 protected:
 	
 	virtual void OnConstruction(const FTransform& Transform) override;
+	virtual void BeginDestroy() override;
+private:
+	TArray<TSharedFuture<ERealtimeMeshProxyUpdateStatus>> MeshProxyUpdateFutures;
 };

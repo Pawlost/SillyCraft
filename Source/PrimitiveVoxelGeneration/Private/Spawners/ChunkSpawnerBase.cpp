@@ -37,7 +37,7 @@ void AChunkSpawnerBase::SpawnChunk(const TSharedPtr<FChunkStruct>& chunk)
 		auto spawnLocation = FVector(chunk->GridPosition.X, chunk->GridPosition.Y, chunk->GridPosition.Z) * ChunkMesher->
 			GetChunkSize();
 		
-		chunk->ChunkMeshActor = world->SpawnActor<AChunkRMCActor>(AChunkRMCActor::StaticClass(), spawnLocation,
+		chunk->ChunkMeshActor = world->SpawnActor<AChunkRmcActor>(AChunkRmcActor::StaticClass(), spawnLocation,
 																  FRotator::ZeroRotator);
 		if (chunk->ChunkMeshActor.IsValid())
 		{

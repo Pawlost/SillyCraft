@@ -4,7 +4,7 @@
 #include "RealtimeMeshSimple.h"
 
 // Sets default values
-AChunkRMCActor::AChunkRMCActor()
+AChunkRmcActor::AChunkRmcActor() 
 {
 	// Here we register our new component
 	RealtimeMeshComponent = CreateDefaultSubobject<URealtimeMeshComponent>(TEXT("RealtimeMeshComponent"));
@@ -13,8 +13,24 @@ AChunkRMCActor::AChunkRMCActor()
 	SetRootComponent(RealtimeMeshComponent);
 }
 
-void AChunkRMCActor::OnConstruction(const FTransform& Transform)
+void AChunkRmcActor::StartColliderGeneration(const FRealtimeMeshSectionKey& SectionKey, uint16 materialId) const
+{
+	auto RealtimeMesh = RealtimeMeshComponent->GetRealtimeMeshAs<
+	URealtimeMeshSimple>();
+	
+	RealtimeMesh->UpdateSectionConfig(SectionKey, FRealtimeMeshSectionConfig(
+									  ERealtimeMeshSectionDrawType::Static, materialId),
+								  true).Share().Wait();
+}
+
+void AChunkRmcActor::OnConstruction(const FTransform& Transform)
 {
 	RealtimeMeshComponent->InitializeRealtimeMesh<URealtimeMeshSimple>();
 	Super::OnConstruction(Transform);
+}
+
+void AChunkRmcActor::BeginDestroy()
+{
+	MeshColliderHandle.Wait();
+	Super::BeginDestroy();
 }

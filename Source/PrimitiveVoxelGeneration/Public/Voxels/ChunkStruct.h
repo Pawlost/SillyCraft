@@ -10,7 +10,7 @@ struct PRIMITIVEVOXELGENERATION_API FChunkStruct
 	GENERATED_BODY()
 
 	UPROPERTY()
-	TWeakObjectPtr<AChunkRMCActor> ChunkMeshActor;
+	TWeakObjectPtr<AChunkRmcActor> ChunkMeshActor;
 
 	UPROPERTY()
 	TArray<FVoxel> Voxels;
