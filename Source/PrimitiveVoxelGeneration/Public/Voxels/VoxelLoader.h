@@ -1,8 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 #pragma once
 #include "CoreMinimal.h"
-#include "Chunks/ChunkMesherBase.h"
 #include "Components/ActorComponent.h"
+#include "Meshers/MesherBase.h"
 #include "VoxelLoader.generated.h"
 struct FVoxelType;
 using namespace UE::Math;
@@ -15,5 +15,5 @@ class PRIMITIVEVOXELGENERATION_API AVoxelLoader : public AActor
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation")
-	TSubclassOf<UChunkMesherBase> ChunkMesherTemplate = nullptr;
+	TSubclassOf<UMesherBase> ChunkMesherTemplate = nullptr;
 };
