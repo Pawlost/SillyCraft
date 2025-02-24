@@ -13,16 +13,6 @@ AChunkRmcActor::AChunkRmcActor()
 	SetRootComponent(RealtimeMeshComponent);
 }
 
-void AChunkRmcActor::StartColliderGeneration(const FRealtimeMeshSectionKey& SectionKey, uint16 materialId) const
-{
-	auto RealtimeMesh = RealtimeMeshComponent->GetRealtimeMeshAs<
-	URealtimeMeshSimple>();
-	
-	RealtimeMesh->UpdateSectionConfig(SectionKey, FRealtimeMeshSectionConfig(
-									  ERealtimeMeshSectionDrawType::Static, materialId),
-								  true);
-}
-
 void AChunkRmcActor::OnConstruction(const FTransform& Transform)
 {
 	RealtimeMeshComponent->InitializeRealtimeMesh<URealtimeMeshSimple>();

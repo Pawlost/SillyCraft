@@ -22,7 +22,9 @@ public:
 	// Allows selecting a component class in Blueprint
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TSubclassOf<UVoxelGeneratorBase> VoxelGeneratorClass = nullptr;
-	
+
+	virtual double GetHighestElevationAtLocation(const FVector& location) override;
+
 protected:
 	virtual void BeginPlay() override;
 

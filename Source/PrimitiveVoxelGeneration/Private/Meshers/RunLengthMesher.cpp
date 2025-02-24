@@ -348,7 +348,9 @@ void URunLengthMesher::GenerateMeshFromFaces(const FChunkFaceParams& faceParams)
 		RealtimeMesh->SetupMaterialSlot(materialId, voxelType.BlockName, voxelType.Material);
 
 		auto key = FRealtimeMeshSectionKey::CreateForPolyGroup(GroupKey, materialId);
-		faceParams.ChunkParams.OriginalChunk->ChunkMeshActor->StartColliderGeneration(key, materialId);
+		RealtimeMesh->UpdateSectionConfig(key, FRealtimeMeshSectionConfig(
+								  ERealtimeMeshSectionDrawType::Static, materialId),
+							  true);
 	}
 
 	faceParams.ChunkParams.OriginalChunk->HasMesh = true;
@@ -372,4 +374,9 @@ bool URunLengthMesher::IsMinBorder(const int x)
 bool URunLengthMesher::IsMaxBorder(const int x) const
 {
 	return x == VoxelGenerator->GetVoxelDimensionCount() - 1;
+}
+
+double URunLengthMesher::GetHighestElevationAtLocation(const FVector& location)
+{
+	return VoxelGenerator->GetHighestElevationAtLocation(location);
 }

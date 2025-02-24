@@ -18,8 +18,6 @@ public:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="RealtimeMesh")
 	TObjectPtr<URealtimeMeshComponent> RealtimeMeshComponent;
-
-	void StartColliderGeneration(const FRealtimeMeshSectionKey& SectionKey, uint16 materialId) const;
 	
 protected:
 	virtual void OnConstruction(const FTransform& Transform) override;

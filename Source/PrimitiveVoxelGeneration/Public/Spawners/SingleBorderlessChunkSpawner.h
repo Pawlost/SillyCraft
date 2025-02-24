@@ -16,7 +16,10 @@ class PRIMITIVEVOXELGENERATION_API ASingleBorderlessChunkSpawner : public AChunk
 public:
 	TSharedPtr<FChunkStruct> SingleChunk;
 	TSharedPtr<FChunkStruct> SideChunk[FACE_SIDE_COUNT];
-
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
+	FIntVector SingleChunkGridPosition;
+	
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

@@ -24,10 +24,21 @@ void AChunkSpawnerBase::BeginPlay()
 	Super::BeginPlay();
 }
 
-void AChunkSpawnerBase::MoveSpawnToPosition(FIntVector newPosition)
+void AChunkSpawnerBase::MoveSpawnToPosition(const FVector& newPosition)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 6.0f, FColor::Blue, 
-		FString::Printf(TEXT("Move position: X=%d, Y=%d, Z=%d"), newPosition.X, newPosition.Y, newPosition.Z));
+	auto newGridPosition = WorldPositionToChunkGridPosition(newPosition);
+
+	if (CenterGridPosition != newGridPosition)
+	{
+		CenterGridPosition = newGridPosition;
+		GenerateChunks();
+		DespawnChunks();
+	}
+}
+
+double AChunkSpawnerBase::GetHighestElevationAtLocation(const FVector& location) const
+{
+	return ChunkMesher->GetHighestElevationAtLocation(location);
 }
 
 TFuture<void> AChunkSpawnerBase::SpawnChunk(const TSharedPtr<FChunkStruct>& chunk)
@@ -40,11 +51,11 @@ TFuture<void> AChunkSpawnerBase::SpawnChunk(const TSharedPtr<FChunkStruct>& chun
 			return;
 		}
 
-		auto spawnLocation = FVector(chunk->GridPosition.X, chunk->GridPosition.Y, chunk->GridPosition.Z) * ChunkMesher->
-			GetChunkSize();
-		
+		auto spawnLocation = FVector(chunk->GridPosition.X, chunk->GridPosition.Y, chunk->GridPosition.Z) * ChunkMesher
+			->GetChunkSize();
+
 		chunk->ChunkMeshActor = world->SpawnActor<AChunkRmcActor>(AChunkRmcActor::StaticClass(), spawnLocation,
-																  FRotator::ZeroRotator);
+		                                                          FRotator::ZeroRotator);
 		if (chunk->ChunkMeshActor.IsValid())
 		{
 			chunk->ChunkMeshActor->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
@@ -52,8 +63,16 @@ TFuture<void> AChunkSpawnerBase::SpawnChunk(const TSharedPtr<FChunkStruct>& chun
 	});
 }
 
-void AChunkSpawnerBase::AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirection direction, const TSharedPtr<FChunkStruct>& chunk)
+void AChunkSpawnerBase::AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirection direction,
+                                     const TSharedPtr<FChunkStruct>& chunk)
 {
 	auto directionIndex = static_cast<uint8>(direction);
 	chunkParams.ChunkParams.SideChunks[directionIndex] = chunk.IsValid() ? chunk : nullptr;
+}
+
+FIntVector AChunkSpawnerBase::WorldPositionToChunkGridPosition(const FVector& worldPosition) const
+{
+	auto location = worldPosition / ChunkMesher->GetChunkSize();
+	return FIntVector(FMath::FloorToInt32(location.X), FMath::FloorToInt32(location.Y),
+	                  FMath::FloorToInt32(location.Z));
 }

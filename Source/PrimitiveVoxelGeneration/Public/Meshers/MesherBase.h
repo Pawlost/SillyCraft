@@ -19,10 +19,12 @@ public:
 
 	virtual double GetChunkSize() override { return 0.0; }
 
-	
-	virtual double GetVoxelSize() override {return 0.0;}
+
+	virtual double GetVoxelSize() override { return 0.0; }
 
 	virtual void GenerateMesh(FChunkFaceParams& faceParams)
 	{
 	}
+
+	virtual double GetHighestElevationAtLocation(const FVector& location) override { return 0.0; }
 };

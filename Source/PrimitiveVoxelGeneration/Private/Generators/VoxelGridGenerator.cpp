@@ -5,7 +5,6 @@
 #include "FastNoiseWrapper.h"
 #include "Voxels/ChunkStruct.h"
 #include "Voxels/Voxel.h"
-#include "Voxels/VoxelType.h"
 
 void UVoxelGridGenerator::GenerateVoxels(TSharedPtr<FChunkStruct>& chunk)
 {
@@ -22,12 +21,9 @@ void UVoxelGridGenerator::GenerateVoxels(TSharedPtr<FChunkStruct>& chunk)
 
 	for (int voxelId = 0; voxelId < voxelTypeCount; voxelId++)
 	{
-		const FVoxelType voxelType = GetVoxelTypeById(voxelId);
-
 		auto voxel = FVoxel(voxelId);
-
-		Noise->SetupFastNoise(EFastNoise_NoiseType::ValueFractal, voxelType.Seed, voxelType.NoiseFrequency);
-
+		SetupNoiseByVoxelId(voxelId);
+		
 		for (int x = 0; x < chunkLenght; x++)
 		{
 			for (int y = 0; y < chunkLenght; y++)

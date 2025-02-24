@@ -14,6 +14,8 @@ class PRIMITIVEVOXELGENERATION_API ASingleChunkSpawner : public AChunkSpawnerBas
 public:
 	TSharedPtr<FChunkStruct> SingleChunk;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
+	FIntVector SingleChunkGridPosition;
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

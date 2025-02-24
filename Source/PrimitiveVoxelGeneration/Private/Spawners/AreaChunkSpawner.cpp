@@ -6,10 +6,9 @@
 void AAreaChunkSpawner::BeginPlay()
 {
 	Super::BeginPlay();
-	auto location = GetTransform().GetLocation() / ChunkMesher->GetChunkSize();
-	auto actorGridLocation = FIntVector(FMath::FloorToInt32(location.X), FMath::FloorToInt32(location.Y),
-	                                    FMath::FloorToInt32(location.Z));
-	GenerateArea(actorGridLocation);
+	ChunkGrid.Reserve(2 * SpawnRadius * SpawnRadius * SpawnRadius);
+	CenterGridPosition = WorldPositionToChunkGridPosition(GetTransform().GetLocation());
+	GenerateChunks();
 }
 
 void AAreaChunkSpawner::AddChunkFromGrid(FChunkFaceParams& params, const FDirectionToFace& faceDirection)
@@ -25,23 +24,23 @@ void AAreaChunkSpawner::AddChunkFromGrid(FChunkFaceParams& params, const FDirect
 	}
 }
 
-void AAreaChunkSpawner::GenerateArea(const FIntVector& gridPosition)
+void AAreaChunkSpawner::GenerateChunks()
 {
-	auto minPosition = gridPosition - FIntVector(SpawnRadius);
-	auto maxPosition = gridPosition + FIntVector(SpawnRadius);
-
-	auto minExtendedBorder = minPosition;
-	auto maxExtendedBorder = maxPosition;
-	
-	if (!ShowBorderChunks)
+	SpawnHandle = Async(EAsyncExecution::TaskGraph, [this]()
 	{
-		auto singleVector = FIntVector(1);
-		minExtendedBorder -= singleVector;
-		maxExtendedBorder += singleVector;
-	}
+		auto minPosition = CenterGridPosition - FIntVector(SpawnRadius);
+		auto maxPosition = CenterGridPosition + FIntVector(SpawnRadius);
 
-	AsyncTask(ENamedThreads::AnyThread, [this, minExtendedBorder, maxExtendedBorder, minPosition, maxPosition]()
-	{
+		auto minExtendedBorder = minPosition;
+		auto maxExtendedBorder = maxPosition;
+
+		if (!ShowBorderChunks)
+		{
+			auto singleVector = FIntVector(1);
+			minExtendedBorder -= singleVector;
+			maxExtendedBorder += singleVector;
+		}
+
 		for (int32 x = minExtendedBorder.X; x < maxExtendedBorder.X; x++)
 		{
 			for (int32 y = minExtendedBorder.Y; y < maxExtendedBorder.Y; y++)
@@ -90,6 +89,43 @@ void AAreaChunkSpawner::GenerateArea(const FIntVector& gridPosition)
 						ChunkMesher->GenerateMesh(chunkParams);
 					}
 				}
+			}
+		}
+	});
+}
+
+void AAreaChunkSpawner::DespawnChunks()
+{
+	AsyncTask(ENamedThreads::AnyThread, [this]()
+	{
+		SpawnHandle.Wait();
+		auto gridCenterPosition = FVector(CenterGridPosition);
+		TArray<FIntVector> chunkKeys;
+		ChunkGrid.GetKeys(chunkKeys);
+
+		for (auto chunkKey : chunkKeys)
+		{
+			auto chunkPosition = FVector(chunkKey);
+
+			if (FVector::Distance(chunkPosition, gridCenterPosition) > DespawnRadius)
+			{
+				if (!IsValid(this))
+				{
+					return;
+				}
+
+				auto chunk = *ChunkGrid.Find(chunkKey);
+				auto actorPtr = chunk->ChunkMeshActor;
+
+				AsyncTask(ENamedThreads::GameThread, [this, actorPtr]()
+				{
+					if (actorPtr.IsValid())
+					{
+						actorPtr->Destroy();
+					}
+				});
+
+				ChunkGrid.Remove(chunkKey);
 			}
 		}
 	});

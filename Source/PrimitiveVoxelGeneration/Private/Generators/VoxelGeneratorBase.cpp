@@ -4,6 +4,16 @@
 
 #include "Voxels/VoxelType.h"
 
+void UVoxelGeneratorBase::BeginPlay()
+{
+	VoxelCountY = VoxelDimensionCount;
+	ChunkSize = VoxelCountY * VoxelSize;
+	VoxelCountYZ = VoxelCountY * VoxelCountY;
+	VoxelCountXYZ = VoxelCountYZ * VoxelCountY;
+	MaxElevation /= VoxelSize;
+	Super::BeginPlay();
+}
+
 UVoxelGeneratorBase::UVoxelGeneratorBase()
 {
 	Noise = CreateDefaultSubobject<UFastNoiseWrapper>("NoiseGenerator");
@@ -56,45 +66,32 @@ FVoxelType UVoxelGeneratorBase::GetVoxelTypeById(const int32& voxelTypeIndex) co
 	return *VoxelTypeTable->FindRow<FVoxelType>(rowName, "");
 }
 
+double UVoxelGeneratorBase::GetHighestElevationAtLocation(const FVector& location)
+{
+	double maxElevation = 0.0;
+
+	for (int voxelId = 0; voxelId < GetVoxelTypeCount(); voxelId++)
+	{
+		SetupNoiseByVoxelId(voxelId);
+
+		double elevation = Noise->GetNoise2D(location.X, location.Y) * MaxElevation;
+
+		if (elevation > maxElevation)
+		{
+			maxElevation = elevation;
+		}
+	}
+
+	return maxElevation * VoxelSize;
+}
+
 int32 UVoxelGeneratorBase::GetVoxelIndex(const FIntVector& indexVector) const
 {
 	return GetVoxelIndex(indexVector.X, indexVector.Y, indexVector.Z);
 }
 
-void UVoxelGeneratorBase::BeginPlay()
+void UVoxelGeneratorBase::SetupNoiseByVoxelId(int voxelId) const
 {
-	VoxelCountY = VoxelDimensionCount;
-	ChunkSize = VoxelCountY * VoxelSize;
-	VoxelCountYZ = VoxelCountY * VoxelCountY;
-	VoxelCountXYZ = VoxelCountYZ * VoxelCountY;
-	MaxElevation /= VoxelSize;
-	Super::BeginPlay();
+	const FVoxelType voxelType = GetVoxelTypeById(voxelId);
+	Noise->SetupFastNoise(EFastNoise_NoiseType::ValueFractal, voxelType.Seed, voxelType.NoiseFrequency);
 }
-
-//
-// double UVoxelGeneratorBase::GetHighestElevationAtPosition(double posX, double posY)
-// {
-// 	double maxElevation = 0.0;
-//
-// 	auto voxelSize = ChunkSettings->GetVoxelSize();
-//
-
-// 	int voxelIds = ChunkGridData->GetVoxelIdCount();
-//
-// 	auto voxelPosX = posX / voxelSize;
-// 	auto voxelPosY = posY / voxelSize;
-// 	
-// 	for(int voxelId = 0; voxelId < voxelIds; voxelId++)
-// 	{
-// 		FVoxelType voxelType = ChunkGridData->GetVoxelTypeById(voxelId);
-// 		Noise->SetupFastNoise(EFastNoise_NoiseType::ValueFractal, voxelType.Seed,  voxelType.NoiseFrequency);
-// 		double elevation = Noise->GetNoise2D(voxelPosX, voxelPosY) * ChunkSettings->GetMaximumElevation();
-//
-// 		if(elevation > maxElevation)
-// 		{
-// 			maxElevation = elevation;
-// 		}
-// 	}
-// 	
-// 	return maxElevation * voxelSize;
-// }

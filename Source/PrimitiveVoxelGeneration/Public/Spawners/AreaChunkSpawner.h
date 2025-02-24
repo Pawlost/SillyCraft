@@ -18,13 +18,15 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation")
 	bool ShowBorderChunks = true;
-	
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 	TMap<FIntVector, TSharedPtr<FChunkStruct>> ChunkGrid;
-	
+
 private:
 	void AddChunkFromGrid(FChunkFaceParams& params, const FDirectionToFace& faceDirection);
-	void GenerateArea(const FIntVector& gridPosition);
+	virtual void GenerateChunks() override;
+	virtual void DespawnChunks() override;
+	TFuture<void> SpawnHandle;
 };

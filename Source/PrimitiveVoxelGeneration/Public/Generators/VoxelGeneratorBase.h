@@ -40,6 +40,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Voxels")
 	double MaxElevation = 0;
 
+	virtual double GetHighestElevationAtLocation(const FVector& location) override;
+
 	int32 GetVoxelIndex(const FIntVector& indexVector) const;
 
 	virtual void GenerateVoxels(TSharedPtr<FChunkStruct>& chunk) override
@@ -51,6 +53,8 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UFastNoiseWrapper> Noise;
+
+	void SetupNoiseByVoxelId(int voxelId) const;
 
 private:
 	double ChunkSize = 0.0, InternalVoxelSize = 0.0;

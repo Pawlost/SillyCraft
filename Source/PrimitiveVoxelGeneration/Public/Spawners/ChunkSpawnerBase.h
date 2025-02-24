@@ -16,17 +16,33 @@ public:
 	TSubclassOf<UMesherBase> MesherBlueprint = nullptr;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
-	FIntVector SingleChunkGridPosition;
-	
+	double DespawnRadius;
+
 	UFUNCTION(BlueprintCallable)
-	void MoveSpawnToPosition(FIntVector newPosition);
-	
+	void MoveSpawnToPosition(const FVector& newPosition);
+
+	UFUNCTION(BlueprintCallable)
+	double GetHighestElevationAtLocation(const FVector& location) const;
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 	TFuture<void> SpawnChunk(const TSharedPtr<FChunkStruct>& chunk);
-	static void AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirection direction, const TSharedPtr<FChunkStruct>& chunk);
-	
+	static void AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirection direction,
+	                         const TSharedPtr<FChunkStruct>& chunk);
+
+	virtual void GenerateChunks()
+	{
+	}
+
+	virtual void DespawnChunks()
+	{
+	}
+
+	FIntVector CenterGridPosition;
+
 	UPROPERTY()
 	UMesherBase* ChunkMesher;
+
+	FIntVector WorldPositionToChunkGridPosition(const FVector& worldPosition) const;
 };
