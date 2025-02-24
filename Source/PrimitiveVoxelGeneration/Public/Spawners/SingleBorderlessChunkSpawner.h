@@ -2,8 +2,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "ChunkSpawnerBase.h"
-#include "MeshingStructs/DirectionToFace.h"
-#include "MeshingStructs/FaceDirection.h"
+#include "Meshers/MeshingStructs/GridDirectionToFace.h"
 #include "Voxels/ChunkStruct.h"
 #include "SingleBorderlessChunkSpawner.generated.h"
 //TODO: add forward declarations
@@ -26,5 +25,5 @@ protected:
 
 private:
 	FChunkFaceParams ChunkParams;
-	void SpawnSideChunk(const FDirectionToFace& faceDirection);
+	void SpawnSideChunk(const FGridDirectionToFace& faceDirection);
 };

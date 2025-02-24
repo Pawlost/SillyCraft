@@ -2,7 +2,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "ChunkSpawnerBase.h"
-#include "MeshingStructs/DirectionToFace.h"
+#include "Meshers/MeshingStructs/GridDirectionToFace.h"
 #include "Voxels/ChunkStruct.h"
 #include "AreaChunkSpawner.generated.h"
 
@@ -25,7 +25,7 @@ protected:
 	TMap<FIntVector, TSharedPtr<FChunkStruct>> ChunkGrid;
 
 private:
-	void AddChunkFromGrid(FChunkFaceParams& params, const FDirectionToFace& faceDirection);
+	void AddChunkFromGrid(FChunkFaceParams& params, const FGridDirectionToFace& faceDirection);
 	virtual void GenerateChunks() override;
 	virtual void DespawnChunks() override;
 	TFuture<void> SpawnHandle;

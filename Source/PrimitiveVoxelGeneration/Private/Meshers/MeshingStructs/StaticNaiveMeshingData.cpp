@@ -1,4 +1,4 @@
-﻿#include "MeshingStructs/StaticNaiveMeshingData.h"
+﻿#include "Meshers/MeshingStructs/StaticNaiveMeshingData.h"
 
 FStaticNaiveMeshingData FStaticNaiveMeshingData::FrontFaceData = FStaticNaiveMeshingData(
 	EFaceDirection::Front,

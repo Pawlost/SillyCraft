@@ -1,6 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Generators/VoxelGeneratorBase.h"
+
+#include "Voxels/VoxelGeneratorBase.h"
 
 #include "Voxels/VoxelType.h"
 

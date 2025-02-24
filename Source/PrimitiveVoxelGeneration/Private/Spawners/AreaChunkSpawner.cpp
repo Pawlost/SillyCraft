@@ -1,8 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.pp[p
 #include "Spawners/AreaChunkSpawner.h"
 
-#include "MeshingStructs/DirectionToFace.h"
-
 void AAreaChunkSpawner::BeginPlay()
 {
 	Super::BeginPlay();
@@ -11,7 +9,7 @@ void AAreaChunkSpawner::BeginPlay()
 	GenerateChunks();
 }
 
-void AAreaChunkSpawner::AddChunkFromGrid(FChunkFaceParams& params, const FDirectionToFace& faceDirection)
+void AAreaChunkSpawner::AddChunkFromGrid(FChunkFaceParams& params, const FGridDirectionToFace& faceDirection)
 {
 	auto chunk = ChunkGrid.Find(params.ChunkParams.OriginalChunk->GridPosition + faceDirection.Direction);
 	if (chunk == nullptr)
@@ -80,12 +78,12 @@ void AAreaChunkSpawner::GenerateChunks()
 					{
 						FChunkFaceParams chunkParams;
 						chunkParams.ChunkParams.OriginalChunk = *ChunkGrid.Find(currentGridPosition);
-						AddChunkFromGrid(chunkParams, FDirectionToFace::TopDirection);
-						AddChunkFromGrid(chunkParams, FDirectionToFace::BottomDirection);
-						AddChunkFromGrid(chunkParams, FDirectionToFace::RightDirection);
-						AddChunkFromGrid(chunkParams, FDirectionToFace::LeftDirection);
-						AddChunkFromGrid(chunkParams, FDirectionToFace::FrontDirection);
-						AddChunkFromGrid(chunkParams, FDirectionToFace::BackDirection);
+						AddChunkFromGrid(chunkParams, FGridDirectionToFace::TopDirection);
+						AddChunkFromGrid(chunkParams, FGridDirectionToFace::BottomDirection);
+						AddChunkFromGrid(chunkParams, FGridDirectionToFace::RightDirection);
+						AddChunkFromGrid(chunkParams, FGridDirectionToFace::LeftDirection);
+						AddChunkFromGrid(chunkParams, FGridDirectionToFace::FrontDirection);
+						AddChunkFromGrid(chunkParams, FGridDirectionToFace::BackDirection);
 						ChunkMesher->GenerateMesh(chunkParams);
 					}
 				}

@@ -4,7 +4,7 @@
 
 #include "RealtimeMeshSimple.h"
 #include "Mesh/RealtimeMeshBuilder.h"
-#include "MeshingStructs/ChunkFaceParams.h"
+#include "Voxels/VoxelGeneratorBase.h"
 
 const URunLengthMesher::FNormalsAndTangents URunLengthMesher::FaceNormalsAndTangents[] = {
 	{FVector3f(-1.0f, 0.0f, 0.0f), FVector3f(0.0, 1.0, 0.0)}, //Front

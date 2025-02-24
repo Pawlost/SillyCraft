@@ -4,6 +4,7 @@
 #include "MesherBase.h"
 #include "MeshingStructs/ChunkFaceParams.h"
 #include "MeshingStructs/NaiveMeshingData.h"
+#include "Voxels/VoxelGeneratorBase.h"
 #include "RunLengthMesher.generated.h"
 //TODO: add forward declarations
 

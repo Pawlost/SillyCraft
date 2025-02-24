@@ -1,6 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Generators/VoxelGridGenerator.h"
+#include "Voxels/VoxelGridGenerator.h"
 
 #include "FastNoiseWrapper.h"
 #include "Voxels/ChunkStruct.h"
