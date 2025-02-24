@@ -63,32 +63,32 @@ FChunkFace FChunkFace::CreateFrontFace(const FIntVector& InitialPosition, const 
 
 FChunkFace FChunkFace::CreateBackFace(const FIntVector& InitialPosition, const FVoxel& voxel)
 {
-	return CreateChunkFace(InitialPosition, voxel,BackFace);
+	return CreateChunkFace(InitialPosition, voxel, BackFace);
 }
 
 FChunkFace FChunkFace::CreateLeftFace(const FIntVector& InitialPosition, const FVoxel& voxel)
 {
-	return CreateChunkFace(InitialPosition, voxel,LeftFace);
+	return CreateChunkFace(InitialPosition, voxel, LeftFace);
 }
 
 FChunkFace FChunkFace::CreateRightFace(const FIntVector& InitialPosition, const FVoxel& voxel)
 {
-	return CreateChunkFace(InitialPosition, voxel,RightFace);
+	return CreateChunkFace(InitialPosition, voxel, RightFace);
 }
 
 FChunkFace FChunkFace::CreateTopFace(const FIntVector& InitialPosition, const FVoxel& voxel)
 {
-	return CreateChunkFace(InitialPosition, voxel,TopFace);
+	return CreateChunkFace(InitialPosition, voxel, TopFace);
 }
 
 FChunkFace FChunkFace::CreateBottomFace(const FIntVector& InitialPosition, const FVoxel& voxel)
 {
-	return CreateChunkFace(InitialPosition, voxel,BottomFace);
+	return CreateChunkFace(InitialPosition, voxel, BottomFace);
 }
 
 bool FChunkFace::MergeFaceEnd(FChunkFace& prevFace, const FChunkFace& newFace)
 {
-	if(prevFace.EndVertexDown == newFace.StartVertexDown &&
+	if (prevFace.EndVertexDown == newFace.StartVertexDown &&
 		prevFace.EndVertexUp == newFace.StartVertexUp)
 	{
 		prevFace.EndVertexDown = newFace.EndVertexDown;
@@ -100,8 +100,8 @@ bool FChunkFace::MergeFaceEnd(FChunkFace& prevFace, const FChunkFace& newFace)
 
 bool FChunkFace::MergeFaceStart(FChunkFace& prevFace, const FChunkFace& newFace)
 {
-	if(prevFace.StartVertexUp == newFace.EndVertexUp &&
-		prevFace.StartVertexDown == newFace.EndVertexDown )
+	if (prevFace.StartVertexUp == newFace.EndVertexUp &&
+		prevFace.StartVertexDown == newFace.EndVertexDown)
 	{
 		prevFace.StartVertexDown = newFace.StartVertexDown;
 		prevFace.StartVertexUp = newFace.StartVertexUp;
@@ -112,7 +112,7 @@ bool FChunkFace::MergeFaceStart(FChunkFace& prevFace, const FChunkFace& newFace)
 
 bool FChunkFace::MergeFaceUp(FChunkFace& prevFace, const FChunkFace& newFace)
 {
-	if(prevFace.StartVertexUp == newFace.StartVertexDown &&
+	if (prevFace.StartVertexUp == newFace.StartVertexDown &&
 		prevFace.EndVertexUp == newFace.EndVertexDown)
 	{
 		prevFace.StartVertexUp = newFace.StartVertexUp;

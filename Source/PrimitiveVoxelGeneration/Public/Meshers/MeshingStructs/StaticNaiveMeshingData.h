@@ -1,15 +1,17 @@
 ﻿#pragma once
+#include "FaceDirection.h"
 #include "Voxels/ChunkFace.h"
 
 struct FStaticNaiveMeshingData
 {
-	FIntVector borderChunkDirection;
+	const EFaceDirection faceSide;
 	const FChunkFace& faceTemplate;
-	TFunctionRef<bool(FChunkFace& prevFace, const FChunkFace& newFace)> naiveFaceMerge;
-	
-	FStaticNaiveMeshingData(FIntVector borderChunkDirection, const FChunkFace& faceTemplate, TFunctionRef<bool(FChunkFace& prevFace, const FChunkFace& newFace)> naiveFaceMerge)
-	:
-		borderChunkDirection(borderChunkDirection),
+	const TFunctionRef<bool(FChunkFace& prevFace, const FChunkFace& newFace)> naiveFaceMerge;
+
+	FStaticNaiveMeshingData(const EFaceDirection faceSide, const FChunkFace& faceTemplate,
+	                        const TFunctionRef<bool(FChunkFace& prevFace, const FChunkFace& newFace)>& naiveFaceMerge)
+		:
+		faceSide(faceSide),
 		faceTemplate(faceTemplate),
 		naiveFaceMerge(naiveFaceMerge)
 	{

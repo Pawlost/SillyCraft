@@ -18,7 +18,7 @@ USTRUCT(BlueprintType)
 struct PRIMITIVEVOXELGENERATION_API FVoxelType : public FTableRowBase
 {
 	GENERATED_BODY()
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Basic")
 	FName BlockName;
 
@@ -30,10 +30,10 @@ struct PRIMITIVEVOXELGENERATION_API FVoxelType : public FTableRowBase
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Basic")
 	TObjectPtr<UMaterial> Material;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Noise")
 	int64 Seed = 1234;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Noise")
 	double NoiseFrequency = 0.007;
 };

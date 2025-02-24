@@ -1,36 +1,36 @@
-﻿#include "Chunks/MeshingStructs/StaticNaiveMeshingData.h"
+﻿#include "MeshingStructs/StaticNaiveMeshingData.h"
 
 FStaticNaiveMeshingData FStaticNaiveMeshingData::FrontFaceData = FStaticNaiveMeshingData(
-	FIntVector(-1, 0, 0),
+	EFaceDirection::Front,
 	FChunkFace::FrontFace,
 	FChunkFace::MergeFaceEnd
 );
 
 FStaticNaiveMeshingData FStaticNaiveMeshingData::BackFaceData = FStaticNaiveMeshingData(
-	FIntVector(1, 0, 0),
+	EFaceDirection::Back,
 	FChunkFace::BackFace,
 	FChunkFace::MergeFaceStart
 );
 
 FStaticNaiveMeshingData FStaticNaiveMeshingData::RightFaceData = FStaticNaiveMeshingData(
-	FIntVector(0, -1, 0),
+	EFaceDirection::Right,
 	FChunkFace::RightFace,
 	FChunkFace::MergeFaceStart
 );
 
 FStaticNaiveMeshingData FStaticNaiveMeshingData::LeftFaceData = FStaticNaiveMeshingData(
-	FIntVector(0, 1, 0),
+	EFaceDirection::Left,
 	FChunkFace::LeftFace,
 	FChunkFace::MergeFaceEnd
 );
 
 FStaticNaiveMeshingData FStaticNaiveMeshingData::TopFaceData = FStaticNaiveMeshingData(
-	FIntVector(0, 0, 1),
+	EFaceDirection::Top,
 	FChunkFace::TopFace,
 	FChunkFace::MergeFaceEnd
 );
 FStaticNaiveMeshingData FStaticNaiveMeshingData::BottomFaceData = FStaticNaiveMeshingData(
-	FIntVector(0, 0, -1),
+	EFaceDirection::Bottom,
 	FChunkFace::BottomFace,
 	FChunkFace::MergeFaceStart
 );
