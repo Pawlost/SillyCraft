@@ -348,7 +348,7 @@ void URunLengthMesher::GenerateMeshFromFaces(const FChunkFaceParams& faceParams)
 		RealtimeMesh->SetupMaterialSlot(materialId, voxelType.BlockName, voxelType.Material);
 
 		auto key = FRealtimeMeshSectionKey::CreateForPolyGroup(GroupKey, materialId);
-
+		faceParams.ChunkParams.OriginalChunk->ChunkMeshActor->StartColliderGeneration(key, materialId);
 	}
 
 	faceParams.ChunkParams.OriginalChunk->HasMesh = true;

@@ -20,17 +20,11 @@ void AChunkRmcActor::StartColliderGeneration(const FRealtimeMeshSectionKey& Sect
 	
 	RealtimeMesh->UpdateSectionConfig(SectionKey, FRealtimeMeshSectionConfig(
 									  ERealtimeMeshSectionDrawType::Static, materialId),
-								  true).Share().Wait();
+								  true);
 }
 
 void AChunkRmcActor::OnConstruction(const FTransform& Transform)
 {
 	RealtimeMeshComponent->InitializeRealtimeMesh<URealtimeMeshSimple>();
 	Super::OnConstruction(Transform);
-}
-
-void AChunkRmcActor::BeginDestroy()
-{
-	MeshColliderHandle.Wait();
-	Super::BeginDestroy();
 }

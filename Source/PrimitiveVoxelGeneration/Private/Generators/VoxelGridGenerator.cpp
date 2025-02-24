@@ -13,16 +13,16 @@ void UVoxelGridGenerator::GenerateVoxels(TSharedPtr<FChunkStruct>& chunk)
 	TRACE_CPUPROFILER_EVENT_SCOPE("Voxel generation")
 #endif
 
-	auto chunkLenght = GetVoxelDimensionCount();
+	const auto chunkLenght = GetVoxelDimensionCount();
 
-	auto gridPos = chunk->GridPosition * chunkLenght;
-	int voxelTypeCount = GetVoxelTypeCount();
+	const auto gridPos = chunk->GridPosition * chunkLenght;
+	const int voxelTypeCount = GetVoxelTypeCount();
 	chunk->ChunkVoxelTypeTable.Reserve(voxelTypeCount);
 	chunk->Voxels.SetNum(GetVoxel3DimensionCount());
 
 	for (int voxelId = 0; voxelId < voxelTypeCount; voxelId++)
 	{
-		FVoxelType voxelType = GetVoxelTypeById(voxelId);
+		const FVoxelType voxelType = GetVoxelTypeById(voxelId);
 
 		auto voxel = FVoxel(voxelId);
 
@@ -32,11 +32,11 @@ void UVoxelGridGenerator::GenerateVoxels(TSharedPtr<FChunkStruct>& chunk)
 		{
 			for (int y = 0; y < chunkLenght; y++)
 			{
-				auto elevation = Noise->GetNoise2D(x + gridPos.X, y + gridPos.Y) * GetMaximumElevation();
+				const auto elevation = Noise->GetNoise2D(x + gridPos.X, y + gridPos.Y) * GetMaximumElevation();
 
 				for (int z = 0; z < chunkLenght; z++)
 				{
-					auto index = GetVoxelIndex(x, y, z);
+					const auto index = GetVoxelIndex(x, y, z);
 
 					if (gridPos.Z + z <= elevation)
 					{

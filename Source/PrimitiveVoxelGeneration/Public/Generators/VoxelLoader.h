@@ -16,9 +16,4 @@ class PRIMITIVEVOXELGENERATION_API AVoxelLoader : public AActor
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation")
 	TSubclassOf<UChunkMesherBase> ChunkMesherTemplate = nullptr;
-
-protected:
-	// Called when the game starts
-	//virtual void BeginPlay() override;
-	//void SpawnChunk(FVector location);
 };

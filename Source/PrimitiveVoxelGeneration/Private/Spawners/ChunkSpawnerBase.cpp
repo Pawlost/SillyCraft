@@ -24,9 +24,15 @@ void AChunkSpawnerBase::BeginPlay()
 	Super::BeginPlay();
 }
 
-void AChunkSpawnerBase::SpawnChunk(const TSharedPtr<FChunkStruct>& chunk)
+void AChunkSpawnerBase::MoveSpawnToPosition(FIntVector newPosition)
 {
-	AsyncTask(ENamedThreads::GameThread, [this, chunk]()
+	GEngine->AddOnScreenDebugMessage(-1, 6.0f, FColor::Blue, 
+		FString::Printf(TEXT("Move position: X=%d, Y=%d, Z=%d"), newPosition.X, newPosition.Y, newPosition.Z));
+}
+
+TFuture<void> AChunkSpawnerBase::SpawnChunk(const TSharedPtr<FChunkStruct>& chunk)
+{
+	return Async(EAsyncExecution::TaskGraphMainThread, [this, chunk]()
 	{
 		auto world = GetWorld();
 		if (!IsValid(world))

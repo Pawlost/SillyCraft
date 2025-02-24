@@ -17,11 +17,14 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
 	FIntVector SingleChunkGridPosition;
-
+	
+	UFUNCTION(BlueprintCallable)
+	void MoveSpawnToPosition(FIntVector newPosition);
+	
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-	void SpawnChunk(const TSharedPtr<FChunkStruct>& chunk);
+	TFuture<void> SpawnChunk(const TSharedPtr<FChunkStruct>& chunk);
 	static void AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirection direction, const TSharedPtr<FChunkStruct>& chunk);
 	
 	UPROPERTY()

@@ -20,12 +20,7 @@ public:
 	TObjectPtr<URealtimeMeshComponent> RealtimeMeshComponent;
 
 	void StartColliderGeneration(const FRealtimeMeshSectionKey& SectionKey, uint16 materialId) const;
-
-	TFuture<void> MeshColliderHandle;
-protected:
 	
+protected:
 	virtual void OnConstruction(const FTransform& Transform) override;
-	virtual void BeginDestroy() override;
-private:
-	TArray<TSharedFuture<ERealtimeMeshProxyUpdateStatus>> MeshProxyUpdateFutures;
 };

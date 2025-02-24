@@ -15,16 +15,16 @@ class PRIMITIVEVOXELGENERATION_API AAreaChunkSpawner : public AChunkSpawnerBase
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation")
 	int32 SpawnRadius = 2;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation")
+	bool ShowBorderChunks = true;
 	
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-	virtual void BeginDestroy() override;
 	TMap<FIntVector, TSharedPtr<FChunkStruct>> ChunkGrid;
 	
 private:
 	void AddChunkFromGrid(FChunkFaceParams& params, const FDirectionToFace& faceDirection);
 	void GenerateArea(const FIntVector& gridPosition);
-
-	TFuture<void> Handle;
 };
