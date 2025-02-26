@@ -2,7 +2,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "ChunkSpawnerBase.h"
-#include "Voxels/ChunkStruct.h"
+#include "Chunks/ChunkStruct.h"
 #include "SingleChunkSpawner.generated.h"
 //TODO: add forward declarations
 

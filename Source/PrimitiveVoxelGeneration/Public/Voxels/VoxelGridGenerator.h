@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "VoxelGeneratorBase.h"
 #include "Components/ActorComponent.h"
+#include "Chunks/ChunkStruct.h"
 #include "VoxelGridGenerator.generated.h"
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable)

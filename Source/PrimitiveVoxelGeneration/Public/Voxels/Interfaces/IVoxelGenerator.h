@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-#include "Voxels/ChunkStruct.h"
+#include "Chunks/ChunkStruct.h"
 #include "IVoxelGenerator.generated.h"
 
 // UINTERFACE is used for the reflection system

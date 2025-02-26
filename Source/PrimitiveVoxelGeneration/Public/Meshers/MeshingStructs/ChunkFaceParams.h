@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "FaceDirection.h"
-#include "Voxels/ChunkFace.h"
-#include "Voxels/ChunkStruct.h"
+#include "Chunks/ChunkFace.h"
+#include "Chunks/ChunkStruct.h"
 #include "ChunkFaceParams.generated.h"
 
 USTRUCT()

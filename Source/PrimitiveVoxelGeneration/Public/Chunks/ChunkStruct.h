@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "CoreMinimal.h"
-#include "Voxel.h"
 #include "Chunks/ChunkRMCActor.h"
+#include "Voxels/Voxel.h"
 #include "ChunkStruct.generated.h"
 
 USTRUCT()

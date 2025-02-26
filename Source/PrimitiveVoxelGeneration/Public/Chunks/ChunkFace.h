@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "CoreMinimal.h"
-#include "Voxel.h"
+#include "Voxels/Voxel.h"
 
 struct PRIMITIVEVOXELGENERATION_API FChunkFace
 {

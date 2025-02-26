@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "ChunkSpawnerBase.h"
 #include "Meshers/MeshingStructs/GridDirectionToFace.h"
-#include "Voxels/ChunkStruct.h"
+#include "Chunks/ChunkStruct.h"
 #include "AreaChunkSpawner.generated.h"
 
 //TODO: add forward declarations

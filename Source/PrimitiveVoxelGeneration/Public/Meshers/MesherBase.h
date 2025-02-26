@@ -2,7 +2,6 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "MeshingStructs/ChunkFaceParams.h"
-#include "Voxels/ChunkStruct.h"
 #include "Voxels/Interfaces/IVoxelGenerator.h"
 #include "MesherBase.generated.h"
 //TODO: add forward declarations

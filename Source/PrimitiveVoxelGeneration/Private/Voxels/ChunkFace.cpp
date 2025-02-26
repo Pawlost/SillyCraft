@@ -1,4 +1,4 @@
-﻿#include "Voxels/ChunkFace.h"
+﻿#include "Chunks/ChunkFace.h"
 
 FChunkFace FChunkFace::FrontFace = FChunkFace(
 	FIntVector(0, 0, 0),

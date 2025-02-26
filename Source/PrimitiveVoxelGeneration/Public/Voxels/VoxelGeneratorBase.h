@@ -2,6 +2,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "FastNoiseWrapper.h"
+#include "Chunks/ChunkStruct.h"
 #include "Components/ActorComponent.h"
 #include "Interfaces/IVoxelGenerator.h"
 #include "Voxels/VoxelType.h"

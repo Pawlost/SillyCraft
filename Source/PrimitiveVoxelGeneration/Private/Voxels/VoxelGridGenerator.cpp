@@ -3,7 +3,6 @@
 #include "Voxels/VoxelGridGenerator.h"
 
 #include "FastNoiseWrapper.h"
-#include "Voxels/ChunkStruct.h"
 #include "Voxels/Voxel.h"
 
 void UVoxelGridGenerator::GenerateVoxels(TSharedPtr<FChunkStruct>& chunk)
