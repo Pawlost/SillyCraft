@@ -4,13 +4,17 @@
 #include "Voxels/VoxelGeneratorBase.h"
 
 #include "Voxels/VoxelType.h"
+#include "Chunks/VoxelIdInChunk.h"
 
 void UVoxelGeneratorBase::AddVoxelAtIndex(const TSharedPtr<FChunkStruct>& chunk, const uint32& index, const FVoxel& voxel)
 {
 	chunk->Voxels[index] = voxel;
 	if (!chunk->ChunkVoxelTypeTable.Contains(voxel.VoxelId))
 	{
-		chunk->ChunkVoxelTypeTable.Add(voxel.VoxelId, chunk->ChunkVoxelTypeTable.Num());
+		chunk->ChunkVoxelTypeTable.Add(voxel.VoxelId, FVoxelIdInChunk(chunk->ChunkVoxelTypeTable.Num(), 1));
+	}else
+	{
+		chunk->ChunkVoxelTypeTable.Find(voxel.VoxelId)->CountInChunk ++;
 	}
 	chunk->IsEmpty = false;
 }

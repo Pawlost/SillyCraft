@@ -111,9 +111,7 @@ void AAreaChunkSpawner::GenerateChunks()
 					if (!ChunkGrid.Contains(currentGridPosition))
 					{
 						auto Chunk = MakeShared<FChunkStruct>().ToSharedPtr();
-						Chunk->GridPosition = currentGridPosition;
-						ChunkMesher->GenerateVoxels(Chunk);
-						SpawnChunk(Chunk);
+						InitChunk(Chunk, currentGridPosition);
 						ChunkGrid.Add(currentGridPosition, Chunk);
 					}
 				}

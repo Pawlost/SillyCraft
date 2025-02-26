@@ -15,9 +15,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
 	TSubclassOf<UMesherBase> MesherBlueprint = nullptr;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
-	double DespawnRadius;
-
 	UFUNCTION(BlueprintCallable)
 	void MoveSpawnToPosition(const FVector& newPosition);
 
@@ -30,10 +27,12 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-	TFuture<void> SpawnChunk(const TSharedPtr<FChunkStruct>& chunk);
+	TFuture<TWeakObjectPtr<AChunkRmcActor>> SpawnActor(const FIntVector& gridPosition);
 	static void AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirection direction,
 	                         const TSharedPtr<FChunkStruct>& chunk);
 
+	void InitChunk(TSharedPtr<FChunkStruct>& chunk, const FIntVector& gridPosition);
+	
 	virtual void GenerateChunks()
 	{
 	}

@@ -20,6 +20,10 @@ public:
 	bool ShowBorderChunks = true;
 
 	virtual void ChangeVoxelAt(const FVector& hitPosition, const FVector& hitNormal, const int32 VoxelId) override;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
+	double DespawnRadius;
+	
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

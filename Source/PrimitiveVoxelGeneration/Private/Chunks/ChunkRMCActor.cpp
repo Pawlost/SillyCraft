@@ -4,7 +4,7 @@
 #include "RealtimeMeshSimple.h"
 
 // Sets default values
-AChunkRmcActor::AChunkRmcActor() 
+AChunkRmcActor::AChunkRmcActor()
 {
 	// Here we register our new component
 	RealtimeMeshComponent = CreateDefaultSubobject<URealtimeMeshComponent>(TEXT("RealtimeMeshComponent"));

@@ -7,20 +7,21 @@
 void ASingleBorderlessChunkSpawner::BeginPlay()
 {
 	Super::BeginPlay();
-	SingleChunk = MakeShared<FChunkStruct>();
+	AsyncTask(ENamedThreads::AnyThread, [this]()
+	{
+		SingleChunk = MakeShared<FChunkStruct>();
+		InitChunk(SingleChunk, SingleChunkGridPosition);
+		ChunkParams.ChunkParams.OriginalChunk = SingleChunk;
 
-	SingleChunk->GridPosition = SingleChunkGridPosition;
-	SpawnChunk(SingleChunk);
-	ChunkParams.ChunkParams.OriginalChunk = SingleChunk;
+		SpawnSideChunk(FGridDirectionToFace::TopDirection);
+		SpawnSideChunk(FGridDirectionToFace::BottomDirection);
+		SpawnSideChunk(FGridDirectionToFace::BackDirection);
+		SpawnSideChunk(FGridDirectionToFace::FrontDirection);
+		SpawnSideChunk(FGridDirectionToFace::RightDirection);
+		SpawnSideChunk(FGridDirectionToFace::LeftDirection);
 
-	SpawnSideChunk(FGridDirectionToFace::TopDirection);
-	SpawnSideChunk(FGridDirectionToFace::BottomDirection);
-	SpawnSideChunk(FGridDirectionToFace::BackDirection);
-	SpawnSideChunk(FGridDirectionToFace::FrontDirection);
-	SpawnSideChunk(FGridDirectionToFace::RightDirection);
-	SpawnSideChunk(FGridDirectionToFace::LeftDirection);
-
-	ChunkMesher->GenerateMesh(ChunkParams);
+		ChunkMesher->GenerateMesh(ChunkParams);
+	});
 }
 
 void ASingleBorderlessChunkSpawner::SpawnSideChunk(const FGridDirectionToFace& faceDirection)
@@ -28,7 +29,7 @@ void ASingleBorderlessChunkSpawner::SpawnSideChunk(const FGridDirectionToFace& f
 	auto index = static_cast<uint8>(faceDirection.FaceSide);
 	auto chunk = MakeShared<FChunkStruct>().ToSharedPtr();
 	SideChunk[index] = chunk;
-	chunk->GridPosition = SingleChunkGridPosition + faceDirection.Direction;
-	SpawnChunk(chunk);
+	auto gridPosition = SingleChunkGridPosition + faceDirection.Direction;
+	InitChunk(chunk, gridPosition);
 	AddSideChunk(ChunkParams, faceDirection.FaceSide, SideChunk[index]);
 }

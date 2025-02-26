@@ -41,25 +41,28 @@ double AChunkSpawnerBase::GetHighestElevationAtLocation(const FVector& location)
 	return ChunkMesher->GetHighestElevationAtLocation(location);
 }
 
-TFuture<void> AChunkSpawnerBase::SpawnChunk(const TSharedPtr<FChunkStruct>& chunk)
+TFuture<TWeakObjectPtr<AChunkRmcActor>> AChunkSpawnerBase::SpawnActor(const FIntVector& gridPosition)
 {
-	return Async(EAsyncExecution::TaskGraphMainThread, [this, chunk]()
+	return Async(EAsyncExecution::TaskGraphMainThread, [this, gridPosition]() -> TWeakObjectPtr<AChunkRmcActor>
 	{
+		TWeakObjectPtr<AChunkRmcActor> ActorPtr = nullptr;
 		auto world = GetWorld();
 		if (!IsValid(world))
 		{
-			return;
+			return ActorPtr;
 		}
 
-		auto spawnLocation = FVector(chunk->GridPosition.X, chunk->GridPosition.Y, chunk->GridPosition.Z) * ChunkMesher
-			->GetChunkSize();
+		auto spawnLocation = FVector(gridPosition) * ChunkMesher->GetChunkSize();
 
-		chunk->ChunkMeshActor = world->SpawnActor<AChunkRmcActor>(AChunkRmcActor::StaticClass(), spawnLocation,
+		ActorPtr = world->SpawnActor<AChunkRmcActor>(AChunkRmcActor::StaticClass(), spawnLocation,
 		                                                          FRotator::ZeroRotator);
-		if (chunk->ChunkMeshActor.IsValid())
+		
+		if (ActorPtr.IsValid())
 		{
-			chunk->ChunkMeshActor->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
+			ActorPtr->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
 		}
+
+		return ActorPtr;
 	});
 }
 
@@ -68,6 +71,13 @@ void AChunkSpawnerBase::AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirecti
 {
 	auto directionIndex = static_cast<uint8>(direction);
 	chunkParams.ChunkParams.SideChunks[directionIndex] = chunk.IsValid() ? chunk : nullptr;
+}
+
+void AChunkSpawnerBase::InitChunk(TSharedPtr<FChunkStruct>& chunk, const FIntVector& gridPosition)
+{
+	chunk->GridPosition = gridPosition;
+	ChunkMesher->GenerateVoxels(chunk);
+	chunk->ChunkMeshActor = SpawnActor(gridPosition).Get();
 }
 
 FIntVector AChunkSpawnerBase::WorldPositionToChunkGridPosition(const FVector& worldPosition) const
