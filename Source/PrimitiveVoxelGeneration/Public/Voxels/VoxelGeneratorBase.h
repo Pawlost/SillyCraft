@@ -48,6 +48,9 @@ public:
 	{
 	}
 
+
+	static void AddVoxelAtIndex(const TSharedPtr<FChunkStruct>& chunk, const uint32& index, const FVoxel& voxel);
+
 protected:
 	virtual void BeginPlay() override;
 

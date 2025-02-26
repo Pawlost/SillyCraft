@@ -26,6 +26,7 @@ public:
 
 	virtual double GetHighestElevationAtLocation(const FVector& location) override;
 
+	virtual bool ChangeVoxelIdInChunk(const TSharedPtr<FChunkStruct>& chunk, const FIntVector& voxelPosition, const FVoxel& voxelId) override;
 protected:
 	virtual void BeginPlay() override;
 

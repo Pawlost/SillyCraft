@@ -12,17 +12,18 @@ void AAreaChunkSpawner::BeginPlay()
 
 void AAreaChunkSpawner::ChangeVoxelAt(const FVector& hitPosition, const FVector& hitNormal, int32 VoxelId)
 {
-	auto chunkGridPosition = WorldPositionToChunkGridPosition(hitPosition);
+	auto position = hitPosition - hitNormal * ChunkMesher->GetVoxelSize();
+	auto chunkGridPosition = WorldPositionToChunkGridPosition(position);
+
 	if (ChunkGrid.Contains(chunkGridPosition))
 	{
-		if (!SpawnHandle.IsReady())
+		if (EditHandle.IsValid() && !EditHandle.IsReady())
 		{
 			return;
 		}
 
-		auto voxelPosition = ((FIntVector(hitPosition) - chunkGridPosition * ChunkMesher->GetChunkSize()) / ChunkMesher
-			->GetVoxelSize()) - FIntVector(hitNormal);
-
+		auto voxelPosition = FIntVector((position - FVector(chunkGridPosition * ChunkMesher->GetChunkSize())) / ChunkMesher
+			->GetVoxelSize());
 
 		auto foundChunk = ChunkGrid.Find(chunkGridPosition);
 
@@ -32,7 +33,37 @@ void AAreaChunkSpawner::ChangeVoxelAt(const FVector& hitPosition, const FVector&
 		}
 
 		auto chunk = *foundChunk;
+
+		ChunkMesher->ChangeVoxelIdInChunk(chunk, voxelPosition, FVoxel(VoxelId));
+
+		EditHandle = Async(EAsyncExecution::TaskGraph, [this, chunk]()
+		{
+			FChunkFaceParams chunkParams;
+			GenerateChunkMesh(chunkParams, chunk);
+
+			for (int32 s = 0; s < FACE_SIDE_COUNT; s++)
+			{
+				auto sideChunk = chunkParams.ChunkParams.SideChunks[s];
+				if (sideChunk.IsValid())
+				{
+					FChunkFaceParams sideParams;
+					GenerateChunkMesh(sideParams, sideChunk);
+				}
+			}
+		});
 	}
+}
+
+void AAreaChunkSpawner::GenerateChunkMesh(FChunkFaceParams& chunkParams, const TSharedPtr<FChunkStruct>& chunk)
+{
+	chunkParams.ChunkParams.OriginalChunk = chunk;
+	AddChunkFromGrid(chunkParams, FGridDirectionToFace::TopDirection);
+	AddChunkFromGrid(chunkParams, FGridDirectionToFace::BottomDirection);
+	AddChunkFromGrid(chunkParams, FGridDirectionToFace::RightDirection);
+	AddChunkFromGrid(chunkParams, FGridDirectionToFace::LeftDirection);
+	AddChunkFromGrid(chunkParams, FGridDirectionToFace::FrontDirection);
+	AddChunkFromGrid(chunkParams, FGridDirectionToFace::BackDirection);
+	ChunkMesher->GenerateMesh(chunkParams);
 }
 
 void AAreaChunkSpawner::AddChunkFromGrid(FChunkFaceParams& params, const FGridDirectionToFace& faceDirection)
@@ -50,7 +81,7 @@ void AAreaChunkSpawner::AddChunkFromGrid(FChunkFaceParams& params, const FGridDi
 
 void AAreaChunkSpawner::GenerateChunks()
 {
-	SpawnHandle = Async(EAsyncExecution::TaskGraph, [this]()
+	SpawnHandle = Async(EAsyncExecution::ThreadPool, [this]()
 	{
 		auto minPosition = CenterGridPosition - FIntVector(SpawnRadius);
 		auto maxPosition = CenterGridPosition + FIntVector(SpawnRadius);
@@ -102,15 +133,9 @@ void AAreaChunkSpawner::GenerateChunks()
 					}
 					if (ChunkGrid.Contains(currentGridPosition))
 					{
+						auto chunk = *ChunkGrid.Find(currentGridPosition);
 						FChunkFaceParams chunkParams;
-						chunkParams.ChunkParams.OriginalChunk = *ChunkGrid.Find(currentGridPosition);
-						AddChunkFromGrid(chunkParams, FGridDirectionToFace::TopDirection);
-						AddChunkFromGrid(chunkParams, FGridDirectionToFace::BottomDirection);
-						AddChunkFromGrid(chunkParams, FGridDirectionToFace::RightDirection);
-						AddChunkFromGrid(chunkParams, FGridDirectionToFace::LeftDirection);
-						AddChunkFromGrid(chunkParams, FGridDirectionToFace::FrontDirection);
-						AddChunkFromGrid(chunkParams, FGridDirectionToFace::BackDirection);
-						ChunkMesher->GenerateMesh(chunkParams);
+						GenerateChunkMesh(chunkParams, chunk);
 					}
 				}
 			}

@@ -5,6 +5,16 @@
 
 #include "Voxels/VoxelType.h"
 
+void UVoxelGeneratorBase::AddVoxelAtIndex(const TSharedPtr<FChunkStruct>& chunk, const uint32& index, const FVoxel& voxel)
+{
+	chunk->Voxels[index] = voxel;
+	if (!chunk->ChunkVoxelTypeTable.Contains(voxel.VoxelId))
+	{
+		chunk->ChunkVoxelTypeTable.Add(voxel.VoxelId, chunk->ChunkVoxelTypeTable.Num());
+	}
+	chunk->IsEmpty = false;
+}
+
 void UVoxelGeneratorBase::BeginPlay()
 {
 	VoxelCountY = VoxelDimensionCount;

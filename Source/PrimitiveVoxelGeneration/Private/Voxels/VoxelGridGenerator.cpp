@@ -36,12 +36,7 @@ void UVoxelGridGenerator::GenerateVoxels(TSharedPtr<FChunkStruct>& chunk)
 
 					if (gridPos.Z + z <= elevation)
 					{
-						chunk->Voxels[index] = voxel;
-						if (!chunk->ChunkVoxelTypeTable.Contains(voxel.VoxelId))
-						{
-							chunk->ChunkVoxelTypeTable.Add(voxel.VoxelId, chunk->ChunkVoxelTypeTable.Num());
-						}
-						chunk->IsEmpty = false;
+						AddVoxelAtIndex(chunk, index, voxel);
 					}
 				}
 			}

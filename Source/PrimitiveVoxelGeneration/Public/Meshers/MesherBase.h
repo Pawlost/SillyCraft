@@ -25,6 +25,9 @@ public:
 	virtual void GenerateMesh(FChunkFaceParams& faceParams)
 	{
 	}
-
+	virtual bool ChangeVoxelIdInChunk(const TSharedPtr<FChunkStruct>& chunk, const FIntVector& voxelPosition, const FVoxel& voxelId)
+	{
+		return false;
+	}
 	virtual double GetHighestElevationAtLocation(const FVector& location) override { return 0.0; }
 };

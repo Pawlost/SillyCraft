@@ -24,10 +24,12 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 	TMap<FIntVector, TSharedPtr<FChunkStruct>> ChunkGrid;
+	void GenerateChunkMesh(FChunkFaceParams& chunkParams, const TSharedPtr<FChunkStruct>& chunk);
 
 private:
 	void AddChunkFromGrid(FChunkFaceParams& params, const FGridDirectionToFace& faceDirection);
 	virtual void GenerateChunks() override;
 	virtual void DespawnChunks() override;
 	TFuture<void> SpawnHandle;
+	TFuture<void> EditHandle;
 };

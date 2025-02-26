@@ -380,3 +380,20 @@ double URunLengthMesher::GetHighestElevationAtLocation(const FVector& location)
 {
 	return VoxelGenerator->GetHighestElevationAtLocation(location);
 }
+
+bool URunLengthMesher::ChangeVoxelIdInChunk(const TSharedPtr<FChunkStruct>& chunk, const FIntVector& voxelPosition,
+	const FVoxel& voxelId)
+{
+	auto index = VoxelGenerator->GetVoxelIndex(voxelPosition);
+	
+	if (chunk.IsValid() && chunk->Voxels.IsValidIndex(index))
+	{
+		VoxelGenerator->AddVoxelAtIndex(chunk, index, voxelId);
+		return true;
+	}
+	
+	UE_LOG(LogTemp, Log, TEXT(
+		       "LOG2, Move position: X=%d, Y=%d, Z=%d; Voxel index: %d; Chunk max index: %d;"),
+	       voxelPosition.X, voxelPosition.Y, voxelPosition.Z, index, chunk->Voxels.Num());
+	return false;
+}
