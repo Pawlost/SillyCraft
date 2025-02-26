@@ -24,6 +24,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	double GetHighestElevationAtLocation(const FVector& location) const;
 
+	UFUNCTION(BlueprintCallable)
+	virtual void ChangeVoxelAt(const FVector& hitPosition, const FVector& hitNormal, const int32 VoxelId) {}
+	
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

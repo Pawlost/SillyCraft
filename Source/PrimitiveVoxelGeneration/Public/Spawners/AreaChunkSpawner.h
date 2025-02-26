@@ -19,6 +19,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation")
 	bool ShowBorderChunks = true;
 
+	virtual void ChangeVoxelAt(const FVector& hitPosition, const FVector& hitNormal, const int32 VoxelId) override;
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

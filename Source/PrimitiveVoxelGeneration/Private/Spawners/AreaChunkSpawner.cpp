@@ -9,6 +9,32 @@ void AAreaChunkSpawner::BeginPlay()
 	GenerateChunks();
 }
 
+
+void AAreaChunkSpawner::ChangeVoxelAt(const FVector& hitPosition, const FVector& hitNormal, int32 VoxelId)
+{
+	auto chunkGridPosition = WorldPositionToChunkGridPosition(hitPosition);
+	if (ChunkGrid.Contains(chunkGridPosition))
+	{
+		if (!SpawnHandle.IsReady())
+		{
+			return;
+		}
+
+		auto voxelPosition = ((FIntVector(hitPosition) - chunkGridPosition * ChunkMesher->GetChunkSize()) / ChunkMesher
+			->GetVoxelSize()) - FIntVector(hitNormal);
+
+
+		auto foundChunk = ChunkGrid.Find(chunkGridPosition);
+
+		if (foundChunk == nullptr || !foundChunk->IsValid())
+		{
+			return;
+		}
+
+		auto chunk = *foundChunk;
+	}
+}
+
 void AAreaChunkSpawner::AddChunkFromGrid(FChunkFaceParams& params, const FGridDirectionToFace& faceDirection)
 {
 	auto chunk = ChunkGrid.Find(params.ChunkParams.OriginalChunk->GridPosition + faceDirection.Direction);
