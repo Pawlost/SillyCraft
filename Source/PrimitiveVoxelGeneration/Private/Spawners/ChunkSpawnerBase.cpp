@@ -41,6 +41,31 @@ double AChunkSpawnerBase::GetHighestElevationAtLocation(const FVector& location)
 	return ChunkMesher->GetHighestElevationAtLocation(location);
 }
 
+void AChunkSpawnerBase::ChangeVoxelAt(const FVector& hitPosition, const FVector& hitNormal, const FVoxel& VoxelId,
+	bool place)
+{
+	FVector adjustedNormal;
+	if (place)
+	{
+		adjustedNormal.X = -FMath::Clamp(hitNormal.X, -1, 0);
+		adjustedNormal.Y = -FMath::Clamp(hitNormal.Y, -1, 0);
+		adjustedNormal.Z = -FMath::Clamp(hitNormal.Z, -1, 0);
+	}else
+	{
+		adjustedNormal.X = FMath::Clamp(hitNormal.X, 0, 1);
+		adjustedNormal.Y = FMath::Clamp(hitNormal.Y, 0, 1);
+		adjustedNormal.Z = FMath::Clamp(hitNormal.Z, 0, 1);
+	}
+	
+	auto position = hitPosition - adjustedNormal * ChunkMesher->GetVoxelSize();
+	auto chunkGridPosition = WorldPositionToChunkGridPosition(position);
+	
+	auto voxelPosition = FIntVector((position - FVector(chunkGridPosition * ChunkMesher->GetChunkSize())) / ChunkMesher
+		->GetVoxelSize());
+
+	ModifyVoxelAtChunk(chunkGridPosition, voxelPosition, VoxelId);
+}
+
 TFuture<TWeakObjectPtr<AChunkRmcActor>> AChunkSpawnerBase::SpawnActor(const FIntVector& gridPosition)
 {
 	return Async(EAsyncExecution::TaskGraphMainThread, [this, gridPosition]() -> TWeakObjectPtr<AChunkRmcActor>

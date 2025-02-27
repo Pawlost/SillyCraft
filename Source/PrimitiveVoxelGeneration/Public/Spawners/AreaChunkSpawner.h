@@ -18,18 +18,18 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation")
 	bool ShowBorderChunks = true;
-
-	virtual void ChangeVoxelAt(const FVector& hitPosition, const FVector& hitNormal, const int32 VoxelId) override;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
 	double DespawnRadius;
+	
+	virtual void ModifyVoxelAtChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition, const FVoxel& VoxelId) override;
 	
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 	TMap<FIntVector, TSharedPtr<FChunkStruct>> ChunkGrid;
 	void GenerateChunkMesh(FChunkFaceParams& chunkParams, const TSharedPtr<FChunkStruct>& chunk);
-
+	
 private:
 	void AddChunkFromGrid(FChunkFaceParams& params, const FGridDirectionToFace& faceDirection);
 	virtual void GenerateChunks() override;

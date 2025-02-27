@@ -22,7 +22,11 @@ public:
 	double GetHighestElevationAtLocation(const FVector& location) const;
 
 	UFUNCTION(BlueprintCallable)
-	virtual void ChangeVoxelAt(const FVector& hitPosition, const FVector& hitNormal, const int32 VoxelId) {}
+	void ChangeVoxelAt(const FVector& hitPosition, const FVector& hitNormal,
+	const FVoxel& VoxelId, bool place);
+	
+	UFUNCTION(BlueprintCallable)
+	virtual void ModifyVoxelAtChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition, const FVoxel& VoxelId) {};
 	
 protected:
 	// Called when the game starts
@@ -31,6 +35,7 @@ protected:
 	static void AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirection direction,
 	                         const TSharedPtr<FChunkStruct>& chunk);
 
+	
 	void InitChunk(TSharedPtr<FChunkStruct>& chunk, const FIntVector& gridPosition);
 	
 	virtual void GenerateChunks()

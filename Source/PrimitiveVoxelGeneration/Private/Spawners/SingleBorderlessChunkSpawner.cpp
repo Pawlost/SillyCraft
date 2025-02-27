@@ -4,6 +4,12 @@
 #include "Meshers/MeshingStructs/GridDirectionToFace.h"
 #include "Spawners/SingleChunkSpawner.h"
 
+void ASingleBorderlessChunkSpawner::ModifyVoxelAtChunk(const FIntVector& chunkGridPosition,
+	const FIntVector& voxelPosition, const FVoxel& VoxelId)
+{
+	ChunkMesher->ChangeVoxelIdInChunk(SingleChunk, voxelPosition, FVoxel(VoxelId));
+}
+
 void ASingleBorderlessChunkSpawner::BeginPlay()
 {
 	Super::BeginPlay();

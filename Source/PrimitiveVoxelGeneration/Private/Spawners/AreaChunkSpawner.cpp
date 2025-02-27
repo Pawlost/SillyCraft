@@ -1,29 +1,15 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.pp[p
 #include "Spawners/AreaChunkSpawner.h"
 
-void AAreaChunkSpawner::BeginPlay()
+void AAreaChunkSpawner::ModifyVoxelAtChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition,
+                                           const FVoxel& VoxelId)
 {
-	Super::BeginPlay();
-	ChunkGrid.Reserve(2 * SpawnRadius * SpawnRadius * SpawnRadius);
-	CenterGridPosition = WorldPositionToChunkGridPosition(GetTransform().GetLocation());
-	GenerateChunks();
-}
-
-
-void AAreaChunkSpawner::ChangeVoxelAt(const FVector& hitPosition, const FVector& hitNormal, int32 VoxelId)
-{
-	auto position = hitPosition - hitNormal * ChunkMesher->GetVoxelSize();
-	auto chunkGridPosition = WorldPositionToChunkGridPosition(position);
-
 	if (ChunkGrid.Contains(chunkGridPosition))
 	{
 		if (EditHandle.IsValid() && !EditHandle.IsReady())
 		{
 			return;
 		}
-
-		auto voxelPosition = FIntVector((position - FVector(chunkGridPosition * ChunkMesher->GetChunkSize())) / ChunkMesher
-			->GetVoxelSize());
 
 		auto foundChunk = ChunkGrid.Find(chunkGridPosition);
 
@@ -52,6 +38,14 @@ void AAreaChunkSpawner::ChangeVoxelAt(const FVector& hitPosition, const FVector&
 			}
 		});
 	}
+}
+
+void AAreaChunkSpawner::BeginPlay()
+{
+	Super::BeginPlay();
+	ChunkGrid.Reserve(2 * SpawnRadius * SpawnRadius * SpawnRadius);
+	CenterGridPosition = WorldPositionToChunkGridPosition(GetTransform().GetLocation());
+	GenerateChunks();
 }
 
 void AAreaChunkSpawner::GenerateChunkMesh(FChunkFaceParams& chunkParams, const TSharedPtr<FChunkStruct>& chunk)

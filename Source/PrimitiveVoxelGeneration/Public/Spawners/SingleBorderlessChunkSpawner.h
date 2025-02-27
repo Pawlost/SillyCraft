@@ -15,14 +15,15 @@ class PRIMITIVEVOXELGENERATION_API ASingleBorderlessChunkSpawner : public AChunk
 public:
 	TSharedPtr<FChunkStruct> SingleChunk;
 	TSharedPtr<FChunkStruct> SideChunk[FACE_SIDE_COUNT];
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
 	FIntVector SingleChunkGridPosition;
 	
+	virtual void ModifyVoxelAtChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition, const FVoxel& VoxelId) override;
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-
+	
 private:
 	FChunkFaceParams ChunkParams;
 	void SpawnSideChunk(const FGridDirectionToFace& faceDirection);
