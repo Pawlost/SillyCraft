@@ -4,8 +4,8 @@
 #include "FastNoiseWrapper.h"
 #include "Chunks/ChunkStruct.h"
 #include "Components/ActorComponent.h"
-#include "Interfaces/IVoxelGenerator.h"
 #include "Voxels/VoxelType.h"
+#include "Voxels/Interfaces/IVoxelGenerator.h"
 #include "VoxelGeneratorBase.generated.h"
 
 //TODO: specify class
@@ -48,7 +48,6 @@ public:
 	virtual void GenerateVoxels(TSharedPtr<FChunkStruct>& chunk) override
 	{
 	}
-
 
 	static void AddVoxelAtIndex(const TSharedPtr<FChunkStruct>& chunk, const uint32& index, const FVoxel& voxel);
 

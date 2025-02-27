@@ -5,7 +5,6 @@
 
 #include "RealtimeMeshSimple.h"
 #include "Mesh/RealtimeMeshBuilder.h"
-#include "Voxels/VoxelGeneratorBase.h"
 
 const URunLengthMesher::FNormalsAndTangents URunLengthMesher::FaceNormalsAndTangents[] = {
 	{FVector3f(-1.0f, 0.0f, 0.0f), FVector3f(0.0, 1.0, 0.0)}, //Front
@@ -60,8 +59,11 @@ void URunLengthMesher::GenerateMesh(FChunkFaceParams& faceParams)
 {
 	if (faceParams.ChunkParams.OriginalChunk->IsEmpty)
 	{
+		faceParams.ChunkParams.OriginalChunk->ChunkMeshActor->RealtimeMeshComponent->SetVisibility(false);
 		return;
 	}
+	
+	faceParams.ChunkParams.OriginalChunk->ChunkMeshActor->RealtimeMeshComponent->SetVisibility(true);
 
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh generation")
@@ -404,6 +406,17 @@ bool URunLengthMesher::ChangeVoxelIdInChunk(const TSharedPtr<FChunkStruct>& chun
 					if (chunk->ChunkVoxelTypeTable.IsEmpty())
 					{
 						chunk->IsEmpty = true;
+					}
+					else
+					{
+						int voxelIndex = 0;
+						TArray<int32> voxelKeys;
+						chunk->ChunkVoxelTypeTable.GetKeys(voxelKeys);
+						for (auto key : voxelKeys)
+						{
+							chunk->ChunkVoxelTypeTable[key].ChunkVoxelId = voxelIndex;
+							voxelIndex++;
+						}
 					}
 				}
 			}
