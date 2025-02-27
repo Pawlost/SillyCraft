@@ -4,13 +4,19 @@
 #include "VoxelGeneratorBase.h"
 #include "Components/ActorComponent.h"
 #include "Chunks/ChunkStruct.h"
-#include "HalfVoxelGenerator.generated.h"
+#include "FractionFillVoxelGridGenerator.generated.h"
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable)
-class PRIMITIVEVOXELGENERATION_API UHalfVoxelGenerator : public UVoxelGeneratorBase
+class PRIMITIVEVOXELGENERATION_API UFractionFillVoxelGridGenerator : public UVoxelGeneratorBase
 {
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FVoxel VoxelFill;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FIntVector FractionOfVoxelGridDimension;
+	
 	virtual void GenerateVoxels(TSharedPtr<FChunkStruct>& chunk) override;
 };
