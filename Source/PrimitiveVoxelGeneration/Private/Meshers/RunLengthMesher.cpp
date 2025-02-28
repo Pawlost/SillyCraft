@@ -246,12 +246,24 @@ void URunLengthMesher::DirectionalGreedyMeshing(const FChunkFaceParams& facePara
 
 			for (int32 i = lastElementIndex - 1; i >= 0; i--)
 			{
-				FChunkFace& face = (*faceContainer)[i];
 				FChunkFace& nextFace = (*faceContainer)[i + 1];
+				
+				int backTrackIndex = i;
+				while (faceContainer->IsValidIndex(backTrackIndex)){
+					FChunkFace& face = (*faceContainer)[backTrackIndex];
 
-				if (FChunkFace::MergeFaceUp(face, nextFace))
-				{
-					faceContainer->RemoveAt(i + 1, EAllowShrinking::No);
+					if (face.StartVertexUp.Z < nextFace.StartVertexDown.Z)
+					{
+						break;
+					}
+
+					if (FChunkFace::MergeFaceUp(face, nextFace))
+					{
+						faceContainer->RemoveAt(i + 1, EAllowShrinking::No);
+						break;
+					}
+
+					backTrackIndex--;
 				}
 			}
 		}
