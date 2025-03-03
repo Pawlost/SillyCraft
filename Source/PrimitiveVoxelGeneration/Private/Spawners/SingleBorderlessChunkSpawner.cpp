@@ -7,7 +7,7 @@
 void ASingleBorderlessChunkSpawner::ModifyVoxelAtChunk(const FIntVector& chunkGridPosition,
 	const FIntVector& voxelPosition, const FVoxel& VoxelId)
 {
-	ChunkMesher->ChangeVoxelIdInChunk(SingleChunk, voxelPosition, FVoxel(VoxelId));
+	VoxelGenerator->ChangeVoxelIdInChunk(SingleChunk, voxelPosition, FVoxel(VoxelId));
 }
 
 void ASingleBorderlessChunkSpawner::BeginPlay()
@@ -26,7 +26,7 @@ void ASingleBorderlessChunkSpawner::BeginPlay()
 		SpawnSideChunk(FGridDirectionToFace::RightDirection);
 		SpawnSideChunk(FGridDirectionToFace::LeftDirection);
 
-		ChunkMesher->GenerateMesh(ChunkParams);
+		VoxelGenerator->GenerateMesh(ChunkParams);
 	});
 }
 

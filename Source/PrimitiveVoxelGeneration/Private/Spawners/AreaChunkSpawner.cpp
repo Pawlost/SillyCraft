@@ -20,7 +20,7 @@ void AAreaChunkSpawner::ModifyVoxelAtChunk(const FIntVector& chunkGridPosition, 
 
 		auto chunk = *foundChunk;
 
-		ChunkMesher->ChangeVoxelIdInChunk(chunk, voxelPosition, FVoxel(VoxelId));
+		VoxelGenerator->ChangeVoxelIdInChunk(chunk, voxelPosition, FVoxel(VoxelId));
 
 		EditHandle = Async(EAsyncExecution::TaskGraph, [this, chunk]()
 		{
@@ -57,7 +57,7 @@ void AAreaChunkSpawner::GenerateChunkMesh(FChunkFaceParams& chunkParams, const T
 	AddChunkFromGrid(chunkParams, FGridDirectionToFace::LeftDirection);
 	AddChunkFromGrid(chunkParams, FGridDirectionToFace::FrontDirection);
 	AddChunkFromGrid(chunkParams, FGridDirectionToFace::BackDirection);
-	ChunkMesher->GenerateMesh(chunkParams);
+	VoxelGenerator->GenerateMesh(chunkParams);
 }
 
 void AAreaChunkSpawner::AddChunkFromGrid(FChunkFaceParams& params, const FGridDirectionToFace& faceDirection)

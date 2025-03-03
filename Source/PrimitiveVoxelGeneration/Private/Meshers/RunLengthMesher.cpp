@@ -14,6 +14,7 @@ const URunLengthMesher::FNormalsAndTangents URunLengthMesher::FaceNormalsAndTang
 	{FVector3f(0.0f, 0.0f, 1.0f), FVector3f(1.0f, 0.0f, 0.0f)} //Top
 };
 
+// TODO: optimize
 void URunLengthMesher::UpdateAllFacesParams()
 {
 	auto chunkLenght = VoxelGenerator->GetVoxelDimensionCount();
@@ -74,6 +75,11 @@ void URunLengthMesher::GenerateMesh(FChunkFaceParams& faceParams)
 	FaceGeneration(faceParams);
 	DirectionalGreedyMeshing(faceParams);
 	GenerateMeshFromFaces(faceParams);
+}
+
+void URunLengthMesher::VoxelGeneratorSet()
+{
+	UpdateAllFacesParams();	
 }
 
 void URunLengthMesher::InitFaceContainers(FChunkFaceParams& faceParams) const
@@ -209,28 +215,7 @@ bool URunLengthMesher::IsVoxelVisible(const FVoxelIndexParams& faceData, const F
 		chunkStruct.OriginalChunk->Voxels[faceData.ForwardVoxelIndex].IsEmptyVoxel();
 }
 
-void URunLengthMesher::GenerateVoxels(TSharedPtr<FChunkStruct>& chunk)
-{
-	VoxelGenerator->GenerateVoxels(chunk);
-}
-
-void URunLengthMesher::BeginPlay()
-{
-	if (VoxelGeneratorClass)
-	{
-		// Create the component dynamically
-		VoxelGenerator = NewObject<UVoxelGeneratorBase>(this, VoxelGeneratorClass);
-
-		if (VoxelGenerator)
-		{
-			VoxelGenerator->RegisterComponent();
-		}
-	}
-	UpdateAllFacesParams();
-
-	Super::BeginPlay();
-}
-
+// TODO: optimize by skipping Z rows
 void URunLengthMesher::DirectionalGreedyMeshing(const FChunkFaceParams& faceParams)
 {
 #if CPUPROFILERTRACE_ENABLED
@@ -370,16 +355,6 @@ void URunLengthMesher::GenerateMeshFromFaces(const FChunkFaceParams& faceParams)
 	faceParams.ChunkParams.OriginalChunk->HasMesh = true;
 }
 
-double URunLengthMesher::GetChunkSize()
-{
-	return VoxelGenerator->GetChunkSize();
-}
-
-double URunLengthMesher::GetVoxelSize()
-{
-	return VoxelGenerator->GetVoxelSize();
-}
-
 bool URunLengthMesher::IsMinBorder(const int x)
 {
 	return x == 0;
@@ -388,58 +363,4 @@ bool URunLengthMesher::IsMinBorder(const int x)
 bool URunLengthMesher::IsMaxBorder(const int x) const
 {
 	return x == VoxelGenerator->GetVoxelDimensionCount() - 1;
-}
-
-double URunLengthMesher::GetHighestElevationAtLocation(const FVector& location)
-{
-	return VoxelGenerator->GetHighestElevationAtLocation(location);
-}
-
-bool URunLengthMesher::ChangeVoxelIdInChunk(const TSharedPtr<FChunkStruct>& chunk, const FIntVector& voxelPosition,
-                                            const FVoxel& voxelId)
-{
-	auto index = VoxelGenerator->GetVoxelIndex(voxelPosition);
-
-	if (chunk.IsValid() && chunk->Voxels.IsValidIndex(index))
-	{
-		if (voxelId.IsEmptyVoxel())
-		{
-			FVoxel removedVoxel = chunk->Voxels[index];
-
-			if (!removedVoxel.IsEmptyVoxel())
-			{
-				auto voxelInChunkPtr = chunk->ChunkVoxelTypeTable.Find(removedVoxel.VoxelId);
-				voxelInChunkPtr->CountInChunk--;
-
-				if (voxelInChunkPtr->CountInChunk <= 0)
-				{
-					chunk->ChunkVoxelTypeTable.Remove(removedVoxel.VoxelId);
-					if (chunk->ChunkVoxelTypeTable.IsEmpty())
-					{
-						chunk->IsEmpty = true;
-					}
-					else
-					{
-						int voxelIndex = 0;
-						TArray<int32> voxelKeys;
-						chunk->ChunkVoxelTypeTable.GetKeys(voxelKeys);
-						for (auto key : voxelKeys)
-						{
-							chunk->ChunkVoxelTypeTable[key].ChunkVoxelId = voxelIndex;
-							voxelIndex++;
-						}
-					}
-				}
-			}
-
-			chunk->Voxels[index] = voxelId;
-		}
-		else
-		{
-			VoxelGenerator->AddVoxelAtIndex(chunk, index, voxelId);
-		}
-		return true;
-	}
-
-	return false;
 }

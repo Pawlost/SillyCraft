@@ -5,15 +5,15 @@
 void AChunkSpawnerBase::BeginPlay()
 {
 	// Check if the template is valid
-	if (MesherBlueprint)
+	if (VoxelGeneratorBlueprint)
 	{
 		// Create the component
-		ChunkMesher = NewObject<UMesherBase>(this, MesherBlueprint);
+		VoxelGenerator = NewObject<UVoxelGeneratorBase>(this, VoxelGeneratorBlueprint);
 
-		if (ChunkMesher)
+		if (VoxelGenerator)
 		{
 			// Register the component (required for it to work properly)
-			ChunkMesher->RegisterComponent();
+			VoxelGenerator->RegisterComponent();
 		}
 	}
 	else
@@ -38,7 +38,7 @@ void AChunkSpawnerBase::MoveSpawnToPosition(const FVector& newPosition)
 
 double AChunkSpawnerBase::GetHighestElevationAtLocation(const FVector& location) const
 {
-	return ChunkMesher->GetHighestElevationAtLocation(location);
+	return VoxelGenerator->GetHighestElevationAtLocation(location);
 }
 
 void AChunkSpawnerBase::ChangeVoxelAt(const FVector& hitPosition, const FVector& hitNormal, const FVoxel& VoxelId,
@@ -57,10 +57,10 @@ void AChunkSpawnerBase::ChangeVoxelAt(const FVector& hitPosition, const FVector&
 		adjustedNormal.Z = FMath::Clamp(hitNormal.Z, 0, 1);
 	}
 	
-	auto position = hitPosition - adjustedNormal * ChunkMesher->GetVoxelSize();
+	auto position = hitPosition - adjustedNormal * VoxelGenerator->GetVoxelSize();
 	auto chunkGridPosition = WorldPositionToChunkGridPosition(position);
 	
-	auto voxelPosition = FIntVector((position - FVector(chunkGridPosition * ChunkMesher->GetChunkSize())) / ChunkMesher
+	auto voxelPosition = FIntVector((position - FVector(chunkGridPosition * VoxelGenerator->GetChunkSize())) / VoxelGenerator
 		->GetVoxelSize());
 
 	ModifyVoxelAtChunk(chunkGridPosition, voxelPosition, VoxelId);
@@ -77,7 +77,7 @@ TFuture<TWeakObjectPtr<AChunkRmcActor>> AChunkSpawnerBase::SpawnActor(const FInt
 			return ActorPtr;
 		}
 
-		auto spawnLocation = FVector(gridPosition) * ChunkMesher->GetChunkSize();
+		auto spawnLocation = FVector(gridPosition) * VoxelGenerator->GetChunkSize();
 
 		ActorPtr = world->SpawnActor<AChunkRmcActor>(AChunkRmcActor::StaticClass(), spawnLocation,
 		                                                          FRotator::ZeroRotator);
@@ -101,13 +101,13 @@ void AChunkSpawnerBase::AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirecti
 void AChunkSpawnerBase::InitChunk(TSharedPtr<FChunkStruct>& chunk, const FIntVector& gridPosition)
 {
 	chunk->GridPosition = gridPosition;
-	ChunkMesher->GenerateVoxels(chunk);
+	VoxelGenerator->GenerateVoxels(chunk);
 	chunk->ChunkMeshActor = SpawnActor(gridPosition).Get();
 }
 
 FIntVector AChunkSpawnerBase::WorldPositionToChunkGridPosition(const FVector& worldPosition) const
 {
-	auto location = worldPosition / ChunkMesher->GetChunkSize();
+	auto location = worldPosition / VoxelGenerator->GetChunkSize();
 	return FIntVector(FMath::FloorToInt32(location.X), FMath::FloorToInt32(location.Y),
 	                  FMath::FloorToInt32(location.Z));
 }

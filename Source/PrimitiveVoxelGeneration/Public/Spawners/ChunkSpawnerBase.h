@@ -13,7 +13,7 @@ class PRIMITIVEVOXELGENERATION_API AChunkSpawnerBase : public AActor
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
-	TSubclassOf<UMesherBase> MesherBlueprint = nullptr;
+	TSubclassOf<UVoxelGeneratorBase> VoxelGeneratorBlueprint = nullptr;
 
 	UFUNCTION(BlueprintCallable)
 	void MoveSpawnToPosition(const FVector& newPosition);
@@ -49,7 +49,7 @@ protected:
 	FIntVector CenterGridPosition;
 
 	UPROPERTY()
-	UMesherBase* ChunkMesher;
+	TObjectPtr<UVoxelGeneratorBase> VoxelGenerator;
 
 	FIntVector WorldPositionToChunkGridPosition(const FVector& worldPosition) const;
 };

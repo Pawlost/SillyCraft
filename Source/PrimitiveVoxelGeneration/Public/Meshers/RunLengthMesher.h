@@ -14,21 +14,11 @@ class PRIMITIVEVOXELGENERATION_API URunLengthMesher : public UMesherBase
 	GENERATED_BODY()
 
 public:
+	
 	virtual void GenerateMesh(FChunkFaceParams& faceParams) override;
-	// virtual double GetHighestElevationAtPosition(double posX, double posY) override;
-	virtual void GenerateVoxels(TSharedPtr<FChunkStruct>& chunk) override;
-	virtual double GetChunkSize() override;
-	virtual double GetVoxelSize() override;
 
-	// Allows selecting a component class in Blueprint
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
-	TSubclassOf<UVoxelGeneratorBase> VoxelGeneratorClass = nullptr;
-
-	virtual double GetHighestElevationAtLocation(const FVector& location) override;
-
-	virtual bool ChangeVoxelIdInChunk(const TSharedPtr<FChunkStruct>& chunk, const FIntVector& voxelPosition, const FVoxel& voxelId) override;
 protected:
-	virtual void BeginPlay() override;
+	virtual void VoxelGeneratorSet() override;
 
 private:
 	struct FVoxelIndexParams
@@ -78,7 +68,4 @@ private:
 	};
 
 	static const FNormalsAndTangents FaceNormalsAndTangents[6];
-
-	UPROPERTY()
-	UVoxelGeneratorBase* VoxelGenerator;
 };

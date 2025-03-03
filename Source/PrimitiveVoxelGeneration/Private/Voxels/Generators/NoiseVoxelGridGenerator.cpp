@@ -1,10 +1,16 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
-#include "Voxels/VoxelGenerators/VoxelGridGenerator.h"
+#include "Voxels/VoxelGenerators/NoiseVoxelGridGenerator.h"
 
 #include "FastNoiseWrapper.h"
 #include "Voxels/Voxel.h"
 
-void UVoxelGridGenerator::GenerateVoxels(TSharedPtr<FChunkStruct>& chunk)
+void UNoiseVoxelGridGenerator::BeginPlay()
+{
+	Super::BeginPlay();
+	SetupMesher(RunLenghtMesherClass);
+}
+
+void UNoiseVoxelGridGenerator::GenerateVoxels(TSharedPtr<FChunkStruct>& chunk)
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Voxel generation")

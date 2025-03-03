@@ -4,7 +4,7 @@
 void ASingleChunkSpawner::ModifyVoxelAtChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition,
 	const FVoxel& VoxelId)
 {
-	ChunkMesher->ChangeVoxelIdInChunk(SingleChunk, voxelPosition, FVoxel(VoxelId));
+	VoxelGenerator->ChangeVoxelIdInChunk(SingleChunk, voxelPosition, FVoxel(VoxelId));
 	StartMeshing();
 }
 
@@ -30,5 +30,5 @@ void ASingleChunkSpawner::StartMeshing() const
 	AddSideChunk(params, EFaceDirection::Back, nullptr);
 	AddSideChunk(params, EFaceDirection::Right, nullptr);
 	AddSideChunk(params, EFaceDirection::Left, nullptr);
-	ChunkMesher->GenerateMesh(params);
+	VoxelGenerator->GenerateMesh(params);
 }
