@@ -13,11 +13,13 @@ class PRIMITIVEVOXELGENERATION_API ASingleChunkSpawner : public AChunkSpawnerBas
 
 public:
 	TSharedPtr<FChunkStruct> SingleChunk;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
 	FIntVector SingleChunkGridPosition;
-	
-	virtual void ModifyVoxelAtChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition, const FVoxel& VoxelId) override;
+
+	virtual void ModifyVoxelAtChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition,
+	                                const FVoxel& VoxelId) override;
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

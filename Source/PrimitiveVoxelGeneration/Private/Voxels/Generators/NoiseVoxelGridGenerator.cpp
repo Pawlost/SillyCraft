@@ -4,10 +4,9 @@
 #include "FastNoiseWrapper.h"
 #include "Voxels/Voxel.h"
 
-void UNoiseVoxelGridGenerator::BeginPlay()
+UNoiseVoxelGridGenerator::UNoiseVoxelGridGenerator()
 {
-	Super::BeginPlay();
-	SetupMesher(RunLenghtMesherClass);
+	Noise = CreateDefaultSubobject<UFastNoiseWrapper>("NoiseGenerator");
 }
 
 void UNoiseVoxelGridGenerator::GenerateVoxels(TSharedPtr<FChunkStruct>& chunk)
@@ -17,6 +16,7 @@ void UNoiseVoxelGridGenerator::GenerateVoxels(TSharedPtr<FChunkStruct>& chunk)
 #endif
 
 	const auto chunkLenght = GetVoxelDimensionCount();
+	auto maxElevation = MaxElevation / GetVoxelSize();
 
 	const auto gridPos = chunk->GridPosition * chunkLenght;
 	const int voxelTypeCount = GetVoxelTypeCount();
@@ -32,7 +32,7 @@ void UNoiseVoxelGridGenerator::GenerateVoxels(TSharedPtr<FChunkStruct>& chunk)
 		{
 			for (int y = 0; y < chunkLenght; y++)
 			{
-				const auto elevation = Noise->GetNoise2D(x + gridPos.X, y + gridPos.Y) * GetMaximumElevation();
+				const auto elevation = Noise->GetNoise2D(x + gridPos.X, y + gridPos.Y) * maxElevation;
 
 				for (int z = 0; z < chunkLenght; z++)
 				{
@@ -46,4 +46,29 @@ void UNoiseVoxelGridGenerator::GenerateVoxels(TSharedPtr<FChunkStruct>& chunk)
 			}
 		}
 	}
+}
+
+double UNoiseVoxelGridGenerator::GetHighestElevationAtLocation(const FVector& location)
+{
+	double maxElevation = 0.0;
+
+	for (int voxelId = 0; voxelId < GetVoxelTypeCount(); voxelId++)
+	{
+		SetupNoiseByVoxelId(voxelId);
+
+		double elevation = Noise->GetNoise2D(location.X, location.Y) * MaxElevation;
+
+		if (elevation > maxElevation)
+		{
+			maxElevation = elevation;
+		}
+	}
+
+	return maxElevation * VoxelSize;
+}
+
+void UNoiseVoxelGridGenerator::SetupNoiseByVoxelId(int voxelId) const
+{
+	const FVoxelType voxelType = GetVoxelTypeById(voxelId);
+	Noise->SetupFastNoise(EFastNoise_NoiseType::ValueFractal, voxelType.Seed, voxelType.NoiseFrequency);
 }

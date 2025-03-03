@@ -11,6 +11,7 @@ void UFractionFillVoxelGridGenerator::GenerateVoxels(TSharedPtr<FChunkStruct>& c
 	chunk->ChunkVoxelTypeTable.Reserve(voxelTypeCount);
 	chunk->Voxels.SetNum(GetVoxel3DimensionCount());
 
+	auto voxelFillIndex = VoxelTypeToVoxel(RowHandle);
 	const auto chunkLenght = GetVoxelDimensionCount();
 		
 	for (int x = 0; x < chunkLenght/FractionOfVoxelGridDimension.X; x++)
@@ -21,7 +22,7 @@ void UFractionFillVoxelGridGenerator::GenerateVoxels(TSharedPtr<FChunkStruct>& c
 			{
 				const auto index = GetVoxelIndex(x, y, z);
 
-				AddVoxelAtIndex(chunk, index, VoxelFill);
+				AddVoxelAtIndex(chunk, index, voxelFillIndex);
 			}
 		}
 	}

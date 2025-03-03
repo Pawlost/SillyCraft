@@ -12,14 +12,21 @@ void UVoxelGeneratorBase::BeginPlay()
 	ChunkSize = VoxelCountY * VoxelSize;
 	VoxelCountYZ = VoxelCountY * VoxelCountY;
 	VoxelCountXYZ = VoxelCountYZ * VoxelCountY;
-	MaxElevation /= VoxelSize;
 
 	Super::BeginPlay();
-}
 
-UVoxelGeneratorBase::UVoxelGeneratorBase()
-{
-	Noise = CreateDefaultSubobject<UFastNoiseWrapper>("NoiseGenerator");
+	checkf(MesherBlueprint, TEXT("Mesher blueprint must be set"));
+	if (MesherBlueprint)
+	{
+		// Create the component dynamically
+		Mesher = NewObject<UMesherBase>(this, MesherBlueprint);
+
+		if (Mesher)
+		{
+			Mesher->SetVoxelGenerator(this);
+			Mesher->RegisterComponent();
+		}
+	}
 }
 
 void UVoxelGeneratorBase::AddVoxelAtIndex(const TSharedPtr<FChunkStruct>& chunk, const uint32& index,
@@ -67,11 +74,6 @@ int32 UVoxelGeneratorBase::GetVoxel3DimensionCount() const
 	return VoxelCountXYZ;
 }
 
-double_t UVoxelGeneratorBase::GetMaximumElevation() const
-{
-	return MaxElevation;
-}
-
 void UVoxelGeneratorBase::GenerateMesh(FChunkFaceParams& faceParams) const
 {
 	Mesher->GenerateMesh(faceParams);
@@ -80,6 +82,20 @@ void UVoxelGeneratorBase::GenerateMesh(FChunkFaceParams& faceParams) const
 int32 UVoxelGeneratorBase::GetVoxelTypeCount() const
 {
 	return VoxelTypeTable->GetRowNames().Num();
+}
+
+FVoxel UVoxelGeneratorBase::VoxelTypeToVoxel(const FDataTableRowHandle& rowHandle) const
+{
+	TArray<FName> RowNames =  VoxelTypeTable->GetRowNames();
+	for (int32 Index = 0; Index < RowNames.Num(); Index++)
+	{
+		if (RowNames[Index] == rowHandle.RowName)
+		{
+			return FVoxel(Index);
+		}
+	}
+
+	return FVoxel();
 }
 
 FVoxelType UVoxelGeneratorBase::GetVoxelTypeById(const int32& voxelTypeIndex) const
@@ -91,47 +107,12 @@ FVoxelType UVoxelGeneratorBase::GetVoxelTypeById(const int32& voxelTypeIndex) co
 
 double UVoxelGeneratorBase::GetHighestElevationAtLocation(const FVector& location)
 {
-	double maxElevation = 0.0;
-
-	for (int voxelId = 0; voxelId < GetVoxelTypeCount(); voxelId++)
-	{
-		SetupNoiseByVoxelId(voxelId);
-
-		double elevation = Noise->GetNoise2D(location.X, location.Y) * MaxElevation;
-
-		if (elevation > maxElevation)
-		{
-			maxElevation = elevation;
-		}
-	}
-
-	return maxElevation * VoxelSize;
+	return GetChunkSize();
 }
 
 int32 UVoxelGeneratorBase::GetVoxelIndex(const FIntVector& indexVector) const
 {
 	return GetVoxelIndex(indexVector.X, indexVector.Y, indexVector.Z);
-}
-
-void UVoxelGeneratorBase::SetupNoiseByVoxelId(int voxelId) const
-{
-	const FVoxelType voxelType = GetVoxelTypeById(voxelId);
-	Noise->SetupFastNoise(EFastNoise_NoiseType::ValueFractal, voxelType.Seed, voxelType.NoiseFrequency);
-}
-
-void UVoxelGeneratorBase::SetupMesher(const TSubclassOf<UMesherBase>& MesherClass)
-{
-	if (MesherClass)
-	{
-		// Create the component dynamically
-		Mesher = NewObject<UMesherBase>(this, MesherClass);
-
-		if (Mesher)
-		{
-			Mesher->SetVoxelGenerator(this);
-			Mesher->RegisterComponent();
-		}
-	}
 }
 
 // TODO: optimize, move ChunkVoxelTypeTable to be created during mesh memory initialization
