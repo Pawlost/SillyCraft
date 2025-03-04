@@ -18,7 +18,18 @@ public:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="RealtimeMesh")
 	TObjectPtr<URealtimeMeshComponent> RealtimeMeshComponent;
+
+	void ClearMesh() const;
+	
+	const FRealtimeMeshSectionGroupKey GroupKey = FRealtimeMeshSectionGroupKey::Create(0, FName("Chunk Mesh"));
+
+	TMap<FRealtimeMeshSectionKey, int32> SectionConfigs; 
+
+	void AddSectionConfig(uint16 materialId);
 	
 protected:
 	virtual void OnConstruction(const FTransform& Transform) override;
+
+private:
+	FRealtimeMeshCollisionConfiguration defaultConfig;
 };

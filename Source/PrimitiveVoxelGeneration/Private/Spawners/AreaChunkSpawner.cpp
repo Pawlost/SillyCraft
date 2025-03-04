@@ -1,6 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.pp[p
 #include "Spawners/AreaChunkSpawner.h"
 
+UE_DISABLE_OPTIMIZATION
+
 void AAreaChunkSpawner::ModifyVoxelAtChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition,
                                            const FVoxel& VoxelId)
 {
@@ -77,8 +79,8 @@ void AAreaChunkSpawner::GenerateChunks()
 {
 	SpawnHandle = Async(EAsyncExecution::ThreadPool, [this]()
 	{
-		auto minPosition = CenterGridPosition - FIntVector(SpawnRadius);
-		auto maxPosition = CenterGridPosition + FIntVector(SpawnRadius);
+		auto minPosition = CenterGridPosition - FIntVector(SpawnRadius, SpawnRadius, ChunksBelowSpawner);
+		auto maxPosition = CenterGridPosition + FIntVector(SpawnRadius, SpawnRadius, ChunksAboveSpawner);
 
 		auto minExtendedBorder = minPosition;
 		auto maxExtendedBorder = maxPosition;
@@ -104,7 +106,12 @@ void AAreaChunkSpawner::GenerateChunks()
 					auto currentGridPosition = FIntVector(x, y, z);
 					if (!ChunkGrid.Contains(currentGridPosition))
 					{
-						auto Chunk = MakeShared<FChunkStruct>().ToSharedPtr();
+						TSharedPtr<FChunkStruct> Chunk;
+						if (!DespawnedChunks.Dequeue(Chunk))
+						{
+							Chunk = MakeShared<FChunkStruct>().ToSharedPtr();
+						}
+
 						InitChunk(Chunk, currentGridPosition);
 						ChunkGrid.Add(currentGridPosition, Chunk);
 					}
@@ -156,17 +163,12 @@ void AAreaChunkSpawner::DespawnChunks()
 				}
 
 				auto chunk = *ChunkGrid.Find(chunkKey);
-				auto actorPtr = chunk->ChunkMeshActor;
-
-				AsyncTask(ENamedThreads::GameThread, [this, actorPtr]()
-				{
-					if (actorPtr.IsValid())
-					{
-						actorPtr->Destroy();
-					}
-				});
-
+				
+				chunk->ChunkVoxelTypeTable.Reset();
 				ChunkGrid.Remove(chunkKey);
+				chunk->ChunkMeshActor->ClearMesh();
+
+				DespawnedChunks.Enqueue(chunk);
 			}
 		}
 	});

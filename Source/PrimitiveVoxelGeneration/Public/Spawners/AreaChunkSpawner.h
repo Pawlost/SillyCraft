@@ -13,26 +13,36 @@ class PRIMITIVEVOXELGENERATION_API AAreaChunkSpawner : public AChunkSpawnerBase
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
 	int32 SpawnRadius = 2;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Generation")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
 	bool ShowBorderChunks = true;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
 	double DespawnRadius;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Chunk")
+	int32 ChunksAboveSpawner = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Chunk")
+	int32 ChunksBelowSpawner = 0;
 	
 	virtual void ModifyVoxelAtChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition, const FVoxel& VoxelId) override;
-	
+
 protected:
+
+	TMap<FIntVector, TSharedPtr<FChunkStruct>> ChunkGrid;
+	
 	// Called when the game starts
 	virtual void BeginPlay() override;
-	TMap<FIntVector, TSharedPtr<FChunkStruct>> ChunkGrid;
-	void GenerateChunkMesh(FChunkFaceParams& chunkParams, const TSharedPtr<FChunkStruct>& chunk);
+	virtual void GenerateChunks() override;
+
+	TQueue<TSharedPtr<FChunkStruct>> DespawnedChunks;
 	
 private:
+	void GenerateChunkMesh(FChunkFaceParams& chunkParams, const TSharedPtr<FChunkStruct>& chunk);
 	void AddChunkFromGrid(FChunkFaceParams& params, const FGridDirectionToFace& faceDirection);
-	virtual void GenerateChunks() override;
 	virtual void DespawnChunks() override;
 	TFuture<void> SpawnHandle;
 	TFuture<void> EditHandle;

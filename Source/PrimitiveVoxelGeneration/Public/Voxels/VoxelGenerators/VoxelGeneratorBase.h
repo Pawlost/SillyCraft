@@ -30,7 +30,7 @@ public:
 	double VoxelSize = 0;
 
 	// Allows selecting a component class in Blueprint
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Voxels")
 	TSubclassOf<UMesherBase> MesherBlueprint = nullptr;
 	
 	virtual double GetHighestElevationAtLocation(const FVector& location) override;

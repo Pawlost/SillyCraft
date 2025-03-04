@@ -11,8 +11,16 @@ class PRIMITIVEVOXELGENERATION_API UFractionFillVoxelGridGenerator : public UVox
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	FIntVector FractionOfVoxelGridDimension;
+
+	//TODO: rewrite meta
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "1"), Category = "Grid position")
+	int32 XFraction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "1"), Category = "Grid position")
+	int32 YFraction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "1"), Category = "Grid position")
+	int32 ZFraction;
 	
 	virtual void GenerateVoxels(TSharedPtr<FChunkStruct>& chunk) override;
 };

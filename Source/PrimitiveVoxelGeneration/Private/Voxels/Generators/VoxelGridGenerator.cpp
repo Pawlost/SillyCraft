@@ -8,11 +8,8 @@ void UVoxelGridGenerator::GenerateVoxels(TSharedPtr<FChunkStruct>& chunk)
 #endif
 
 	auto voxelFillIndex = VoxelTypeToVoxel(RowHandle);
-	
-	const int voxelTypeCount = GetVoxelTypeCount();
-	chunk->ChunkVoxelTypeTable.Reserve(voxelTypeCount);
 	auto voxelGridDensity = GetVoxel3DimensionCount();
-	chunk->Voxels.SetNum(voxelGridDensity);
+	
 	for (int i = 0; i < voxelGridDensity; i++)
 	{
 		AddVoxelAtIndex(chunk, i, voxelFillIndex);

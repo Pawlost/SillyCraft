@@ -57,13 +57,11 @@ void URunLengthMesher::UpdateFaceParams(FNaiveMeshingData& face, FIntVector forw
 
 void URunLengthMesher::GenerateMesh(FChunkFaceParams& faceParams)
 {
-	if (faceParams.ChunkParams.OriginalChunk->IsEmpty)
+	if (faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable.IsEmpty())
 	{
-		faceParams.ChunkParams.OriginalChunk->ChunkMeshActor->RealtimeMeshComponent->SetVisibility(false);
+		faceParams.ChunkParams.OriginalChunk->ChunkMeshActor->ClearMesh();
 		return;
 	}
-	
-	faceParams.ChunkParams.OriginalChunk->ChunkMeshActor->RealtimeMeshComponent->SetVisibility(true);
 
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh generation")
@@ -79,7 +77,7 @@ void URunLengthMesher::GenerateMesh(FChunkFaceParams& faceParams)
 
 void URunLengthMesher::VoxelGeneratorSet()
 {
-	UpdateAllFacesParams();	
+	UpdateAllFacesParams();
 }
 
 void URunLengthMesher::InitFaceContainers(FChunkFaceParams& faceParams) const
@@ -144,12 +142,12 @@ void URunLengthMesher::IncrementRun(int x, int y, int z, int32 axisVoxelIndex, b
 	if (!voxel.IsEmptyVoxel())
 	{
 		auto position = FIntVector(x, y, z);
-		auto sideChunk = chunkParams.ChunkParams.OriginalChunk;
-		if (!sideChunk.IsValid())
+		auto originalChunk = chunkParams.ChunkParams.OriginalChunk;
+		if (!originalChunk.IsValid())
 		{
 			return;
 		}
-		auto voxelId = sideChunk->ChunkVoxelTypeTable[voxel.VoxelId];
+		auto voxelId = originalChunk->ChunkVoxelTypeTable[voxel.VoxelId];
 		auto faceContainerIndex = static_cast<uint8>(faceTemplate.StaticMeshingData.faceSide);
 		auto faceContainerVoxelIndex = static_cast<uint8>(reversedFaceTemplate.StaticMeshingData.faceSide);
 		AddFace(faceTemplate, isMinBorder, index, position, voxel, axisVoxelIndex,
@@ -232,9 +230,10 @@ void URunLengthMesher::DirectionalGreedyMeshing(const FChunkFaceParams& facePara
 			for (int32 i = lastElementIndex - 1; i >= 0; i--)
 			{
 				FChunkFace& nextFace = (*faceContainer)[i + 1];
-				
+
 				int backTrackIndex = i;
-				while (faceContainer->IsValidIndex(backTrackIndex)){
+				while (faceContainer->IsValidIndex(backTrackIndex))
+				{
 					FChunkFace& face = (*faceContainer)[backTrackIndex];
 
 					if (face.StartVertexUp.Z < nextFace.StartVertexDown.Z)
@@ -332,13 +331,13 @@ void URunLengthMesher::GenerateMeshFromFaces(const FChunkFaceParams& faceParams)
 		return;
 	}
 
-	auto RealtimeMesh = faceParams.ChunkParams.OriginalChunk->ChunkMeshActor->RealtimeMeshComponent->GetRealtimeMeshAs<
+	auto RMCActor = faceParams.ChunkParams.OriginalChunk->ChunkMeshActor;
+	auto RealtimeMesh = RMCActor->RealtimeMeshComponent->GetRealtimeMeshAs<
 		URealtimeMeshSimple>();
 
-	const FRealtimeMeshSectionGroupKey GroupKey = FRealtimeMeshSectionGroupKey::Create(0, FName("Chunk Mesh"));
 
 	// Now we create the section group, since the stream set has polygroups, this will create the sections as well
-	RealtimeMesh->CreateSectionGroup(GroupKey, *StreamSet);
+	RealtimeMesh->CreateSectionGroup(RMCActor->GroupKey, *StreamSet);
 
 	for (auto voxelId : voxelIdsInMesh)
 	{
@@ -346,13 +345,8 @@ void URunLengthMesher::GenerateMeshFromFaces(const FChunkFaceParams& faceParams)
 		FVoxelType voxelType = VoxelGenerator->GetVoxelTypeById(voxelId.Key);
 		RealtimeMesh->SetupMaterialSlot(materialId, voxelType.BlockName, voxelType.Material);
 
-		auto key = FRealtimeMeshSectionKey::CreateForPolyGroup(GroupKey, materialId);
-		RealtimeMesh->UpdateSectionConfig(key, FRealtimeMeshSectionConfig(
-			                                  ERealtimeMeshSectionDrawType::Static, materialId),
-		                                  true);
+		RMCActor->AddSectionConfig(materialId);
 	}
-
-	faceParams.ChunkParams.OriginalChunk->HasMesh = true;
 }
 
 bool URunLengthMesher::IsMinBorder(const int x)

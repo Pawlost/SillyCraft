@@ -42,7 +42,7 @@ double AChunkSpawnerBase::GetHighestElevationAtLocation(const FVector& location)
 }
 
 void AChunkSpawnerBase::ChangeVoxelAt(const FVector& hitPosition, const FVector& hitNormal, const FVoxel& VoxelId,
-	bool place)
+                                      bool place)
 {
 	FVector adjustedNormal;
 	if (place)
@@ -50,42 +50,37 @@ void AChunkSpawnerBase::ChangeVoxelAt(const FVector& hitPosition, const FVector&
 		adjustedNormal.X = -FMath::Clamp(hitNormal.X, -1, 0);
 		adjustedNormal.Y = -FMath::Clamp(hitNormal.Y, -1, 0);
 		adjustedNormal.Z = -FMath::Clamp(hitNormal.Z, -1, 0);
-	}else
+	}
+	else
 	{
 		adjustedNormal.X = FMath::Clamp(hitNormal.X, 0, 1);
 		adjustedNormal.Y = FMath::Clamp(hitNormal.Y, 0, 1);
 		adjustedNormal.Z = FMath::Clamp(hitNormal.Z, 0, 1);
 	}
-	
+
 	auto position = hitPosition - adjustedNormal * VoxelGenerator->GetVoxelSize();
 	auto chunkGridPosition = WorldPositionToChunkGridPosition(position);
-	
-	auto voxelPosition = FIntVector((position - FVector(chunkGridPosition * VoxelGenerator->GetChunkSize())) / VoxelGenerator
+
+	auto voxelPosition = FIntVector(
+		(position - FVector(chunkGridPosition * VoxelGenerator->GetChunkSize())) / VoxelGenerator
 		->GetVoxelSize());
 
 	ModifyVoxelAtChunk(chunkGridPosition, voxelPosition, VoxelId);
 }
 
-TFuture<TWeakObjectPtr<AChunkRmcActor>> AChunkSpawnerBase::SpawnActor(const FIntVector& gridPosition)
+TFuture<TWeakObjectPtr<AChunkRmcActor>> AChunkSpawnerBase::SpawnActor(const FVector& spawnLocation) const
 {
-	return Async(EAsyncExecution::TaskGraphMainThread, [this, gridPosition]() -> TWeakObjectPtr<AChunkRmcActor>
+	auto world = GetWorld();
+	return Async(EAsyncExecution::TaskGraphMainThread, [world, spawnLocation]() -> TWeakObjectPtr<AChunkRmcActor>
 	{
 		TWeakObjectPtr<AChunkRmcActor> ActorPtr = nullptr;
-		auto world = GetWorld();
 		if (!IsValid(world))
 		{
 			return ActorPtr;
 		}
 
-		auto spawnLocation = FVector(gridPosition) * VoxelGenerator->GetChunkSize();
-
 		ActorPtr = world->SpawnActor<AChunkRmcActor>(AChunkRmcActor::StaticClass(), spawnLocation,
-		                                                          FRotator::ZeroRotator);
-		
-		if (ActorPtr.IsValid())
-		{
-			ActorPtr->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
-		}
+		                                             FRotator::ZeroRotator);
 
 		return ActorPtr;
 	});
@@ -100,9 +95,43 @@ void AChunkSpawnerBase::AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirecti
 
 void AChunkSpawnerBase::InitChunk(TSharedPtr<FChunkStruct>& chunk, const FIntVector& gridPosition)
 {
+	auto spawnLocation = FVector(gridPosition) * VoxelGenerator->GetChunkSize();
+
+	//Actor must always be respawned because of stationary mesh
+	//TFuture<TWeakObjectPtr<AChunkRmcActor>>
+	auto futureActor = SpawnActor(spawnLocation);
+
 	chunk->GridPosition = gridPosition;
+
+	if (!chunk->IsInitialized)
+	{
+		chunk->Voxels.SetNum(VoxelGenerator->GetVoxel3DimensionCount());
+		chunk->ChunkVoxelTypeTable.Reserve(VoxelGenerator->GetVoxelTypeCount());
+	}
+	else
+	{
+		auto ActorPtr = chunk->ChunkMeshActor;
+		futureActor = Async(EAsyncExecution::TaskGraphMainThread,
+		                    [ActorPtr, spawnLocation]() -> TWeakObjectPtr<AChunkRmcActor>
+		                    {
+			                    ActorPtr->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+			                    ActorPtr->SetActorLocation(spawnLocation);
+			                    return ActorPtr;
+		                    });
+	}
+
+	chunk->IsInitialized = true;
 	VoxelGenerator->GenerateVoxels(chunk);
-	chunk->ChunkMeshActor = SpawnActor(gridPosition).Get();
+	chunk->ChunkMeshActor = futureActor.Get();
+	auto AActorPtr = chunk->ChunkMeshActor;
+	AsyncTask(ENamedThreads::GameThread,
+	          [this, AActorPtr]()
+	          {
+		          if (AActorPtr.IsValid())
+		          {
+			          AActorPtr->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
+		          }
+	          });
 }
 
 FIntVector AChunkSpawnerBase::WorldPositionToChunkGridPosition(const FVector& worldPosition) const

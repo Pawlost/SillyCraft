@@ -1,5 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
+UE_DISABLE_OPTIMIZATION
+
 #include "Voxels/VoxelGenerators/VoxelGeneratorBase.h"
 
 #include "Voxels/VoxelType.h"
@@ -41,7 +43,6 @@ void UVoxelGeneratorBase::AddVoxelAtIndex(const TSharedPtr<FChunkStruct>& chunk,
 	{
 		chunk->ChunkVoxelTypeTable.Find(voxel.VoxelId)->CountInChunk++;
 	}
-	chunk->IsEmpty = false;
 }
 
 int32 UVoxelGeneratorBase::GetVoxelIndex(const int32 x, const int32 y, const int32 z) const
@@ -135,11 +136,7 @@ bool UVoxelGeneratorBase::ChangeVoxelIdInChunk(const TSharedPtr<FChunkStruct>& c
 				if (voxelInChunkPtr->CountInChunk <= 0)
 				{
 					chunk->ChunkVoxelTypeTable.Remove(removedVoxel.VoxelId);
-					if (chunk->ChunkVoxelTypeTable.IsEmpty())
-					{
-						chunk->IsEmpty = true;
-					}
-					else
+					if (!chunk->ChunkVoxelTypeTable.IsEmpty())
 					{
 						int voxelIndex = 0;
 						TArray<int32> voxelKeys;

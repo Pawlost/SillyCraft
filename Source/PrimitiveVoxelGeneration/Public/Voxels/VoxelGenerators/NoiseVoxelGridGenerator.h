@@ -13,8 +13,6 @@ class PRIMITIVEVOXELGENERATION_API UNoiseVoxelGridGenerator : public UVoxelGener
 	GENERATED_BODY()
 
 public:
-	UNoiseVoxelGridGenerator();
-	
 	virtual void GenerateVoxels(TSharedPtr<FChunkStruct>& chunk) override;
 	virtual double GetHighestElevationAtLocation(const FVector& location) override;
 	
@@ -22,8 +20,8 @@ public:
 	double MaxElevation = 0;
 	
 protected:
+	virtual void BeginPlay() override;
+	
 	UPROPERTY()
-	TObjectPtr<UFastNoiseWrapper> Noise;
-
-	void SetupNoiseByVoxelId(int voxelId) const;
+	TArray<TObjectPtr<UFastNoiseWrapper>> NoiseGenerators;
 };

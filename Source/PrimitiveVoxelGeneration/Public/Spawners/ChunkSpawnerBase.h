@@ -31,7 +31,7 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-	TFuture<TWeakObjectPtr<AChunkRmcActor>> SpawnActor(const FIntVector& gridPosition);
+	TFuture<TWeakObjectPtr<AChunkRmcActor>> SpawnActor(const FVector& spawnLocation) const;
 	static void AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirection direction,
 	                         const TSharedPtr<FChunkStruct>& chunk);
 

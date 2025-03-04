@@ -21,6 +21,5 @@ struct PRIMITIVEVOXELGENERATION_API FChunkStruct
 	UPROPERTY()
 	FIntVector GridPosition;
 
-	bool IsEmpty = true;
-	bool HasMesh = false;
+	bool IsInitialized = false;
 };

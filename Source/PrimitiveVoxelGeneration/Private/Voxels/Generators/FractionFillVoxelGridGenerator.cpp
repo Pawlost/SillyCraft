@@ -7,18 +7,14 @@ void UFractionFillVoxelGridGenerator::GenerateVoxels(TSharedPtr<FChunkStruct>& c
 	TRACE_CPUPROFILER_EVENT_SCOPE("Voxel generation")
 #endif
 
-	const int voxelTypeCount = GetVoxelTypeCount();
-	chunk->ChunkVoxelTypeTable.Reserve(voxelTypeCount);
-	chunk->Voxels.SetNum(GetVoxel3DimensionCount());
-
 	auto voxelFillIndex = VoxelTypeToVoxel(RowHandle);
 	const auto chunkLenght = GetVoxelDimensionCount();
 		
-	for (int x = 0; x < chunkLenght/FractionOfVoxelGridDimension.X; x++)
+	for (int x = 0; x < chunkLenght/XFraction; x++)
 	{
-		for (int y = 0; y < chunkLenght/FractionOfVoxelGridDimension.Y; y++)
+		for (int y = 0; y < chunkLenght/YFraction; y++)
 		{
-			for (int z = 0; z < chunkLenght/FractionOfVoxelGridDimension.Z; z++)
+			for (int z = 0; z < chunkLenght/ZFraction; z++)
 			{
 				const auto index = GetVoxelIndex(x, y, z);
 
