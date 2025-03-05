@@ -39,6 +39,7 @@ protected:
 	virtual void GenerateChunks() override;
 
 	TQueue<TSharedPtr<FChunkStruct>> DespawnedChunks;
+	TQueue<TWeakObjectPtr<AChunkRmcActor>, EQueueMode::Mpsc> UnusedActors;
 	
 private:
 	void GenerateChunkMesh(FChunkFaceParams& chunkParams, const TSharedPtr<FChunkStruct>& chunk);

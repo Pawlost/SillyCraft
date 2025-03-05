@@ -31,12 +31,14 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-	TFuture<TWeakObjectPtr<AChunkRmcActor>> SpawnActor(const FVector& spawnLocation) const;
+	TFuture<TWeakObjectPtr<AChunkRmcActor>> SpawnChunkActor(const FIntVector& gridPosition,
+																	  TWeakObjectPtr<AChunkRmcActor> ActorPtr);
+	
 	static void AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirection direction,
 	                         const TSharedPtr<FChunkStruct>& chunk);
 
 	
-	void InitChunk(TSharedPtr<FChunkStruct>& chunk, const FIntVector& gridPosition);
+	void InitChunk(TSharedPtr<FChunkStruct>& chunk, const FIntVector& gridPosition) const;
 	
 	virtual void GenerateChunks()
 	{

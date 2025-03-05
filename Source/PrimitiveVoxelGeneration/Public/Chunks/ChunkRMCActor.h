@@ -20,16 +20,14 @@ public:
 	TObjectPtr<URealtimeMeshComponent> RealtimeMeshComponent;
 
 	void ClearMesh() const;
+	void PrepareMesh() const;
 	
 	const FRealtimeMeshSectionGroupKey GroupKey = FRealtimeMeshSectionGroupKey::Create(0, FName("Chunk Mesh"));
-
-	TMap<FRealtimeMeshSectionKey, int32> SectionConfigs; 
-
-	void AddSectionConfig(uint16 materialId);
 	
 protected:
-	virtual void OnConstruction(const FTransform& Transform) override;
-
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	
 private:
-	FRealtimeMeshCollisionConfiguration defaultConfig;
+	FRealtimeMeshCollisionConfiguration DefaultConfig;
 };

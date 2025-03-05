@@ -1,7 +1,5 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-UE_DISABLE_OPTIMIZATION
-
 #include "Voxels/VoxelGenerators/VoxelGeneratorBase.h"
 
 #include "Voxels/VoxelType.h"

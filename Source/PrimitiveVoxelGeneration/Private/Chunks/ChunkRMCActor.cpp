@@ -13,11 +13,8 @@ AChunkRmcActor::AChunkRmcActor()
 	SetRootComponent(RealtimeMeshComponent);
 }
 
-//TODO: rewrite
-
 void AChunkRmcActor::ClearMesh() const
 {
-
 	auto RealTimeMesh =
 		RealtimeMeshComponent->GetRealtimeMeshAs<
 			URealtimeMeshSimple>();
@@ -25,42 +22,31 @@ void AChunkRmcActor::ClearMesh() const
 	FRealtimeMeshCollisionConfiguration config;
 	config.bUseAsyncCook = false;
 	RealTimeMesh->SetCollisionConfig(config);
-	
-	for (auto sectionConfig : SectionConfigs)
-	{
-		auto key = FRealtimeMeshSectionKey::CreateForPolyGroup(GroupKey, sectionConfig.Value);
-		RealTimeMesh->UpdateSectionConfig(key, FRealtimeMeshSectionConfig(
-											  ERealtimeMeshSectionDrawType::Static, sectionConfig.Value),
-										  false);
-	}
-	
+
 	RealtimeMeshComponent->GetRealtimeMeshAs<
 		URealtimeMeshSimple>()->RemoveSectionGroup(GroupKey);
 }
 
-void AChunkRmcActor::AddSectionConfig(uint16 materialId)
+void AChunkRmcActor::PrepareMesh() const
 {
 	auto RealTimeMesh =
 		RealtimeMeshComponent->GetRealtimeMeshAs<
 			URealtimeMeshSimple>();
-	;
-	RealTimeMesh->SetCollisionConfig(defaultConfig);
-	
-	auto key = FRealtimeMeshSectionKey::CreateForPolyGroup(GroupKey, materialId);
-	RealTimeMesh->UpdateSectionConfig(key, FRealtimeMeshSectionConfig(
-										  ERealtimeMeshSectionDrawType::Static, materialId),
-									  true);
-
-	SectionConfigs.Add(key, materialId);
+	RealTimeMesh->SetCollisionConfig(DefaultConfig);
 }
 
-void AChunkRmcActor::OnConstruction(const FTransform& Transform)
+void AChunkRmcActor::BeginPlay()
 {
 	RealtimeMeshComponent->InitializeRealtimeMesh<URealtimeMeshSimple>();
 
-	defaultConfig = RealtimeMeshComponent->GetRealtimeMeshAs<
+	DefaultConfig = RealtimeMeshComponent->GetRealtimeMeshAs<
 		URealtimeMeshSimple>()->GetCollisionConfig();
 	
-	
-	Super::OnConstruction(Transform);
+	Super::BeginPlay();
+}
+
+void AChunkRmcActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	ClearMesh();
+	Super::EndPlay(EndPlayReason);
 }

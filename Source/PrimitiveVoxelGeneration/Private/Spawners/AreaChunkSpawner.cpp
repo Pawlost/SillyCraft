@@ -8,7 +8,7 @@ void AAreaChunkSpawner::ModifyVoxelAtChunk(const FIntVector& chunkGridPosition, 
 {
 	if (ChunkGrid.Contains(chunkGridPosition))
 	{
-		if (EditHandle.IsValid() && !EditHandle.IsReady())
+		if (EditHandle.IsValid() && !EditHandle.IsReady() || (SpawnHandle.IsValid() && !SpawnHandle.IsReady()))
 		{
 			return;
 		}
@@ -52,6 +52,20 @@ void AAreaChunkSpawner::BeginPlay()
 
 void AAreaChunkSpawner::GenerateChunkMesh(FChunkFaceParams& chunkParams, const TSharedPtr<FChunkStruct>& chunk)
 {
+						
+	TWeakObjectPtr<AChunkRmcActor> ActorPtr;
+	if (chunk->ChunkMeshActor == nullptr){
+		if (!UnusedActors.Dequeue(ActorPtr))
+		{
+			ActorPtr = nullptr;
+		}
+	}else
+	{
+		ActorPtr = chunk->ChunkMeshActor;
+	}
+
+	chunk->ChunkMeshActor = SpawnChunkActor(chunk->GridPosition, ActorPtr).Get();
+	
 	chunkParams.ChunkParams.OriginalChunk = chunk;
 	AddChunkFromGrid(chunkParams, FGridDirectionToFace::TopDirection);
 	AddChunkFromGrid(chunkParams, FGridDirectionToFace::BottomDirection);
@@ -111,7 +125,7 @@ void AAreaChunkSpawner::GenerateChunks()
 						{
 							Chunk = MakeShared<FChunkStruct>().ToSharedPtr();
 						}
-
+						
 						InitChunk(Chunk, currentGridPosition);
 						ChunkGrid.Add(currentGridPosition, Chunk);
 					}
@@ -133,8 +147,15 @@ void AAreaChunkSpawner::GenerateChunks()
 					if (ChunkGrid.Contains(currentGridPosition))
 					{
 						auto chunk = *ChunkGrid.Find(currentGridPosition);
+						
 						FChunkFaceParams chunkParams;
 						GenerateChunkMesh(chunkParams, chunk);
+
+						if (!chunk->HasMesh)
+						{
+							UnusedActors.Enqueue(chunk->ChunkMeshActor);
+							chunk->ChunkMeshActor = nullptr;
+						}
 					}
 				}
 			}
@@ -163,10 +184,15 @@ void AAreaChunkSpawner::DespawnChunks()
 				}
 
 				auto chunk = *ChunkGrid.Find(chunkKey);
+
+				if (chunk->ChunkMeshActor != nullptr){
+						chunk->ChunkMeshActor->ClearMesh();
+						UnusedActors.Enqueue(chunk->ChunkMeshActor);
+						chunk->ChunkMeshActor = nullptr;
+				}
 				
 				chunk->ChunkVoxelTypeTable.Reset();
 				ChunkGrid.Remove(chunkKey);
-				chunk->ChunkMeshActor->ClearMesh();
 
 				DespawnedChunks.Enqueue(chunk);
 			}

@@ -57,6 +57,7 @@ void URunLengthMesher::UpdateFaceParams(FNaiveMeshingData& face, FIntVector forw
 
 void URunLengthMesher::GenerateMesh(FChunkFaceParams& faceParams)
 {
+	faceParams.ChunkParams.OriginalChunk->HasMesh = false;
 	if (faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable.IsEmpty())
 	{
 		faceParams.ChunkParams.OriginalChunk->ChunkMeshActor->ClearMesh();
@@ -332,10 +333,10 @@ void URunLengthMesher::GenerateMeshFromFaces(const FChunkFaceParams& faceParams)
 	}
 
 	auto RMCActor = faceParams.ChunkParams.OriginalChunk->ChunkMeshActor;
+	RMCActor->PrepareMesh();
 	auto RealtimeMesh = RMCActor->RealtimeMeshComponent->GetRealtimeMeshAs<
 		URealtimeMeshSimple>();
-
-
+	
 	// Now we create the section group, since the stream set has polygroups, this will create the sections as well
 	RealtimeMesh->CreateSectionGroup(RMCActor->GroupKey, *StreamSet);
 
@@ -345,8 +346,13 @@ void URunLengthMesher::GenerateMeshFromFaces(const FChunkFaceParams& faceParams)
 		FVoxelType voxelType = VoxelGenerator->GetVoxelTypeById(voxelId.Key);
 		RealtimeMesh->SetupMaterialSlot(materialId, voxelType.BlockName, voxelType.Material);
 
-		RMCActor->AddSectionConfig(materialId);
+		auto key = FRealtimeMeshSectionKey::CreateForPolyGroup(RMCActor->GroupKey, materialId);
+		RealtimeMesh->UpdateSectionConfig(key, FRealtimeMeshSectionConfig(
+											  ERealtimeMeshSectionDrawType::Static, materialId),
+										  true);
 	}
+	
+	faceParams.ChunkParams.OriginalChunk->HasMesh = true;
 }
 
 bool URunLengthMesher::IsMinBorder(const int x)

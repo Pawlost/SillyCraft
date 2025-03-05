@@ -68,10 +68,22 @@ void AChunkSpawnerBase::ChangeVoxelAt(const FVector& hitPosition, const FVector&
 	ModifyVoxelAtChunk(chunkGridPosition, voxelPosition, VoxelId);
 }
 
-TFuture<TWeakObjectPtr<AChunkRmcActor>> AChunkSpawnerBase::SpawnActor(const FVector& spawnLocation) const
+TFuture<TWeakObjectPtr<AChunkRmcActor>> AChunkSpawnerBase::SpawnChunkActor(const FIntVector& gridPosition,
+                                                                      TWeakObjectPtr<AChunkRmcActor> ActorPtr)
 {
+	auto spawnLocation = FVector(gridPosition) * VoxelGenerator->GetChunkSize();
+	if (ActorPtr != nullptr)
+	{
+		return Async(EAsyncExecution::TaskGraphMainThread,
+		             [ActorPtr, spawnLocation]() -> TWeakObjectPtr<AChunkRmcActor>
+		             {
+			             ActorPtr->SetActorLocation(spawnLocation);
+			             return ActorPtr;
+		             });
+	}
+	
 	auto world = GetWorld();
-	return Async(EAsyncExecution::TaskGraphMainThread, [world, spawnLocation]() -> TWeakObjectPtr<AChunkRmcActor>
+	return Async(EAsyncExecution::TaskGraphMainThread, [this, world, spawnLocation]() -> TWeakObjectPtr<AChunkRmcActor>
 	{
 		TWeakObjectPtr<AChunkRmcActor> ActorPtr = nullptr;
 		if (!IsValid(world))
@@ -81,6 +93,11 @@ TFuture<TWeakObjectPtr<AChunkRmcActor>> AChunkSpawnerBase::SpawnActor(const FVec
 
 		ActorPtr = world->SpawnActor<AChunkRmcActor>(AChunkRmcActor::StaticClass(), spawnLocation,
 		                                             FRotator::ZeroRotator);
+
+		if (ActorPtr.IsValid())
+		{
+			ActorPtr->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
+		}
 
 		return ActorPtr;
 	});
@@ -93,13 +110,10 @@ void AChunkSpawnerBase::AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirecti
 	chunkParams.ChunkParams.SideChunks[directionIndex] = chunk.IsValid() ? chunk : nullptr;
 }
 
-void AChunkSpawnerBase::InitChunk(TSharedPtr<FChunkStruct>& chunk, const FIntVector& gridPosition)
+void AChunkSpawnerBase::InitChunk(TSharedPtr<FChunkStruct>& chunk,
+                                  const FIntVector& gridPosition) const
 {
-	auto spawnLocation = FVector(gridPosition) * VoxelGenerator->GetChunkSize();
-
 	//Actor must always be respawned because of stationary mesh
-	//TFuture<TWeakObjectPtr<AChunkRmcActor>>
-	auto futureActor = SpawnActor(spawnLocation);
 
 	chunk->GridPosition = gridPosition;
 
@@ -108,30 +122,9 @@ void AChunkSpawnerBase::InitChunk(TSharedPtr<FChunkStruct>& chunk, const FIntVec
 		chunk->Voxels.SetNum(VoxelGenerator->GetVoxel3DimensionCount());
 		chunk->ChunkVoxelTypeTable.Reserve(VoxelGenerator->GetVoxelTypeCount());
 	}
-	else
-	{
-		auto ActorPtr = chunk->ChunkMeshActor;
-		futureActor = Async(EAsyncExecution::TaskGraphMainThread,
-		                    [ActorPtr, spawnLocation]() -> TWeakObjectPtr<AChunkRmcActor>
-		                    {
-			                    ActorPtr->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-			                    ActorPtr->SetActorLocation(spawnLocation);
-			                    return ActorPtr;
-		                    });
-	}
 
 	chunk->IsInitialized = true;
 	VoxelGenerator->GenerateVoxels(chunk);
-	chunk->ChunkMeshActor = futureActor.Get();
-	auto AActorPtr = chunk->ChunkMeshActor;
-	AsyncTask(ENamedThreads::GameThread,
-	          [this, AActorPtr]()
-	          {
-		          if (AActorPtr.IsValid())
-		          {
-			          AActorPtr->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
-		          }
-	          });
 }
 
 FIntVector AChunkSpawnerBase::WorldPositionToChunkGridPosition(const FVector& worldPosition) const

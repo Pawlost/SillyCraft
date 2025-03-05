@@ -17,6 +17,7 @@ void ASingleBorderlessChunkSpawner::BeginPlay()
 	{
 		SingleChunk = MakeShared<FChunkStruct>();
 		InitChunk(SingleChunk, SingleChunkGridPosition);
+		SingleChunk->ChunkMeshActor = SpawnChunkActor(SingleChunk->GridPosition, nullptr).Get();
 		ChunkParams.ChunkParams.OriginalChunk = SingleChunk;
 
 		SpawnSideChunk(FGridDirectionToFace::TopDirection);

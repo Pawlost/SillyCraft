@@ -11,7 +11,7 @@ struct PRIMITIVEVOXELGENERATION_API FChunkStruct
 	GENERATED_BODY()
 
 	UPROPERTY()
-	TWeakObjectPtr<AChunkRmcActor> ChunkMeshActor;
+	TWeakObjectPtr<AChunkRmcActor> ChunkMeshActor = nullptr;
 
 	UPROPERTY()
 	TArray<FVoxel> Voxels;
@@ -22,4 +22,5 @@ struct PRIMITIVEVOXELGENERATION_API FChunkStruct
 	FIntVector GridPosition;
 
 	bool IsInitialized = false;
+	bool HasMesh = false;
 };
