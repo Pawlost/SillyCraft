@@ -1,8 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.pp[p
-#include "Spawners/SingleChunkSpawner.h"
+#include "Spawners/Single/SingleChunkSpawner.h"
 
 void ASingleChunkSpawner::ModifyVoxelAtChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition,
-	const FVoxel& VoxelId)
+                                             const FVoxel& VoxelId)
 {
 	VoxelGenerator->ChangeVoxelIdInChunk(SingleChunk, voxelPosition, FVoxel(VoxelId));
 	StartMeshing();
@@ -16,7 +16,7 @@ void ASingleChunkSpawner::BeginPlay()
 	AsyncTask(ENamedThreads::AnyThread, [this]()
 	{
 		InitChunk(SingleChunk, SingleChunkGridPosition);
-		SingleChunk->ChunkMeshActor = SpawnChunkActor(SingleChunk->GridPosition, nullptr).Get();
+		SingleChunk->ChunkMeshActor = GetChunkActor(SingleChunk->GridPosition, nullptr, false).Get();
 		StartMeshing();
 	});
 }

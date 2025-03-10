@@ -67,5 +67,7 @@ private:
 		FVector3f Tangent;
 	};
 
-	static const FNormalsAndTangents FaceNormalsAndTangents[6];
+	static const FNormalsAndTangents FaceNormalsAndTangents[FACE_SIDE_COUNT];
+
+	void GenerateActorMesh(const TMap<uint32, uint16>& voxelIdsInMesh, const RealtimeMesh::FRealtimeMeshStreamSet& StreamSet, const TWeakObjectPtr<AChunkRmcActor>& RMCActor) const;
 };

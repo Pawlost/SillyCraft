@@ -11,7 +11,8 @@ struct PRIMITIVEVOXELGENERATION_API FChunkParams
 
 	TSharedPtr<FChunkStruct> SideChunks[FACE_SIDE_COUNT];
 	TSharedPtr<FChunkStruct> OriginalChunk;
-	bool ShowBorders;
+	bool ShowBorders = false;
+	bool ExecutedOnMainThread = false;
 };
 
 USTRUCT()

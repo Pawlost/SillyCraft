@@ -31,7 +31,7 @@ void AChunkSpawnerBase::MoveSpawnToPosition(const FVector& newPosition)
 	if (CenterGridPosition != newGridPosition)
 	{
 		CenterGridPosition = newGridPosition;
-		GenerateChunks();
+		SpawnChunks();
 		DespawnChunks();
 	}
 }
@@ -68,39 +68,57 @@ void AChunkSpawnerBase::ChangeVoxelAt(const FVector& hitPosition, const FVector&
 	ModifyVoxelAtChunk(chunkGridPosition, voxelPosition, VoxelId);
 }
 
-TFuture<TWeakObjectPtr<AChunkRmcActor>> AChunkSpawnerBase::SpawnChunkActor(const FIntVector& gridPosition,
-                                                                      TWeakObjectPtr<AChunkRmcActor> ActorPtr)
+TFuture<TWeakObjectPtr<AChunkRmcActor>> AChunkSpawnerBase::GetChunkActor(const FIntVector& gridPosition,
+																	  TWeakObjectPtr<AChunkRmcActor> ActorPtr,
+																	  bool ExecutedOnGameThread)
 {
 	auto spawnLocation = FVector(gridPosition) * VoxelGenerator->GetChunkSize();
+
+	if (ExecutedOnGameThread)
+	{
+		TPromise<TWeakObjectPtr<AChunkRmcActor>> Promise;
+		Promise.SetValue(SpawnChunkActor(spawnLocation));
+		return Promise.GetFuture();
+	}
+	
 	if (ActorPtr != nullptr)
 	{
 		return Async(EAsyncExecution::TaskGraphMainThread,
 		             [ActorPtr, spawnLocation]() -> TWeakObjectPtr<AChunkRmcActor>
 		             {
+		             	if (!ActorPtr.IsValid())
+		             	{
+		             		return ActorPtr;
+		             	}
 			             ActorPtr->SetActorLocation(spawnLocation);
 			             return ActorPtr;
 		             });
 	}
 	
-	auto world = GetWorld();
-	return Async(EAsyncExecution::TaskGraphMainThread, [this, world, spawnLocation]() -> TWeakObjectPtr<AChunkRmcActor>
+	return Async(EAsyncExecution::TaskGraphMainThread, [this, spawnLocation]() -> TWeakObjectPtr<AChunkRmcActor>
 	{
-		TWeakObjectPtr<AChunkRmcActor> ActorPtr = nullptr;
-		if (!IsValid(world))
-		{
-			return ActorPtr;
-		}
-
-		ActorPtr = world->SpawnActor<AChunkRmcActor>(AChunkRmcActor::StaticClass(), spawnLocation,
-		                                             FRotator::ZeroRotator);
-
-		if (ActorPtr.IsValid())
-		{
-			ActorPtr->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
-		}
-
-		return ActorPtr;
+		return SpawnChunkActor(spawnLocation);
 	});
+}
+
+TWeakObjectPtr<AChunkRmcActor> AChunkSpawnerBase::SpawnChunkActor(const FVector& spawnLocation)
+{
+	auto world = GetWorld();
+	TWeakObjectPtr<AChunkRmcActor> ActorPtr = nullptr;
+	if (!IsValid(world))
+	{
+		return ActorPtr;
+	}
+
+	ActorPtr = world->SpawnActor<AChunkRmcActor>(AChunkRmcActor::StaticClass(), spawnLocation,
+												 FRotator::ZeroRotator);
+
+	if (ActorPtr.IsValid())
+	{
+		ActorPtr->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
+	}
+
+	return ActorPtr;
 }
 
 void AChunkSpawnerBase::AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirection direction,

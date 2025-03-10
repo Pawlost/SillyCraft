@@ -1,8 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.pp[p
-#include "Spawners/SingleBorderlessChunkSpawner.h"
+#include "Spawners/Single/SingleBorderlessChunkSpawner.h"
 
 #include "Meshers/MeshingStructs/GridDirectionToFace.h"
-#include "Spawners/SingleChunkSpawner.h"
 
 void ASingleBorderlessChunkSpawner::ModifyVoxelAtChunk(const FIntVector& chunkGridPosition,
 	const FIntVector& voxelPosition, const FVoxel& VoxelId)
@@ -17,7 +16,7 @@ void ASingleBorderlessChunkSpawner::BeginPlay()
 	{
 		SingleChunk = MakeShared<FChunkStruct>();
 		InitChunk(SingleChunk, SingleChunkGridPosition);
-		SingleChunk->ChunkMeshActor = SpawnChunkActor(SingleChunk->GridPosition, nullptr).Get();
+		SingleChunk->ChunkMeshActor = GetChunkActor(SingleChunk->GridPosition, nullptr, false).Get();
 		ChunkParams.ChunkParams.OriginalChunk = SingleChunk;
 
 		SpawnSideChunk(FGridDirectionToFace::TopDirection);

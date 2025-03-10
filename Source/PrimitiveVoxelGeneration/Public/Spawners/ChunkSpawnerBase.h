@@ -31,8 +31,9 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-	TFuture<TWeakObjectPtr<AChunkRmcActor>> SpawnChunkActor(const FIntVector& gridPosition,
-																	  TWeakObjectPtr<AChunkRmcActor> ActorPtr);
+	TFuture<TWeakObjectPtr<AChunkRmcActor>> GetChunkActor(const FIntVector& gridPosition,
+																	  TWeakObjectPtr<AChunkRmcActor> ActorPtr,
+																	  bool ExecutedOnGameThread);
 	
 	static void AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirection direction,
 	                         const TSharedPtr<FChunkStruct>& chunk);
@@ -40,7 +41,7 @@ protected:
 	
 	void InitChunk(TSharedPtr<FChunkStruct>& chunk, const FIntVector& gridPosition) const;
 	
-	virtual void GenerateChunks()
+	virtual void SpawnChunks()
 	{
 	}
 
@@ -54,4 +55,7 @@ protected:
 	TObjectPtr<UVoxelGeneratorBase> VoxelGenerator;
 
 	FIntVector WorldPositionToChunkGridPosition(const FVector& worldPosition) const;
+	
+private:
+	TWeakObjectPtr<AChunkRmcActor> SpawnChunkActor(const FVector& spawnLocation);
 };

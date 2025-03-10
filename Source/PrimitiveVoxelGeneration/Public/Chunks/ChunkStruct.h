@@ -23,4 +23,5 @@ struct PRIMITIVEVOXELGENERATION_API FChunkStruct
 
 	bool IsInitialized = false;
 	bool HasMesh = false;
+	bool IsActive = false;
 };
