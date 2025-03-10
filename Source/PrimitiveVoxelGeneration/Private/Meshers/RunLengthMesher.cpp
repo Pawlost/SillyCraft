@@ -88,14 +88,23 @@ void URunLengthMesher::InitFaceContainers(FChunkFaceParams& faceParams) const
 #endif
 
 	int32 chunkPlane = VoxelGenerator->GetVoxel3DimensionCount();
+	faceParams.VoxelIdToLocalVoxelMap.Reserve(faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable.Num());
+
+
+	for (auto voxelId : faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable)
+	{
+		auto localVoxelId = faceParams.VoxelIdToLocalVoxelMap.Num();
+		faceParams.VoxelIdToLocalVoxelMap.Add(voxelId.Key, localVoxelId);
+	}
+	
 	for (int f = 0; f < FACE_SIDE_COUNT; f++)
 	{
-		faceParams.Faces[f].SetNum(faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable.Num());
-		for (auto voxelId : faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable)
+		for (auto voxel : faceParams.VoxelIdToLocalVoxelMap)
 		{
+			faceParams.Faces[f].SetNum(faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable.Num());
 			auto faceArray = MakeShared<TArray<FChunkFace>>();
 			faceArray->Reserve(chunkPlane);
-			faceParams.Faces[f][voxelId.Value.ChunkVoxelId] = faceArray;
+			faceParams.Faces[f][voxel.Value] = faceArray;
 		}
 	}
 }
@@ -148,13 +157,13 @@ void URunLengthMesher::IncrementRun(int x, int y, int z, int32 axisVoxelIndex, b
 		{
 			return;
 		}
-		auto voxelId = originalChunk->ChunkVoxelTypeTable[voxel.VoxelId];
+		auto localVoxelId = chunkParams.VoxelIdToLocalVoxelMap[voxel.VoxelId];
 		auto faceContainerIndex = static_cast<uint8>(faceTemplate.StaticMeshingData.faceSide);
 		auto faceContainerVoxelIndex = static_cast<uint8>(reversedFaceTemplate.StaticMeshingData.faceSide);
 		AddFace(faceTemplate, isMinBorder, index, position, voxel, axisVoxelIndex,
-		        chunkParams.Faces[faceContainerIndex][voxelId.ChunkVoxelId], chunkParams.ChunkParams);
+		        chunkParams.Faces[faceContainerIndex][localVoxelId], chunkParams.ChunkParams);
 		AddFace(reversedFaceTemplate, isMaxBorder, index, position, voxel, axisVoxelIndex,
-		        chunkParams.Faces[faceContainerVoxelIndex][voxelId.ChunkVoxelId], chunkParams.ChunkParams);
+		        chunkParams.Faces[faceContainerVoxelIndex][localVoxelId], chunkParams.ChunkParams);
 	}
 }
 
@@ -223,9 +232,9 @@ void URunLengthMesher::DirectionalGreedyMeshing(const FChunkFaceParams& facePara
 
 	for (int8 f = 0; f < FACE_SIDE_COUNT; f++)
 	{
-		for (auto voxelId : faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable)
+		for (auto voxelId : faceParams.VoxelIdToLocalVoxelMap)
 		{
-			auto faceContainer = faceParams.Faces[f][voxelId.Value.ChunkVoxelId];
+			auto faceContainer = faceParams.Faces[f][voxelId.Value];
 			auto lastElementIndex = faceContainer->Num() - 1;
 
 			for (int32 i = lastElementIndex - 1; i >= 0; i--)
@@ -281,13 +290,13 @@ void URunLengthMesher::GenerateMeshFromFaces(const FChunkFaceParams& faceParams)
 	TMap<uint32, uint16> voxelIdsInMesh;
 
 	// Because of RealTimeMesh component voxelId needs to be first
-	for (auto voxelId : faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable)
+	for (auto voxelId : faceParams.VoxelIdToLocalVoxelMap)
 	{
 		for (int faceIndex = 0; faceIndex < FACE_SIDE_COUNT; faceIndex++)
 		{
 			auto faceContainer = faceParams.Faces[faceIndex];
 
-			auto sideFaces = faceContainer[voxelId.Value.ChunkVoxelId];
+			auto sideFaces = faceContainer[voxelId.Value];
 
 			auto faceNormalAndTangent = FaceNormalsAndTangents[faceIndex];
 			for (auto Face : *sideFaces)

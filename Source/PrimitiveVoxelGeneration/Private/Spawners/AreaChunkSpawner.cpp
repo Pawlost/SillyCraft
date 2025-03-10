@@ -1,8 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.pp[p
 #include "Spawners/AreaChunkSpawner.h"
 
-UE_DISABLE_OPTIMIZATION
-
 void AAreaChunkSpawner::ModifyVoxelAtChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition,
                                            const FVoxel& VoxelId)
 {

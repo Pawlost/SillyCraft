@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "CoreMinimal.h"
-#include "VoxelIdInChunk.h"
 #include "Chunks/ChunkRMCActor.h"
 #include "Voxels/Voxel.h"
 #include "ChunkStruct.generated.h"
@@ -15,8 +14,9 @@ struct PRIMITIVEVOXELGENERATION_API FChunkStruct
 
 	UPROPERTY()
 	TArray<FVoxel> Voxels;
-	
-	TMap<int32, FVoxelIdInChunk> ChunkVoxelTypeTable;
+
+	//Key: voxel ID; Value: voxel count
+	TMap<int32, uint32> ChunkVoxelTypeTable;
 
 	UPROPERTY()
 	FIntVector GridPosition;

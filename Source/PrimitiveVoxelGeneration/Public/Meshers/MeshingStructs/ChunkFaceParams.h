@@ -21,4 +21,5 @@ struct PRIMITIVEVOXELGENERATION_API FChunkFaceParams
 
 	TArray<TSharedPtr<TArray<FChunkFace>>> Faces[FACE_SIDE_COUNT];
 	FChunkParams ChunkParams;
+	TMap<uint16, uint16> VoxelIdToLocalVoxelMap; 
 };

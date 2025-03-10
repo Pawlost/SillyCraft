@@ -3,7 +3,6 @@
 #include "Voxels/VoxelGenerators/VoxelGeneratorBase.h"
 
 #include "Voxels/VoxelType.h"
-#include "Chunks/VoxelIdInChunk.h"
 #include "Meshers/MesherBase.h"
 
 void UVoxelGeneratorBase::BeginPlay()
@@ -32,14 +31,20 @@ void UVoxelGeneratorBase::BeginPlay()
 void UVoxelGeneratorBase::AddVoxelAtIndex(const TSharedPtr<FChunkStruct>& chunk, const uint32& index,
                                           const FVoxel& voxel)
 {
-	chunk->Voxels[index] = voxel;
-	if (!chunk->ChunkVoxelTypeTable.Contains(voxel.VoxelId))
+	auto prevVoxel = chunk->Voxels[index];
+	if (!prevVoxel.IsEmptyVoxel())
 	{
-		chunk->ChunkVoxelTypeTable.Add(voxel.VoxelId, FVoxelIdInChunk(chunk->ChunkVoxelTypeTable.Num(), 1));
+		(*chunk->ChunkVoxelTypeTable.Find(prevVoxel.VoxelId))--;
+	}
+	
+	chunk->Voxels[index] = voxel;
+	if (chunk->ChunkVoxelTypeTable.Contains(voxel.VoxelId))
+	{
+		(*chunk->ChunkVoxelTypeTable.Find(voxel.VoxelId))++;
 	}
 	else
 	{
-		chunk->ChunkVoxelTypeTable.Find(voxel.VoxelId)->CountInChunk++;
+		chunk->ChunkVoxelTypeTable.Add(voxel.VoxelId, 1);
 	}
 }
 
@@ -114,7 +119,6 @@ int32 UVoxelGeneratorBase::GetVoxelIndex(const FIntVector& indexVector) const
 	return GetVoxelIndex(indexVector.X, indexVector.Y, indexVector.Z);
 }
 
-// TODO: optimize, move ChunkVoxelTypeTable to be created during mesh memory initialization
 bool UVoxelGeneratorBase::ChangeVoxelIdInChunk(const TSharedPtr<FChunkStruct>& chunk, const FIntVector& voxelPosition,
                                                const FVoxel& voxelId) const
 {
@@ -128,23 +132,12 @@ bool UVoxelGeneratorBase::ChangeVoxelIdInChunk(const TSharedPtr<FChunkStruct>& c
 
 			if (!removedVoxel.IsEmptyVoxel())
 			{
-				auto voxelInChunkPtr = chunk->ChunkVoxelTypeTable.Find(removedVoxel.VoxelId);
-				voxelInChunkPtr->CountInChunk--;
+				auto& voxelCount = *chunk->ChunkVoxelTypeTable.Find(removedVoxel.VoxelId);
+				voxelCount--;
 
-				if (voxelInChunkPtr->CountInChunk <= 0)
+				if (voxelCount <= 0)
 				{
 					chunk->ChunkVoxelTypeTable.Remove(removedVoxel.VoxelId);
-					if (!chunk->ChunkVoxelTypeTable.IsEmpty())
-					{
-						int voxelIndex = 0;
-						TArray<int32> voxelKeys;
-						chunk->ChunkVoxelTypeTable.GetKeys(voxelKeys);
-						for (auto key : voxelKeys)
-						{
-							chunk->ChunkVoxelTypeTable[key].ChunkVoxelId = voxelIndex;
-							voxelIndex++;
-						}
-					}
 				}
 			}
 
