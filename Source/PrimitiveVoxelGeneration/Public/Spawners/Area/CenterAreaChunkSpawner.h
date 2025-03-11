@@ -10,10 +10,6 @@ class PRIMITIVEVOXELGENERATION_API ACenterAreaChunkSpawner : public AAreaChunkSp
 {
 	GENERATED_BODY()
 
-public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
-	int32 SpawnRadius = 2;
-
 protected:
 	virtual void GenerateArea() override;
 

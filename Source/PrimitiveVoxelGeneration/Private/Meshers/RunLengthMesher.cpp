@@ -102,8 +102,16 @@ void URunLengthMesher::InitFaceContainers(FChunkFaceParams& faceParams) const
 		for (auto voxel : faceParams.VoxelIdToLocalVoxelMap)
 		{
 			faceParams.Faces[f].SetNum(faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable.Num());
-			auto faceArray = MakeShared<TArray<FChunkFace>>();
-			faceArray->Reserve(chunkPlane);
+			auto faceArray = faceParams.Faces[f][voxel.Value];
+			if (faceArray == nullptr || !faceArray.IsValid())
+			{
+				faceArray = MakeShared<TArray<FChunkFace>>();
+				faceArray->Reserve(chunkPlane);
+			}else
+			{
+				faceArray->Empty();	
+			}
+			
 			faceParams.Faces[f][voxel.Value] = faceArray;
 		}
 	}

@@ -13,18 +13,23 @@ class PRIMITIVEVOXELGENERATION_API AAreaChunkSpawnerBase : public AChunkSpawnerB
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
+	int32 SpawnZone = 2;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
-	bool ShowBorderChunks = true;
+	int32 BufferZone = 1;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
-	double DespawnRadiusFromGeneratedArea;
+	int32 DespawnZone = 2;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Chunk")
 	int32 ChunksAboveSpawner = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Chunk")
 	int32 ChunksBelowSpawner = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Chunk")
+	bool SpawnCenterChunk = true;
 	
 	virtual void ModifyVoxelAtChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition, const FVoxel& VoxelId) override;
 
@@ -47,7 +52,7 @@ private:
 	virtual void DespawnChunks() override;
 	virtual void SpawnChunks() override;
 	
-	TFuture<void> SpawnHandle;
-	TFuture<void> EditHandle;
+	TSharedFuture<void> SpawnHandle;
+	TSharedFuture<void> EditHandle;
 	FCriticalSection Mutex;
 };

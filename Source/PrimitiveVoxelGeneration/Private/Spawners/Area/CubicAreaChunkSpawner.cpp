@@ -4,8 +4,8 @@
 
 void ACubicAreaChunkSpawner::GenerateArea()
 {
-	auto minPosition = CenterGridPosition - FIntVector(SpawnRadius, SpawnRadius, ChunksBelowSpawner);
-	auto maxPosition = CenterGridPosition + FIntVector(SpawnRadius, SpawnRadius, ChunksAboveSpawner);
+	auto minPosition = CenterGridPosition - FIntVector(SpawnZone, SpawnZone, ChunksBelowSpawner);
+	auto maxPosition = CenterGridPosition + FIntVector(SpawnZone, SpawnZone, ChunksAboveSpawner);
 
 	for (int32 x = minPosition.X; x < maxPosition.X; x++)
 	{
