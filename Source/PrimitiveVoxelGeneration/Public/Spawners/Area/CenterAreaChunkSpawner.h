@@ -18,5 +18,6 @@ protected:
 	virtual void GenerateArea() override;
 
 private:
-	void SpawnSideChunk(const FIntVector& centerPosition, TArray<FIntVector>& SpawnPositionsSet, FGridDirectionToFace direction);
+	void SpawnSideChunk(const FIntVector& centerPosition, TArray<FIntVector>& SpawnPositionsSet,
+	                    FGridDirectionToFace direction, const double& maxSpawnDistance);
 };

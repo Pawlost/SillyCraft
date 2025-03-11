@@ -1,8 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.pp[p
 #include "Spawners/Area/CenterAreaChunkSpawner.h"
 
-UE_DISABLE_OPTIMIZATION
-
 void ACenterAreaChunkSpawner::GenerateArea()
 {
 	TArray<FIntVector> SpawnPositionsArray;
@@ -11,33 +9,34 @@ void ACenterAreaChunkSpawner::GenerateArea()
 	while (IsValid(this) && !SpawnPositionsArray.IsEmpty())
 	{
 		FIntVector centerPosition = SpawnPositionsArray[0];
-		if (FVector::Distance(FVector(CenterGridPosition), FVector(centerPosition)) < SpawnRadius)
-		{
-			//Front
-			SpawnSideChunk(centerPosition,SpawnPositionsArray, FGridDirectionToFace::FrontDirection);
 
-			//Right
-			SpawnSideChunk(centerPosition, SpawnPositionsArray, FGridDirectionToFace::RightDirection);
+		//Front
+		SpawnSideChunk(centerPosition, SpawnPositionsArray, FGridDirectionToFace::FrontDirection, SpawnRadius);
 
-			//Left
-			SpawnSideChunk(centerPosition, SpawnPositionsArray, FGridDirectionToFace::LeftDirection);
+		//Top
+		SpawnSideChunk(centerPosition, SpawnPositionsArray, FGridDirectionToFace::TopDirection, ChunksAboveSpawner);
 
-			//Back
-			SpawnSideChunk(centerPosition, SpawnPositionsArray, FGridDirectionToFace::BackDirection);
+		//Right
+		SpawnSideChunk(centerPosition, SpawnPositionsArray, FGridDirectionToFace::RightDirection, SpawnRadius);
 
-			for (int32 z = centerPosition.Z - ChunksBelowSpawner; z < centerPosition.Z + ChunksAboveSpawner; z++)
-			{
-				SpawnChunk(FIntVector(centerPosition.X, centerPosition.Y, z));
-			}
-		}
+		//Left
+		SpawnSideChunk(centerPosition, SpawnPositionsArray, FGridDirectionToFace::LeftDirection, SpawnRadius);
+
+		//Back
+		SpawnSideChunk(centerPosition, SpawnPositionsArray, FGridDirectionToFace::BackDirection, SpawnRadius);
+
+		//Bottom
+		SpawnSideChunk(centerPosition, SpawnPositionsArray, FGridDirectionToFace::BottomDirection, ChunksBelowSpawner);
+
 		//Mesh
 		GenerateChunkMesh(faceParams, centerPosition);
-		
+
 		SpawnPositionsArray.RemoveAt(0, EAllowShrinking::No);
 	}
 }
 
-void ACenterAreaChunkSpawner::SpawnSideChunk(const FIntVector& centerPosition, TArray<FIntVector>& SpawnPositionsArray, FGridDirectionToFace direction)
+void ACenterAreaChunkSpawner::SpawnSideChunk(const FIntVector& centerPosition, TArray<FIntVector>& SpawnPositionsArray,
+                                             FGridDirectionToFace direction, const double& maxSpawnDistance)
 {
 	auto position = centerPosition + direction.Direction;
 
@@ -47,11 +46,14 @@ void ACenterAreaChunkSpawner::SpawnSideChunk(const FIntVector& centerPosition, T
 	{
 		return;
 	}
-	
-	if (chunk == nullptr)
+
+	if (FVector::Distance(FVector(CenterGridPosition), FVector(position)) < maxSpawnDistance)
 	{
-		SpawnChunk(position);
+		if (chunk == nullptr)
+		{
+			SpawnChunk(position);
+		}
+
+		SpawnPositionsArray.AddUnique(position);
 	}
-	
-	SpawnPositionsArray.AddUnique(position);
 }
