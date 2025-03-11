@@ -46,13 +46,13 @@ public:
 
 	void GenerateMesh(FChunkFaceParams& faceParams) const;
 	
-	bool ChangeVoxelIdInChunk(const TSharedPtr<FChunkStruct>& chunk, const FIntVector& voxelPosition, const FVoxel& voxelId) const;
+	bool ChangeVoxelIdInChunk(const TSharedPtr<FChunkStruct>& chunk, const FIntVector& voxelPosition, const FVoxel& voxelId);
 
 	virtual void GenerateVoxels(TSharedPtr<FChunkStruct>& chunk) override
 	{
 	}
 
-	static void AddVoxelAtIndex(const TSharedPtr<FChunkStruct>& chunk, const uint32& index, const FVoxel& voxel);
+	void AddVoxelAtIndex(const TSharedPtr<FChunkStruct>& chunk, const uint32& index, const FVoxel& voxel);
 	
 	FVoxel VoxelTypeToVoxel(const FDataTableRowHandle& rowHandle) const;
 	
@@ -65,4 +65,5 @@ protected:
 private:
 	double ChunkSize = 0.0, InternalVoxelSize = 0.0;
 	int32 VoxelCountY = 0, VoxelCountYZ = 0, VoxelCountXYZ = 0;
+	FCriticalSection Mutex;
 };

@@ -46,6 +46,7 @@ protected:
 	
 	void GenerateChunkMesh(FChunkFaceParams& chunkParams, const FIntVector& chunkGridPosition);
 	void SpawnChunk(const FIntVector& chunkGridPosition);
+	
 private:
 	void AddChunkFromGrid(FChunkFaceParams& params, const FGridDirectionToFace& faceDirection);
 	

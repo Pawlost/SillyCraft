@@ -31,6 +31,7 @@ void UVoxelGeneratorBase::BeginPlay()
 void UVoxelGeneratorBase::AddVoxelAtIndex(const TSharedPtr<FChunkStruct>& chunk, const uint32& index,
                                           const FVoxel& voxel)
 {
+	FScopeLock Lock(&Mutex);
 	auto prevVoxel = chunk->Voxels[index];
 	if (!prevVoxel.IsEmptyVoxel())
 	{
@@ -120,7 +121,7 @@ int32 UVoxelGeneratorBase::GetVoxelIndex(const FIntVector& indexVector) const
 }
 
 bool UVoxelGeneratorBase::ChangeVoxelIdInChunk(const TSharedPtr<FChunkStruct>& chunk, const FIntVector& voxelPosition,
-                                               const FVoxel& voxelId) const
+                                               const FVoxel& voxelId)
 {
 	auto index = GetVoxelIndex(voxelPosition);
 

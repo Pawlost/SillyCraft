@@ -4,13 +4,14 @@
 void AAreaChunkSpawnerBase::ModifyVoxelAtChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition,
                                                const FVoxel& VoxelId)
 {
+
+	if (EditHandle.IsValid() && !EditHandle.IsReady())
+	{
+		return;
+	}
+	
 	if (ChunkGrid.Contains(chunkGridPosition))
 	{
-		if (EditHandle.IsValid() && !EditHandle.IsReady() || (SpawnHandle.IsValid() && !SpawnHandle.IsReady()))
-		{
-			return;
-		}
-
 		auto foundChunk = ChunkGrid.Find(chunkGridPosition);
 
 		if (foundChunk == nullptr || !foundChunk->IsValid())
@@ -21,23 +22,25 @@ void AAreaChunkSpawnerBase::ModifyVoxelAtChunk(const FIntVector& chunkGridPositi
 		auto chunk = *foundChunk;
 
 		VoxelGenerator->ChangeVoxelIdInChunk(chunk, voxelPosition, FVoxel(VoxelId));
-		chunk->IsActive = false;
 
-		EditHandle = Async(EAsyncExecution::TaskGraph, [this, chunk]()
+
+		EditHandle = Async(EAsyncExecution::LargeThreadPool, [this, chunk]()
 		{
 			FChunkFaceParams chunkParams;
+			chunk->IsActive = false;
 			GenerateChunkMesh(chunkParams, chunk->GridPosition);
+			FChunkFaceParams sideParams;
 
 			for (int32 s = 0; s < FACE_SIDE_COUNT; s++)
 			{
 				auto sideChunk = chunkParams.ChunkParams.SideChunks[s];
 				if (sideChunk.IsValid())
 				{
-					FChunkFaceParams sideParams;
-					GenerateChunkMesh(chunkParams, chunk->GridPosition);
+					sideChunk->IsActive = false;
+					GenerateChunkMesh(sideParams, sideChunk->GridPosition);
 				}
 			}
-		});
+		}).Share();
 	}
 }
 
@@ -104,6 +107,14 @@ void AAreaChunkSpawnerBase::GenerateChunkMesh(FChunkFaceParams& chunkParams, con
 		chunk->ChunkMeshActor = nullptr;
 	}
 
+	for (auto sideChunk : chunkParams.ChunkParams.SideChunks)
+	{
+		if (sideChunk == nullptr || !sideChunk.IsValid())
+		{
+			return;
+		}
+	}
+
 	chunk->IsActive = true;
 }
 
@@ -122,7 +133,9 @@ void AAreaChunkSpawnerBase::SpawnChunk(const FIntVector& chunkGridPosition)
 
 	InitChunk(Chunk, chunkGridPosition);
 
+	Mutex.Lock();
 	ChunkGrid.Add(chunkGridPosition, Chunk);
+	Mutex.Unlock();
 }
 
 void AAreaChunkSpawnerBase::AddChunkFromGrid(FChunkFaceParams& params, const FGridDirectionToFace& faceDirection)
@@ -145,10 +158,10 @@ void AAreaChunkSpawnerBase::SpawnChunks()
 		return;
 	}
 
-	SpawnHandle = Async(EAsyncExecution::ThreadPool, [this]()
+	SpawnHandle = Async(EAsyncExecution::Thread, [this]()
 	{
 		GenerateArea();
-	});
+	}).Share();
 }
 
 void AAreaChunkSpawnerBase::DespawnChunks()
@@ -162,11 +175,10 @@ void AAreaChunkSpawnerBase::DespawnChunks()
 		{
 			if (FVector::Distance(FVector(CenterGridPosition), FVector(chunkKey)) > SpawnZone + DespawnZone)
 			{
-				if (!IsValid(this))
-					if (!IsValid(this) || !ChunkGrid.Contains(chunkKey))
-					{
-						return;
-					}
+				if (!IsValid(this) || !ChunkGrid.Contains(chunkKey))
+				{
+					return;
+				}
 
 				auto chunk = *ChunkGrid.Find(chunkKey);
 

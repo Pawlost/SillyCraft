@@ -1,78 +1,58 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.pp[p
 #include "Spawners/Area/CenterAreaChunkSpawner.h"
 
-UE_DISABLE_OPTIMIZATION
-
 void ACenterAreaChunkSpawner::GenerateArea()
 {
-	TArray<FIntVector> SpawnPositionsArray;
-	SpawnPositionsArray.Add(CenterGridPosition);
-
-	SpawnChunk(CenterGridPosition);
-	
+	auto initialCenter = CenterGridPosition;
+	TSet<FIntVector> VisitedSpawnPositions;
+	VisitedSpawnPositions.Reserve(SpawnZone * SpawnZone * SpawnZone * FACE_SIDE_COUNT);
+	TQueue<FIntVector> SpawnPositionsArray;
+	SpawnPositionsArray.Enqueue(initialCenter);
+	SpawnChunk(initialCenter);
 	FChunkFaceParams faceParams;
-	GenerateChunkMesh(faceParams, CenterGridPosition);
+	GenerateChunkMesh(faceParams, initialCenter);
 
-	while (IsValid(this) && !SpawnPositionsArray.IsEmpty())
+	TTuple<FGridDirectionToFace, int32> Directions[6] = {
+		TTuple<FGridDirectionToFace, int32>(FGridDirectionToFace::FrontDirection, SpawnZone),
+		TTuple<FGridDirectionToFace, int32>(FGridDirectionToFace::RightDirection, SpawnZone),
+		TTuple<FGridDirectionToFace, int32>(FGridDirectionToFace::LeftDirection, SpawnZone),
+		TTuple<FGridDirectionToFace, int32>(FGridDirectionToFace::BackDirection, SpawnZone),
+		TTuple<FGridDirectionToFace, int32>(FGridDirectionToFace::TopDirection, ChunksAboveSpawner),
+		TTuple<FGridDirectionToFace, int32>(FGridDirectionToFace::BottomDirection, ChunksBelowSpawner)
+	};
+
+	FIntVector centerPosition;
+	VisitedSpawnPositions.Add(CenterGridPosition);
+
+	while (IsValid(this) && SpawnPositionsArray.Dequeue(centerPosition) && initialCenter == CenterGridPosition)
 	{
-		auto centerPosition = SpawnPositionsArray[0];
-		//Front
-		SpawnSideChunk(centerPosition, SpawnPositionsArray, FGridDirectionToFace::FrontDirection,
-					   SpawnZone);
+		for (int32 s = 0; s < FACE_SIDE_COUNT; s++)
+		{
+			auto direction = Directions[s];
+			
+			auto position = centerPosition + direction.Key.Direction;
 
-		//Top
-		SpawnSideChunk(centerPosition, SpawnPositionsArray, FGridDirectionToFace::TopDirection,
-					   ChunksAboveSpawner);
+			auto chunkPtr = ChunkGrid.Find(position);
 
-		//Right
-		SpawnSideChunk(centerPosition, SpawnPositionsArray, FGridDirectionToFace::RightDirection,
-					   SpawnZone);
+			if (FVector::Distance(FVector(initialCenter), FVector(position)) < direction.Value + BufferZone)
+			{
+				if (chunkPtr == nullptr)
+				{
+					SpawnChunk(position);
+				}
 
-		//Left
-		SpawnSideChunk(centerPosition, SpawnPositionsArray, FGridDirectionToFace::LeftDirection,
-					   SpawnZone);
-
-		//Back
-		SpawnSideChunk(centerPosition, SpawnPositionsArray, FGridDirectionToFace::BackDirection,
-					   SpawnZone);
-
-		//Bottom
-		SpawnSideChunk(centerPosition, SpawnPositionsArray, 
-					   FGridDirectionToFace::BottomDirection, ChunksBelowSpawner);
+				if (!VisitedSpawnPositions.Contains(position))
+				{
+					VisitedSpawnPositions.Add(position);
+					SpawnPositionsArray.Enqueue(position);
+				}
+			}
+		}
 
 		//Mesh
-		if (FVector::Distance(FVector(CenterGridPosition), FVector(centerPosition)) < SpawnZone)
+		if (FVector::Distance(FVector(initialCenter), FVector(centerPosition)) < SpawnZone)
 		{
 			GenerateChunkMesh(faceParams, centerPosition);
 		}
-	}
-
-	SpawnPositionsArray.RemoveAt(0, EAllowShrinking::No);
-}
-
-void ACenterAreaChunkSpawner::SpawnSideChunk(const FIntVector& centerPosition, TArray<FIntVector>& SpawnPositions,
-                                             FGridDirectionToFace direction, const double& maxSpawnDistance)
-{
-	auto position = centerPosition + direction.Direction;
-
-	auto chunkPtr = ChunkGrid.Find(position);
-
-	if (chunkPtr != nullptr)
-	{
-		auto chunk = *chunkPtr;
-		if (chunk->IsActive)
-		{
-			return;
-		}
-	}
-
-	if (FVector::Distance(FVector(CenterGridPosition), FVector(position)) < maxSpawnDistance + BufferZone)
-	{
-		if (chunkPtr == nullptr)
-		{
-			SpawnChunk(position);
-		}
-
-		SpawnPositions.AddUnique(position);
 	}
 }

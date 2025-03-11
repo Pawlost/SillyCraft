@@ -15,6 +15,11 @@ AChunkRmcActor::AChunkRmcActor()
 
 void AChunkRmcActor::ClearMesh() const
 {
+	if (!IsValid(this))
+	{
+		return;
+	}
+	
 	auto RealTimeMesh =
 		RealtimeMeshComponent->GetRealtimeMeshAs<
 			URealtimeMeshSimple>();
