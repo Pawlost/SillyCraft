@@ -45,7 +45,7 @@ protected:
 	virtual void GenerateArea(){}
 	
 	void GenerateChunkMesh(FChunkFaceParams& chunkParams, const FIntVector& chunkGridPosition);
-	void SpawnChunk(const FIntVector& chunkGridPosition);
+	void SpawnChunk(const FIntVector& chunkGridPosition, TSharedFuture<void>* asyncExecution = nullptr);
 	
 private:
 	void AddChunkFromGrid(FChunkFaceParams& params, const FGridDirectionToFace& faceDirection);

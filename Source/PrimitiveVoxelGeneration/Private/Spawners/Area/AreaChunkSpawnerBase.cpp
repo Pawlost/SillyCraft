@@ -118,7 +118,7 @@ void AAreaChunkSpawnerBase::GenerateChunkMesh(FChunkFaceParams& chunkParams, con
 	chunk->IsActive = true;
 }
 
-void AAreaChunkSpawnerBase::SpawnChunk(const FIntVector& chunkGridPosition)
+void AAreaChunkSpawnerBase::SpawnChunk(const FIntVector& chunkGridPosition, TSharedFuture<void>* asyncExecution)
 {
 	if (!IsValid(this) || ChunkGrid.Contains(chunkGridPosition))
 	{
@@ -131,7 +131,7 @@ void AAreaChunkSpawnerBase::SpawnChunk(const FIntVector& chunkGridPosition)
 		Chunk = MakeShared<FChunkStruct>().ToSharedPtr();
 	}
 
-	InitChunk(Chunk, chunkGridPosition);
+	InitChunk(Chunk, chunkGridPosition, asyncExecution);
 
 	Mutex.Lock();
 	ChunkGrid.Add(chunkGridPosition, Chunk);
@@ -166,7 +166,7 @@ void AAreaChunkSpawnerBase::SpawnChunks()
 
 void AAreaChunkSpawnerBase::DespawnChunks()
 {
-	AsyncTask(ENamedThreads::AnyThread, [this]()
+	AsyncTask(ENamedThreads::BackgroundThreadPriority, [this]()
 	{
 		TArray<FIntVector> chunkKeys;
 		ChunkGrid.GetKeys(chunkKeys);

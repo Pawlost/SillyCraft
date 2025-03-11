@@ -15,5 +15,5 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Voxels")
 	FDataTableRowHandle RowHandle;
 
-	virtual void GenerateVoxels(TSharedPtr<FChunkStruct>& chunk) override;
+	virtual void GenerateVoxels(FChunkStruct& chunk) override;
 };

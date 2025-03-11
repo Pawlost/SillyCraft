@@ -48,11 +48,11 @@ public:
 	
 	bool ChangeVoxelIdInChunk(const TSharedPtr<FChunkStruct>& chunk, const FIntVector& voxelPosition, const FVoxel& voxelId);
 
-	virtual void GenerateVoxels(TSharedPtr<FChunkStruct>& chunk) override
+	virtual void GenerateVoxels(FChunkStruct& chunk) override
 	{
 	}
 
-	void AddVoxelAtIndex(const TSharedPtr<FChunkStruct>& chunk, const uint32& index, const FVoxel& voxel);
+	void AddVoxelAtIndex(FChunkStruct& chunk, const uint32& index, const FVoxel& voxel);
 	
 	FVoxel VoxelTypeToVoxel(const FDataTableRowHandle& rowHandle) const;
 	

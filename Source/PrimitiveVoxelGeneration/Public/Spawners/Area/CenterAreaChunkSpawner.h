@@ -12,4 +12,5 @@ class PRIMITIVEVOXELGENERATION_API ACenterAreaChunkSpawner : public AAreaChunkSp
 
 protected:
 	virtual void GenerateArea() override;
+	static void WaitForAllTasks(TArray<TSharedFuture<void>>& tasks);
 };

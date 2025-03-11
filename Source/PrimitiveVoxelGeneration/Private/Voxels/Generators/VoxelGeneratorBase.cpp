@@ -28,24 +28,24 @@ void UVoxelGeneratorBase::BeginPlay()
 	}
 }
 
-void UVoxelGeneratorBase::AddVoxelAtIndex(const TSharedPtr<FChunkStruct>& chunk, const uint32& index,
+void UVoxelGeneratorBase::AddVoxelAtIndex(FChunkStruct& chunk, const uint32& index,
                                           const FVoxel& voxel)
 {
 	FScopeLock Lock(&Mutex);
-	auto prevVoxel = chunk->Voxels[index];
+	auto prevVoxel = chunk.Voxels[index];
 	if (!prevVoxel.IsEmptyVoxel())
 	{
-		(*chunk->ChunkVoxelTypeTable.Find(prevVoxel.VoxelId))--;
+		(*chunk.ChunkVoxelTypeTable.Find(prevVoxel.VoxelId))--;
 	}
 	
-	chunk->Voxels[index] = voxel;
-	if (chunk->ChunkVoxelTypeTable.Contains(voxel.VoxelId))
+	chunk.Voxels[index] = voxel;
+	if (chunk.ChunkVoxelTypeTable.Contains(voxel.VoxelId))
 	{
-		(*chunk->ChunkVoxelTypeTable.Find(voxel.VoxelId))++;
+		(*chunk.ChunkVoxelTypeTable.Find(voxel.VoxelId))++;
 	}
 	else
 	{
-		chunk->ChunkVoxelTypeTable.Add(voxel.VoxelId, 1);
+		chunk.ChunkVoxelTypeTable.Add(voxel.VoxelId, 1);
 	}
 }
 
@@ -146,7 +146,7 @@ bool UVoxelGeneratorBase::ChangeVoxelIdInChunk(const TSharedPtr<FChunkStruct>& c
 		}
 		else
 		{
-			AddVoxelAtIndex(chunk, index, voxelId);
+			AddVoxelAtIndex(*chunk, index, voxelId);
 		}
 		return true;
 	}

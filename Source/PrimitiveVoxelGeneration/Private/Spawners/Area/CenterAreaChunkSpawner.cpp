@@ -11,6 +11,8 @@ void ACenterAreaChunkSpawner::GenerateArea()
 	SpawnChunk(initialCenter);
 	FChunkFaceParams faceParams;
 	GenerateChunkMesh(faceParams, initialCenter);
+	TArray<TSharedFuture<void>> tasks;
+	tasks.Reserve(6);
 
 	TTuple<FGridDirectionToFace, int32> Directions[6] = {
 		TTuple<FGridDirectionToFace, int32>(FGridDirectionToFace::FrontDirection, SpawnZone),
@@ -26,10 +28,16 @@ void ACenterAreaChunkSpawner::GenerateArea()
 
 	while (IsValid(this) && SpawnPositionsArray.Dequeue(centerPosition) && initialCenter == CenterGridPosition)
 	{
+
+		if (tasks.Num() >= 6)
+		{
+			WaitForAllTasks(tasks);
+		}
+		
 		for (int32 s = 0; s < FACE_SIDE_COUNT; s++)
 		{
 			auto direction = Directions[s];
-			
+
 			auto position = centerPosition + direction.Key.Direction;
 
 			auto chunkPtr = ChunkGrid.Find(position);
@@ -38,7 +46,13 @@ void ACenterAreaChunkSpawner::GenerateArea()
 			{
 				if (chunkPtr == nullptr)
 				{
-					SpawnChunk(position);
+					TSharedFuture<void> task;
+					SpawnChunk(position, &task);
+
+					if (task.IsValid() && !task.IsReady())
+					{
+						tasks.Add(task);
+					}
 				}
 
 				if (!VisitedSpawnPositions.Contains(position))
@@ -52,7 +66,21 @@ void ACenterAreaChunkSpawner::GenerateArea()
 		//Mesh
 		if (FVector::Distance(FVector(initialCenter), FVector(centerPosition)) < SpawnZone)
 		{
+			WaitForAllTasks(tasks);
 			GenerateChunkMesh(faceParams, centerPosition);
 		}
 	}
+}
+
+void ACenterAreaChunkSpawner::WaitForAllTasks(TArray<TSharedFuture<void>>& tasks)
+{
+	for (auto task : tasks)
+	{
+		if (task.IsValid() && !task.IsReady())
+		{
+			task.Wait();
+		}
+	}
+
+	tasks.Empty();
 }

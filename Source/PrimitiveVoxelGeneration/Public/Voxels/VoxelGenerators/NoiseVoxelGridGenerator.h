@@ -13,7 +13,7 @@ class PRIMITIVEVOXELGENERATION_API UNoiseVoxelGridGenerator : public UVoxelGener
 	GENERATED_BODY()
 
 public:
-	virtual void GenerateVoxels(TSharedPtr<FChunkStruct>& chunk) override;
+	virtual void GenerateVoxels(FChunkStruct& chunk) override;
 	virtual double GetHighestElevationAtLocation(const FVector& location) override;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Voxels")

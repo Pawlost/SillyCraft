@@ -129,7 +129,7 @@ void AChunkSpawnerBase::AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirecti
 }
 
 void AChunkSpawnerBase::InitChunk(TSharedPtr<FChunkStruct>& chunk,
-                                  const FIntVector& gridPosition) const
+                                  const FIntVector& gridPosition, TSharedFuture<void>* asyncExecution) const
 {
 	//Actor must always be respawned because of stationary mesh
 
@@ -142,7 +142,17 @@ void AChunkSpawnerBase::InitChunk(TSharedPtr<FChunkStruct>& chunk,
 	}
 
 	chunk->IsInitialized = true;
-	VoxelGenerator->GenerateVoxels(chunk);
+	if (asyncExecution != nullptr)
+	{
+		*asyncExecution = Async(EAsyncExecution::LargeThreadPool, [this, chunk]()
+		{
+			VoxelGenerator->GenerateVoxels(*chunk.Get());
+		}).Share();
+
+	}else
+	{
+		VoxelGenerator->GenerateVoxels(*chunk);
+	}
 }
 
 FIntVector AChunkSpawnerBase::WorldPositionToChunkGridPosition(const FVector& worldPosition) const

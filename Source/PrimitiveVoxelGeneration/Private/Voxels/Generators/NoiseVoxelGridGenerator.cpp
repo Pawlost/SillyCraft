@@ -21,7 +21,7 @@ void UNoiseVoxelGridGenerator::BeginPlay()
 }
 
 
-void UNoiseVoxelGridGenerator::GenerateVoxels(TSharedPtr<FChunkStruct>& chunk)
+void UNoiseVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Voxel generation")
@@ -31,7 +31,7 @@ void UNoiseVoxelGridGenerator::GenerateVoxels(TSharedPtr<FChunkStruct>& chunk)
 	auto maxElevation = MaxElevation / GetVoxelSize();
 	const int voxelTypeCount = GetVoxelTypeCount();
 
-	const auto gridPos = chunk->GridPosition * chunkLenght;
+	const auto gridPos = chunk.GridPosition * chunkLenght;
 
 	for (int x = 0; x < chunkLenght; x++)
 	{
@@ -40,7 +40,7 @@ void UNoiseVoxelGridGenerator::GenerateVoxels(TSharedPtr<FChunkStruct>& chunk)
 			for (int z = 0; z < chunkLenght; z++)
 			{
 				const auto index = GetVoxelIndex(x, y, z);
-				chunk->Voxels[index] = FVoxel();
+				chunk.Voxels[index] = FVoxel();
 				for (int voxelId = 0; voxelId < voxelTypeCount; voxelId++)
 				{
 					auto voxel = FVoxel(voxelId);

@@ -22,5 +22,5 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "1"), Category = "Grid position")
 	int32 ZFraction;
 	
-	virtual void GenerateVoxels(TSharedPtr<FChunkStruct>& chunk) override;
+	virtual void GenerateVoxels(FChunkStruct& chunk) override;
 };

@@ -39,7 +39,8 @@ protected:
 	                         const TSharedPtr<FChunkStruct>& chunk);
 
 	
-	void InitChunk(TSharedPtr<FChunkStruct>& chunk, const FIntVector& gridPosition) const;
+	void InitChunk(TSharedPtr<FChunkStruct>& chunk,
+								  const FIntVector& gridPosition, TSharedFuture<void>* asyncExecution = nullptr) const;
 	
 	virtual void SpawnChunks()
 	{
