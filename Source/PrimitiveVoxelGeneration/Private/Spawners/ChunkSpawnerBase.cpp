@@ -138,7 +138,6 @@ void AChunkSpawnerBase::InitChunk(TSharedPtr<FChunkStruct>& chunk,
 	if (!chunk->IsInitialized)
 	{
 		chunk->Voxels.SetNum(VoxelGenerator->GetVoxel3DimensionCount());
-		chunk->ChunkVoxelTypeTable.Reserve(VoxelGenerator->GetVoxelTypeCount());
 	}
 
 	chunk->IsInitialized = true;

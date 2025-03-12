@@ -7,7 +7,7 @@ void UFractionFillVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 	TRACE_CPUPROFILER_EVENT_SCOPE("Voxel generation")
 #endif
 
-	auto voxelFillIndex = VoxelTypeToVoxel(RowHandle);
+	auto voxelFillIndex = GetSingleVoxel();
 	const auto chunkLenght = GetVoxelDimensionCount();
 		
 	for (int x = 0; x < chunkLenght/XFraction; x++)

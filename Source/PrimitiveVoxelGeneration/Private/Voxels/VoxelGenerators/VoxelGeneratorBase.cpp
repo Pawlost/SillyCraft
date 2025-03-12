@@ -1,8 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Voxels/VoxelGenerators/VoxelGeneratorBase.h"
-
-#include "Voxels/VoxelType.h"
 #include "Meshers/MesherBase.h"
 
 void UVoxelGeneratorBase::BeginPlay()
@@ -87,32 +85,6 @@ int32 UVoxelGeneratorBase::GetVoxel3DimensionCount() const
 void UVoxelGeneratorBase::GenerateMesh(FChunkFaceParams& faceParams) const
 {
 	Mesher->GenerateMesh(faceParams);
-}
-
-int32 UVoxelGeneratorBase::GetVoxelTypeCount() const
-{
-	return VoxelTypeTable->GetRowNames().Num();
-}
-
-FVoxel UVoxelGeneratorBase::VoxelTypeToVoxel(const FDataTableRowHandle& rowHandle) const
-{
-	TArray<FName> RowNames = VoxelTypeTable->GetRowNames();
-	for (int32 Index = 0; Index < RowNames.Num(); Index++)
-	{
-		if (RowNames[Index] == rowHandle.RowName)
-		{
-			return FVoxel(Index);
-		}
-	}
-
-	return FVoxel();
-}
-
-FVoxelType UVoxelGeneratorBase::GetVoxelTypeById(const int32& voxelTypeIndex) const
-{
-	auto rowName = VoxelTypeTable->GetRowNames()[voxelTypeIndex];
-
-	return *VoxelTypeTable->FindRow<FVoxelType>(rowName, "");
 }
 
 double UVoxelGeneratorBase::GetHighestElevationAtLocation(const FVector& location)

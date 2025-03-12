@@ -1,27 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.pp[p
 #include "Spawners/Single/SingleChunkSpawner.h"
 
-void ASingleChunkSpawner::ModifyVoxelAtChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition,
-                                             const FVoxel& VoxelId)
-{
-	VoxelGenerator->ChangeVoxelIdInChunk(SingleChunk, voxelPosition, FVoxel(VoxelId));
-	StartMeshing();
-}
-
-void ASingleChunkSpawner::BeginPlay()
-{
-	Super::BeginPlay();
-	SingleChunk = MakeShared<FChunkStruct>();
-
-	AsyncTask(ENamedThreads::AnyThread, [this]()
-	{
-		InitChunk(SingleChunk, SingleChunkGridPosition);
-		SingleChunk->ChunkMeshActor = GetChunkActor(SingleChunk->GridPosition, nullptr, false).Get();
-		StartMeshing();
-	});
-}
-
-void ASingleChunkSpawner::StartMeshing() const
+void ASingleChunkSpawner::StartMeshing()
 {
 	FChunkFaceParams params;
 	params.ChunkParams.OriginalChunk = SingleChunk;
@@ -31,5 +11,6 @@ void ASingleChunkSpawner::StartMeshing() const
 	AddSideChunk(params, EFaceDirection::Back, nullptr);
 	AddSideChunk(params, EFaceDirection::Right, nullptr);
 	AddSideChunk(params, EFaceDirection::Left, nullptr);
+	params.ChunkParams.ShowBorders = true;
 	VoxelGenerator->GenerateMesh(params);
 }

@@ -21,4 +21,5 @@ struct FNoiseGeneratorVariables
 	uint32 MaxDepth;
 	
 	bool GenerateReverseSurface;
+	bool IsTransparent = false;
 };

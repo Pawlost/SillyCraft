@@ -16,15 +16,26 @@ void UNoiseVoxelGridGenerator::BeginPlay()
 		TObjectPtr<UFastNoiseWrapper> surfaceNoise = NewObject<UFastNoiseWrapper>(this);
 		TObjectPtr<UFastNoiseWrapper> reversedSurfaceNoise = NewObject<UFastNoiseWrapper>(this);
 
-		const FVoxelType voxelType = GetVoxelTypeById(voxelId);
-		surfaceNoise->SetupFastNoise(voxelType.SurfaceNoiseType, voxelType.SurfaceSeed, voxelType.SurfaceNoiseFrequency);
-		reversedSurfaceNoise->SetupFastNoise(voxelType.ReversedSurfaceNoiseType, voxelType.ReversedSurfaceSeed, voxelType.ReversedSurfaceNoiseFrequency);
+		 auto voxelType = GetVoxelTypeById(voxelId);
+		surfaceNoise->SetupFastNoise(voxelType.Value.SurfaceNoiseType, voxelType.Value.SurfaceSeed, voxelType.Value.SurfaceNoiseFrequency);
+		reversedSurfaceNoise->SetupFastNoise(voxelType.Value.ReversedSurfaceNoiseType, voxelType.Value.ReversedSurfaceSeed, voxelType.Value.ReversedSurfaceNoiseFrequency);
 		
-		auto noiseGenerator = FNoiseGeneratorVariables(surfaceNoise, reversedSurfaceNoise, voxelType.SurfaceElevation / GetVoxelSize(), voxelType.ReversedSurfaceDepth / GetVoxelSize(), voxelType.GenerateReversedSurface);
+		auto noiseGenerator = FNoiseGeneratorVariables(surfaceNoise, reversedSurfaceNoise, voxelType.Value.SurfaceElevation / GetVoxelSize(), voxelType.Value.ReversedSurfaceDepth / GetVoxelSize(), voxelType.Value.GenerateReversedSurface, voxelType.Value.IsTransparent);
 		NoiseGenerators.Add(noiseGenerator);
 	}
 }
 
+int32 UNoiseVoxelGridGenerator::GetVoxelTypeCount() const
+{
+	return VoxelTypeTable->GetRowNames().Num();
+}
+
+TTuple<FName, FVoxelType> UNoiseVoxelGridGenerator::GetVoxelTypeById(const int32& voxelTypeIndex) const
+{
+	auto rowName = VoxelTypeTable->GetRowNames()[voxelTypeIndex];
+
+	return TTuple<FName, FVoxelType>(rowName, *VoxelTypeTable->FindRow<FVoxelType>(rowName, ""));
+}
 
 void UNoiseVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 {
@@ -47,9 +58,9 @@ void UNoiseVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 				chunk.Voxels[index] = FVoxel();
 				for (int voxelId = 0; voxelId < voxelTypeCount; voxelId++)
 				{
-					auto voxel = FVoxel(voxelId);
-
 					auto noiseVariables = NoiseGenerators[voxelId];
+					
+					auto voxel = FVoxel(voxelId, noiseVariables.IsTransparent);
 
 					const double elevation = noiseVariables.SurfaceGenerator->GetNoise2D(x + gridPos.X, y + gridPos.Y) * noiseVariables.MaxElevation;
 					const double depth = noiseVariables.ReverseSurfaceGenerator->GetNoise2D(x + gridPos.X, y + gridPos.Y) * noiseVariables.MaxDepth;

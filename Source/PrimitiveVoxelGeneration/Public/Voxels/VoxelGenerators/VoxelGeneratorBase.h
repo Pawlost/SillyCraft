@@ -16,12 +16,7 @@ class PRIMITIVEVOXELGENERATION_API UVoxelGeneratorBase : public UActorComponent,
 	GENERATED_BODY()
 
 public:
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Voxels")
-	TObjectPtr<UDataTable> VoxelTypeTable;
-
-	int32 GetVoxelTypeCount() const;
-	FVoxelType GetVoxelTypeById(const int32& voxelTypeIndex) const;
+	virtual TTuple<FName, FVoxelType> GetVoxelTypeById(const int32& voxelTypeIndex) const {return TTuple<FName, FVoxelType>();};
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Voxels")
 	int32 VoxelDimensionCount = 0;
@@ -53,8 +48,6 @@ public:
 	}
 
 	void AddVoxelAtIndex(FChunkStruct& chunk, const uint32& index, const FVoxel& voxel);
-	
-	FVoxel VoxelTypeToVoxel(const FDataTableRowHandle& rowHandle) const;
 	
 protected:
 	UPROPERTY()

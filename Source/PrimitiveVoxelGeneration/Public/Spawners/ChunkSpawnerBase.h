@@ -33,7 +33,7 @@ protected:
 	virtual void BeginPlay() override;
 	TFuture<TWeakObjectPtr<AChunkRmcActor>> GetChunkActor(const FIntVector& gridPosition,
 																	  TWeakObjectPtr<AChunkRmcActor> ActorPtr,
-																	  bool ExecutedOnGameThread);
+																	  bool ExecutedOnGameThread = false);
 	
 	static void AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirection direction,
 	                         const TSharedPtr<FChunkStruct>& chunk);

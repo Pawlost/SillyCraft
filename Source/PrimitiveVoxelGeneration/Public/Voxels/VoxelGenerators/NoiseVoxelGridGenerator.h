@@ -13,9 +13,14 @@ class PRIMITIVEVOXELGENERATION_API UNoiseVoxelGridGenerator : public UVoxelGener
 	GENERATED_BODY()
 
 public:
+	int32 GetVoxelTypeCount() const;
 	virtual void GenerateVoxels(FChunkStruct& chunk) override;
 	virtual double GetHighestElevationAtLocation(const FVector& location) override;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Voxels")
+	TObjectPtr<UDataTable> VoxelTypeTable;
+	virtual TTuple<FName, FVoxelType> GetVoxelTypeById(const int32& voxelTypeIndex) const override;
+	
 protected:
 	virtual void BeginPlay() override;
 	

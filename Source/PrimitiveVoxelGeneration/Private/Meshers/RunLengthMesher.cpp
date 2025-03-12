@@ -5,6 +5,8 @@
 #include "RealtimeMeshSimple.h"
 #include "Mesh/RealtimeMeshBuilder.h"
 
+UE_DISABLE_OPTIMIZATION
+
 const URunLengthMesher::FNormalsAndTangents URunLengthMesher::FaceNormalsAndTangents[] = {
 	{FVector3f(-1.0f, 0.0f, 0.0f), FVector3f(0.0, 1.0, 0.0)}, //Front
 	{FVector3f(1.0f, 0.0f, 0.0f), FVector3f(0.0, 1.0, 0.0)}, //Back
@@ -186,6 +188,7 @@ void URunLengthMesher::AddFace(const FNaiveMeshingData& faceTemplate, bool isBor
 		faceTemplate.ForwardVoxelIndex + index,
 		faceTemplate.PreviousVoxelIndex + index,
 		index - axisVoxelIndex + faceTemplate.ChunkBorderIndex,
+		voxel,
 		faceTemplate.StaticMeshingData.faceSide
 	};
 
@@ -220,16 +223,23 @@ bool URunLengthMesher::IsBorderVoxelVisible(const FVoxelIndexParams& faceData, c
 	{
 		auto faceContainerIndex = static_cast<uint8>(faceData.FaceDirection);
 		auto sideChunk = chunkStruct.SideChunks[faceContainerIndex];
-		return (sideChunk == nullptr && chunkStruct.ShowBorders) || (sideChunk != nullptr && sideChunk->Voxels[faceData.
-			CurrentVoxelIndex].IsEmptyVoxel());
+		if (sideChunk != nullptr){
+			auto nextVoxel = sideChunk->Voxels[faceData.CurrentVoxelIndex];
+			return nextVoxel.IsTransparent() && nextVoxel != faceData.currentVoxel;
+		}
+		
+		return sideChunk == nullptr && chunkStruct.ShowBorders;
 	}
 	return false;
 }
 
 bool URunLengthMesher::IsVoxelVisible(const FVoxelIndexParams& faceData, const FChunkParams& chunkStruct)
 {
-	return !faceData.IsBorder && chunkStruct.OriginalChunk->Voxels.IsValidIndex(faceData.ForwardVoxelIndex) &&
-		chunkStruct.OriginalChunk->Voxels[faceData.ForwardVoxelIndex].IsEmptyVoxel();
+	if (!faceData.IsBorder && chunkStruct.OriginalChunk->Voxels.IsValidIndex(faceData.ForwardVoxelIndex)){
+		auto nextVoxel = chunkStruct.OriginalChunk->Voxels[faceData.ForwardVoxelIndex];
+		return nextVoxel.IsTransparent() && nextVoxel != faceData.currentVoxel;
+	}
+	return false;
 }
 
 void URunLengthMesher::DirectionalGreedyMeshing(const FChunkFaceParams& faceParams)
@@ -394,8 +404,8 @@ void URunLengthMesher::GenerateActorMesh(const TMap<uint32, uint16>& voxelIdsInM
 	for (auto voxelId : voxelIdsInMesh)
 	{
 		auto materialId = voxelId.Value;
-		FVoxelType voxelType = VoxelGenerator->GetVoxelTypeById(voxelId.Key);
-		RealtimeMesh->SetupMaterialSlot(materialId, voxelType.BlockName, voxelType.Material);
+		auto voxelType = VoxelGenerator->GetVoxelTypeById(voxelId.Key);
+		RealtimeMesh->SetupMaterialSlot(materialId, voxelType.Key, voxelType.Value.Material);
 
 		auto key = FRealtimeMeshSectionKey::CreateForPolyGroup(RMCActor->GroupKey, materialId);
 		RealtimeMesh->UpdateSectionConfig(key, FRealtimeMeshSectionConfig(

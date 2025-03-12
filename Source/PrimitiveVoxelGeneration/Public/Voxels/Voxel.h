@@ -14,10 +14,16 @@ struct FVoxel
 	// Initial voxel id
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	int32 VoxelId = EMPTY_VOXEL;
-
+	bool Transparent = false;
+	
 	bool IsEmptyVoxel() const
 	{
 		return VoxelId == EMPTY_VOXEL;
+	}
+
+	bool IsTransparent() const
+	{
+		return Transparent || IsEmptyVoxel();
 	}
 };
 

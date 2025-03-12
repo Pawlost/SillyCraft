@@ -26,6 +26,7 @@ private:
 		int32 ForwardVoxelIndex;
 		int32 PreviousVoxelIndex;
 		int32 CurrentVoxelIndex;
+		FVoxel currentVoxel;
 		EFaceDirection FaceDirection;
 	};
 

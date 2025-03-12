@@ -7,7 +7,7 @@ void UVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 	TRACE_CPUPROFILER_EVENT_SCOPE("Voxel generation")
 #endif
 
-	auto voxelFillIndex = VoxelTypeToVoxel(RowHandle);
+	auto voxelFillIndex = GetSingleVoxel();
 	auto voxelGridDensity = GetVoxel3DimensionCount();
 	
 	for (int i = 0; i < voxelGridDensity; i++)

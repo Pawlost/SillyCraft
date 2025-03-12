@@ -3,39 +3,27 @@
 
 #include "Meshers/MeshingStructs/GridDirectionToFace.h"
 
-void ASingleBorderlessChunkSpawner::ModifyVoxelAtChunk(const FIntVector& chunkGridPosition,
-	const FIntVector& voxelPosition, const FVoxel& VoxelId)
+void ASingleBorderlessChunkSpawner::StartMeshing()
 {
-	VoxelGenerator->ChangeVoxelIdInChunk(SingleChunk, voxelPosition, FVoxel(VoxelId));
+	FChunkFaceParams ChunkParams;
+	ChunkParams.ChunkParams.OriginalChunk = SingleChunk;
+
+	SpawnSideChunk(ChunkParams, FGridDirectionToFace::TopDirection);
+	SpawnSideChunk(ChunkParams, FGridDirectionToFace::BottomDirection);
+	SpawnSideChunk(ChunkParams, FGridDirectionToFace::BackDirection);
+	SpawnSideChunk(ChunkParams, FGridDirectionToFace::FrontDirection);
+	SpawnSideChunk(ChunkParams, FGridDirectionToFace::RightDirection);
+	SpawnSideChunk(ChunkParams, FGridDirectionToFace::LeftDirection);
+
+	VoxelGenerator->GenerateMesh(ChunkParams);
 }
 
-void ASingleBorderlessChunkSpawner::BeginPlay()
-{
-	Super::BeginPlay();
-	AsyncTask(ENamedThreads::AnyThread, [this]()
-	{
-		SingleChunk = MakeShared<FChunkStruct>();
-		InitChunk(SingleChunk, SingleChunkGridPosition);
-		SingleChunk->ChunkMeshActor = GetChunkActor(SingleChunk->GridPosition, nullptr, false).Get();
-		ChunkParams.ChunkParams.OriginalChunk = SingleChunk;
-
-		SpawnSideChunk(FGridDirectionToFace::TopDirection);
-		SpawnSideChunk(FGridDirectionToFace::BottomDirection);
-		SpawnSideChunk(FGridDirectionToFace::BackDirection);
-		SpawnSideChunk(FGridDirectionToFace::FrontDirection);
-		SpawnSideChunk(FGridDirectionToFace::RightDirection);
-		SpawnSideChunk(FGridDirectionToFace::LeftDirection);
-
-		VoxelGenerator->GenerateMesh(ChunkParams);
-	});
-}
-
-void ASingleBorderlessChunkSpawner::SpawnSideChunk(const FGridDirectionToFace& faceDirection)
+void ASingleBorderlessChunkSpawner::SpawnSideChunk(FChunkFaceParams& chunkParams, const FGridDirectionToFace& faceDirection )
 {
 	auto index = static_cast<uint8>(faceDirection.FaceSide);
 	auto chunk = MakeShared<FChunkStruct>().ToSharedPtr();
 	SideChunk[index] = chunk;
 	auto gridPosition = SingleChunkGridPosition + faceDirection.Direction;
 	InitChunk(chunk, gridPosition);
-	AddSideChunk(ChunkParams, faceDirection.FaceSide, SideChunk[index]);
+	AddSideChunk(chunkParams, faceDirection.FaceSide, SideChunk[index]);
 }
