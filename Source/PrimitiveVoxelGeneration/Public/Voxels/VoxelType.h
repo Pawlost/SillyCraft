@@ -3,37 +3,44 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "FastNoiseWrapper.h"
 #include "VoxelType.generated.h"
-
-/**
- * 
- */
-UENUM(BlueprintType)
-enum class EHardness : uint8
-{
-	Empty, Soft, Medium, Hard
-};
 
 USTRUCT(BlueprintType)
 struct PRIMITIVEVOXELGENERATION_API FVoxelType : public FTableRowBase
 {
 	GENERATED_BODY()
-
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Basic")
 	FName BlockName;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Basic")
-	EHardness BlockHardness;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Basic")
-	int32 Range;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Basic")
 	TObjectPtr<UMaterial> Material;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Noise")
-	int64 Seed = 1234;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Surface")
+	EFastNoise_NoiseType SurfaceNoiseType;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Surface")
+	int64 SurfaceSeed = 1234;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Noise")
-	double NoiseFrequency = 0.007;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Surface")
+	double SurfaceNoiseFrequency = 0.007;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Surface")
+	double SurfaceElevation = 1000;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "ReversedSurface")
+	bool GenerateReversedSurface = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "ReversedSurface")
+	EFastNoise_NoiseType ReversedSurfaceNoiseType;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "ReversedSurface")
+	int64 ReversedSurfaceSeed = 1234;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "ReversedSurface")
+	double ReversedSurfaceNoiseFrequency = 0.007;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "ReversedSurface")
+	double ReversedSurfaceDepth = 1000;
 };

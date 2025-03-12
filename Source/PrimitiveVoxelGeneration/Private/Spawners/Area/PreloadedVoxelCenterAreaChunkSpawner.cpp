@@ -8,7 +8,6 @@ void APreloadedVoxelCenterAreaChunkSpawner::GenerateArea()
 	VisitedSpawnPositions.Reserve(SpawnZone * SpawnZone * SpawnZone * FACE_SIDE_COUNT);
 	TQueue<FIntVector> SpawnPositionsArray;
 	SpawnChunk(initialCenter);
-	FChunkFaceParams faceParams;
 	TArray<TSharedFuture<void>> tasks;
 	tasks.Reserve(6);
 	
@@ -62,29 +61,13 @@ void APreloadedVoxelCenterAreaChunkSpawner::GenerateArea()
 			WaitForAllTasks(tasks);
 		}
 	}
+	
+	WaitForAllTasks(tasks);
 
-	VisitedSpawnPositions.Empty();
-	SpawnPositionsArray.Enqueue(initialCenter);
-	while (IsValid(this) && SpawnPositionsArray.Dequeue(centerPosition) && initialCenter == CenterGridPosition)
+	FChunkFaceParams faceParams;
+	for (auto VisitedSpawnPosition : VisitedSpawnPositions)
 	{
-		for (int32 s = 0; s < FACE_SIDE_COUNT; s++)
-		{
-			auto direction = Directions[s];
-
-			auto position = centerPosition + direction.Key.Direction;
-
-			if (!VisitedSpawnPositions.Contains(position))
-			{
-				VisitedSpawnPositions.Add(position);
-				SpawnPositionsArray.Enqueue(position);
-			}
-		}
-		
-		//Mesh
-		if (FVector::Distance(FVector(initialCenter), FVector(centerPosition)) < SpawnZone)
-		{
-			GenerateChunkMesh(faceParams, centerPosition);
-		}
+		GenerateChunkMesh(faceParams, VisitedSpawnPosition);
 	}
 }
 

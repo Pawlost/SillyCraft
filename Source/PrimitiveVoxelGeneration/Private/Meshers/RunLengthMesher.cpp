@@ -14,7 +14,6 @@ const URunLengthMesher::FNormalsAndTangents URunLengthMesher::FaceNormalsAndTang
 	{FVector3f(0.0f, 0.0f, 1.0f), FVector3f(1.0f, 0.0f, 0.0f)} //Top
 };
 
-// TODO: optimize
 void URunLengthMesher::UpdateAllFacesParams()
 {
 	auto chunkLenght = VoxelGenerator->GetVoxelDimensionCount();
@@ -107,11 +106,12 @@ void URunLengthMesher::InitFaceContainers(FChunkFaceParams& faceParams) const
 			{
 				faceArray = MakeShared<TArray<FChunkFace>>();
 				faceArray->Reserve(chunkPlane);
-			}else
-			{
-				faceArray->Empty();	
 			}
-			
+			else
+			{
+				faceArray->Empty();
+			}
+
 			faceParams.Faces[f][voxel.Value] = faceArray;
 		}
 	}
@@ -232,7 +232,6 @@ bool URunLengthMesher::IsVoxelVisible(const FVoxelIndexParams& faceData, const F
 		chunkStruct.OriginalChunk->Voxels[faceData.ForwardVoxelIndex].IsEmptyVoxel();
 }
 
-// TODO: optimize by skipping Z rows
 void URunLengthMesher::DirectionalGreedyMeshing(const FChunkFaceParams& faceParams)
 {
 #if CPUPROFILERTRACE_ENABLED

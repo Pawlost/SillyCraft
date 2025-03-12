@@ -13,13 +13,12 @@ class PRIMITIVEVOXELGENERATION_API UMesherBase : public UActorComponent
 
 public:
 	void SetVoxelGenerator(const TObjectPtr<UVoxelGeneratorBase>& VoxelGeneratorBase);
-	
+
 	virtual void GenerateMesh(FChunkFaceParams& faceParams)
 	{
 	}
 
 protected:
-
 	virtual void VoxelGeneratorSet()
 	{
 	}

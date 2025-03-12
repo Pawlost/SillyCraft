@@ -13,10 +13,15 @@ void UNoiseVoxelGridGenerator::BeginPlay()
 	for (int voxelId = 0; voxelId < voxelTypeCount; voxelId++)
 	{
 		// Create the component dynamically
-		TObjectPtr<UFastNoiseWrapper> noise = NewObject<UFastNoiseWrapper>(this);
+		TObjectPtr<UFastNoiseWrapper> surfaceNoise = NewObject<UFastNoiseWrapper>(this);
+		TObjectPtr<UFastNoiseWrapper> reversedSurfaceNoise = NewObject<UFastNoiseWrapper>(this);
+
 		const FVoxelType voxelType = GetVoxelTypeById(voxelId);
-		noise->SetupFastNoise(EFastNoise_NoiseType::ValueFractal, voxelType.Seed, voxelType.NoiseFrequency);
-		NoiseGenerators.Add(noise);
+		surfaceNoise->SetupFastNoise(voxelType.SurfaceNoiseType, voxelType.SurfaceSeed, voxelType.SurfaceNoiseFrequency);
+		reversedSurfaceNoise->SetupFastNoise(voxelType.ReversedSurfaceNoiseType, voxelType.ReversedSurfaceSeed, voxelType.ReversedSurfaceNoiseFrequency);
+		
+		auto noiseGenerator = FNoiseGeneratorVariables(surfaceNoise, reversedSurfaceNoise, voxelType.SurfaceElevation / GetVoxelSize(), voxelType.ReversedSurfaceDepth / GetVoxelSize(), voxelType.GenerateReversedSurface);
+		NoiseGenerators.Add(noiseGenerator);
 	}
 }
 
@@ -28,7 +33,6 @@ void UNoiseVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 #endif
 
 	const auto chunkLenght = GetVoxelDimensionCount();
-	auto maxElevation = MaxElevation / GetVoxelSize();
 	const int voxelTypeCount = GetVoxelTypeCount();
 
 	const auto gridPos = chunk.GridPosition * chunkLenght;
@@ -45,11 +49,23 @@ void UNoiseVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 				{
 					auto voxel = FVoxel(voxelId);
 
-					auto noise = NoiseGenerators[voxelId];
+					auto noiseVariables = NoiseGenerators[voxelId];
 
-					const auto elevation = noise->GetNoise2D(x + gridPos.X, y + gridPos.Y) * maxElevation;
+					const double elevation = noiseVariables.SurfaceGenerator->GetNoise2D(x + gridPos.X, y + gridPos.Y) * noiseVariables.MaxElevation;
+					const double depth = noiseVariables.ReverseSurfaceGenerator->GetNoise2D(x + gridPos.X, y + gridPos.Y) * noiseVariables.MaxDepth;
 
-					if (gridPos.Z + z <= elevation)
+					bool AddVoxel;
+					double currentElevation = gridPos.Z + z;
+					
+					if (noiseVariables.GenerateReverseSurface)
+					{
+						AddVoxel = currentElevation > -depth  && currentElevation < elevation;
+					}else
+					{
+						AddVoxel = currentElevation < elevation;
+					}
+					
+					if (AddVoxel)
 					{
 						AddVoxelAtIndex(chunk, index, voxel);
 					}
@@ -62,13 +78,11 @@ void UNoiseVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 double UNoiseVoxelGridGenerator::GetHighestElevationAtLocation(const FVector& location)
 {
 	double maxElevation = 0.0;
-
-	auto maxElevationConstant = MaxElevation / GetVoxelSize();
-
+	
 	for (int voxelId = 0; voxelId < GetVoxelTypeCount(); voxelId++)
 	{
-		auto noise = NoiseGenerators[voxelId];
-		double elevation = noise->GetNoise2D(location.X, location.Y) * maxElevationConstant;
+		auto noiseVariables = NoiseGenerators[voxelId];
+		const auto elevation = noiseVariables.SurfaceGenerator->GetNoise2D(location.X, location.Y) * noiseVariables.MaxElevation;
 
 		if (elevation > maxElevation)
 		{

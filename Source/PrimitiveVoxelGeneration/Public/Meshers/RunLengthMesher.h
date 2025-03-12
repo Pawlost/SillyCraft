@@ -14,7 +14,6 @@ class PRIMITIVEVOXELGENERATION_API URunLengthMesher : public UMesherBase
 	GENERATED_BODY()
 
 public:
-	
 	virtual void GenerateMesh(FChunkFaceParams& faceParams) override;
 
 protected:
@@ -69,5 +68,7 @@ private:
 
 	static const FNormalsAndTangents FaceNormalsAndTangents[FACE_SIDE_COUNT];
 
-	void GenerateActorMesh(const TMap<uint32, uint16>& voxelIdsInMesh, const RealtimeMesh::FRealtimeMeshStreamSet& StreamSet, const TWeakObjectPtr<AChunkRmcActor>& RMCActor) const;
+	void GenerateActorMesh(const TMap<uint32, uint16>& voxelIdsInMesh,
+	                       const RealtimeMesh::FRealtimeMeshStreamSet& StreamSet,
+	                       const TWeakObjectPtr<AChunkRmcActor>& RMCActor) const;
 };

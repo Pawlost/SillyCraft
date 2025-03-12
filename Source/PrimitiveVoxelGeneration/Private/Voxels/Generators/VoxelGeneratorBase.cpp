@@ -31,13 +31,18 @@ void UVoxelGeneratorBase::BeginPlay()
 void UVoxelGeneratorBase::AddVoxelAtIndex(FChunkStruct& chunk, const uint32& index,
                                           const FVoxel& voxel)
 {
+	if (!IsValid(this))
+	{
+		return;
+	}
+
 	FScopeLock Lock(&Mutex);
 	auto prevVoxel = chunk.Voxels[index];
 	if (!prevVoxel.IsEmptyVoxel())
 	{
 		(*chunk.ChunkVoxelTypeTable.Find(prevVoxel.VoxelId))--;
 	}
-	
+
 	chunk.Voxels[index] = voxel;
 	if (chunk.ChunkVoxelTypeTable.Contains(voxel.VoxelId))
 	{
@@ -91,7 +96,7 @@ int32 UVoxelGeneratorBase::GetVoxelTypeCount() const
 
 FVoxel UVoxelGeneratorBase::VoxelTypeToVoxel(const FDataTableRowHandle& rowHandle) const
 {
-	TArray<FName> RowNames =  VoxelTypeTable->GetRowNames();
+	TArray<FName> RowNames = VoxelTypeTable->GetRowNames();
 	for (int32 Index = 0; Index < RowNames.Num(); Index++)
 	{
 		if (RowNames[Index] == rowHandle.RowName)
