@@ -2,6 +2,9 @@
 
 #include "Spawners/ChunkSpawnerBase.h"
 
+#include "Meshers/MeshingStructs/ChunkFaceParams.h"
+#include "Meshers/MeshingStructs/FaceDirection.h"
+
 void AChunkSpawnerBase::BeginPlay()
 {
 	// Check if the template is valid
@@ -66,59 +69,6 @@ void AChunkSpawnerBase::ChangeVoxelAt(const FVector& hitPosition, const FVector&
 		->GetVoxelSize());
 
 	ModifyVoxelAtChunk(chunkGridPosition, voxelPosition, VoxelId);
-}
-
-TFuture<TWeakObjectPtr<AChunkRmcActor>> AChunkSpawnerBase::GetChunkActor(const FIntVector& gridPosition,
-																	  TWeakObjectPtr<AChunkRmcActor> ActorPtr,
-																	  bool ExecutedOnGameThread)
-{
-	auto spawnLocation = FVector(gridPosition) * VoxelGenerator->GetChunkSize();
-
-	if (ExecutedOnGameThread)
-	{
-		TPromise<TWeakObjectPtr<AChunkRmcActor>> Promise;
-		Promise.SetValue(SpawnChunkActor(spawnLocation));
-		return Promise.GetFuture();
-	}
-	
-	if (ActorPtr != nullptr)
-	{
-		return Async(EAsyncExecution::TaskGraphMainThread,
-		             [ActorPtr, spawnLocation]() -> TWeakObjectPtr<AChunkRmcActor>
-		             {
-		             	if (!ActorPtr.IsValid())
-		             	{
-		             		return ActorPtr;
-		             	}
-			             ActorPtr->SetActorLocation(spawnLocation);
-			             return ActorPtr;
-		             });
-	}
-	
-	return Async(EAsyncExecution::TaskGraphMainThread, [this, spawnLocation]() -> TWeakObjectPtr<AChunkRmcActor>
-	{
-		return SpawnChunkActor(spawnLocation);
-	});
-}
-
-TWeakObjectPtr<AChunkRmcActor> AChunkSpawnerBase::SpawnChunkActor(const FVector& spawnLocation)
-{
-	auto world = GetWorld();
-	TWeakObjectPtr<AChunkRmcActor> ActorPtr = nullptr;
-	if (!IsValid(world))
-	{
-		return ActorPtr;
-	}
-
-	ActorPtr = world->SpawnActor<AChunkRmcActor>(AChunkRmcActor::StaticClass(), spawnLocation,
-												 FRotator::ZeroRotator);
-
-	if (ActorPtr.IsValid())
-	{
-		ActorPtr->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
-	}
-
-	return ActorPtr;
 }
 
 void AChunkSpawnerBase::AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirection direction,

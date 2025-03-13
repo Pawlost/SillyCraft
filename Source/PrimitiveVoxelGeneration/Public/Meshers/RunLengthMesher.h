@@ -4,6 +4,7 @@
 #include "MesherBase.h"
 #include "MeshingStructs/ChunkFaceParams.h"
 #include "MeshingStructs/NaiveMeshingData.h"
+#include "Spawners/ChunkSpawnerBase.h"
 #include "Voxels/VoxelGenerators/VoxelGeneratorBase.h"
 #include "RunLengthMesher.generated.h"
 //TODO: add forward declarations
@@ -71,5 +72,6 @@ private:
 
 	void GenerateActorMesh(const TMap<uint32, uint16>& voxelIdsInMesh,
 	                       const RealtimeMesh::FRealtimeMeshStreamSet& StreamSet,
-	                       const TWeakObjectPtr<AChunkRmcActor>& RMCActor) const;
+	                       const TSharedPtr<FChunkStruct>& chunk,
+	                       TWeakObjectPtr<AChunkSpawnerBase> spawner) const;
 };

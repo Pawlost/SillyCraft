@@ -16,7 +16,6 @@ void ASingleChunkSpawnerBase::BeginPlay()
 	AsyncTask(ENamedThreads::AnyThread, [this]()
 	{
 		InitChunk(SingleChunk, SingleChunkGridPosition);
-		SingleChunk->ChunkMeshActor = GetChunkActor(SingleChunk->GridPosition, nullptr, false).Get();
 		StartMeshing();
 	});
 }

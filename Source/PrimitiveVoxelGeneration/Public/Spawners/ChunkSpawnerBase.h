@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Meshers/MesherBase.h"
 #include "Chunks/ChunkStruct.h"
+#include "Meshers/MeshingStructs/FaceDirection.h"
 #include "ChunkSpawnerBase.generated.h"
 
 //TODO: add forward declarations
@@ -31,9 +32,6 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-	TFuture<TWeakObjectPtr<AChunkRmcActor>> GetChunkActor(const FIntVector& gridPosition,
-																	  TWeakObjectPtr<AChunkRmcActor> ActorPtr,
-																	  bool ExecutedOnGameThread = false);
 	
 	static void AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirection direction,
 	                         const TSharedPtr<FChunkStruct>& chunk);
@@ -56,7 +54,4 @@ protected:
 	TObjectPtr<UVoxelGeneratorBase> VoxelGenerator;
 
 	FIntVector WorldPositionToChunkGridPosition(const FVector& worldPosition) const;
-	
-private:
-	TWeakObjectPtr<AChunkRmcActor> SpawnChunkActor(const FVector& spawnLocation);
 };

@@ -1,15 +1,16 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.pp[p
 #include "Spawners/Area/AreaChunkSpawnerBase.h"
 
+#include "Meshers/MeshingStructs/ChunkFaceParams.h"
+
 void AAreaChunkSpawnerBase::ModifyVoxelAtChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition,
                                                const FVoxel& VoxelId)
 {
-
 	if (EditHandle.IsValid() && !EditHandle.IsReady())
 	{
 		return;
 	}
-	
+
 	if (ChunkGrid.Contains(chunkGridPosition))
 	{
 		auto foundChunk = ChunkGrid.Find(chunkGridPosition);
@@ -64,6 +65,10 @@ void AAreaChunkSpawnerBase::BeginPlay()
 //Running on main thread may cause deadlock
 void AAreaChunkSpawnerBase::GenerateChunkMesh(FChunkFaceParams& chunkParams, const FIntVector& chunkGridPosition)
 {
+#if CPUPROFILERTRACE_ENABLED
+	TRACE_CPUPROFILER_EVENT_SCOPE("Area Mesh generation prepartion")
+#endif
+
 	if (!IsValid(this) || !ChunkGrid.Contains(chunkGridPosition))
 	{
 		return;
@@ -75,22 +80,8 @@ void AAreaChunkSpawnerBase::GenerateChunkMesh(FChunkFaceParams& chunkParams, con
 	{
 		return;
 	}
-
-	TWeakObjectPtr<AChunkRmcActor> ActorPtr;
-	if (chunk->ChunkMeshActor == nullptr)
-	{
-		if (!UnusedActors.Dequeue(ActorPtr))
-		{
-			ActorPtr = nullptr;
-		}
-	}
-	else
-	{
-		ActorPtr = chunk->ChunkMeshActor;
-	}
-
-	chunk->ChunkMeshActor = GetChunkActor(chunk->GridPosition, ActorPtr, chunkParams.ChunkParams.ExecutedOnMainThread).
-		Get();
+	
+	chunkParams.ChunkParams.SpawnerPtr = this;
 	chunkParams.ChunkParams.ShowBorders = BufferZone == 0;
 	chunkParams.ChunkParams.OriginalChunk = chunk;
 	AddChunkFromGrid(chunkParams, FGridDirectionToFace::TopDirection);
@@ -99,6 +90,12 @@ void AAreaChunkSpawnerBase::GenerateChunkMesh(FChunkFaceParams& chunkParams, con
 	AddChunkFromGrid(chunkParams, FGridDirectionToFace::LeftDirection);
 	AddChunkFromGrid(chunkParams, FGridDirectionToFace::FrontDirection);
 	AddChunkFromGrid(chunkParams, FGridDirectionToFace::BackDirection);
+
+	if (chunk->ChunkMeshActor == nullptr)
+	{
+		UnusedActors.Dequeue(chunk->ChunkMeshActor);
+	}
+	
 	VoxelGenerator->GenerateMesh(chunkParams);
 
 	if (!chunk->HasMesh)

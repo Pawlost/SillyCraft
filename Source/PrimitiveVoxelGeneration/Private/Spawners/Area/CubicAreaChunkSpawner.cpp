@@ -2,6 +2,8 @@
 
 #include "Spawners/Area/CubicAreaChunkSpawner.h"
 
+#include "Meshers/MeshingStructs/ChunkFaceParams.h"
+
 void ACubicAreaChunkSpawner::GenerateArea()
 {
 	auto minPosition = CenterGridPosition - FIntVector(SpawnZone, SpawnZone, ChunksBelowSpawner);

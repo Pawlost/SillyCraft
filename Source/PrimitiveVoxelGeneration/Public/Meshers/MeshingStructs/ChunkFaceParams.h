@@ -2,6 +2,7 @@
 #include "FaceDirection.h"
 #include "Chunks/ChunkFace.h"
 #include "Chunks/ChunkStruct.h"
+#include "Spawners/ChunkSpawnerBase.h"
 #include "ChunkFaceParams.generated.h"
 
 USTRUCT()
@@ -11,6 +12,10 @@ struct PRIMITIVEVOXELGENERATION_API FChunkParams
 
 	TSharedPtr<FChunkStruct> SideChunks[FACE_SIDE_COUNT];
 	TSharedPtr<FChunkStruct> OriginalChunk;
+
+	UPROPERTY()
+	TWeakObjectPtr<AChunkSpawnerBase> SpawnerPtr = nullptr;
+
 	bool ShowBorders = false;
 	bool ExecutedOnMainThread = false;
 };

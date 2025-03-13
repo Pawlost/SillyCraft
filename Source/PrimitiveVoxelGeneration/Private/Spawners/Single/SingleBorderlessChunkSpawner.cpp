@@ -1,11 +1,13 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.pp[p
 #include "Spawners/Single/SingleBorderlessChunkSpawner.h"
 
+#include "Meshers/MeshingStructs/ChunkFaceParams.h"
 #include "Meshers/MeshingStructs/GridDirectionToFace.h"
 
 void ASingleBorderlessChunkSpawner::StartMeshing()
 {
 	FChunkFaceParams ChunkParams;
+	ChunkParams.ChunkParams.SpawnerPtr = this;
 	ChunkParams.ChunkParams.OriginalChunk = SingleChunk;
 
 	SpawnSideChunk(ChunkParams, FGridDirectionToFace::TopDirection);

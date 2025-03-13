@@ -5,8 +5,6 @@
 #include "RealtimeMeshSimple.h"
 #include "Mesh/RealtimeMeshBuilder.h"
 
-UE_DISABLE_OPTIMIZATION
-
 const URunLengthMesher::FNormalsAndTangents URunLengthMesher::FaceNormalsAndTangents[] = {
 	{FVector3f(-1.0f, 0.0f, 0.0f), FVector3f(0.0, 1.0, 0.0)}, //Front
 	{FVector3f(1.0f, 0.0f, 0.0f), FVector3f(0.0, 1.0, 0.0)}, //Back
@@ -61,7 +59,10 @@ void URunLengthMesher::GenerateMesh(FChunkFaceParams& faceParams)
 	faceParams.ChunkParams.OriginalChunk->HasMesh = false;
 	if (faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable.IsEmpty())
 	{
-		faceParams.ChunkParams.OriginalChunk->ChunkMeshActor->ClearMesh();
+		if (faceParams.ChunkParams.OriginalChunk->ChunkMeshActor.IsValid())
+		{
+			faceParams.ChunkParams.OriginalChunk->ChunkMeshActor->ClearMesh();
+		}
 		return;
 	}
 
@@ -353,23 +354,23 @@ void URunLengthMesher::GenerateMeshFromFaces(const FChunkFaceParams& faceParams)
 		}
 	}
 
-	if (!faceParams.ChunkParams.OriginalChunk.IsValid() || !faceParams.ChunkParams.OriginalChunk->ChunkMeshActor.
-	                                                                   IsValid() || voxelIdsInMesh.IsEmpty())
+	if (!faceParams.ChunkParams.OriginalChunk.IsValid() || voxelIdsInMesh.IsEmpty())
 	{
 		return;
 	}
 
-	auto RMCActor = faceParams.ChunkParams.OriginalChunk->ChunkMeshActor;
+	auto chunk = faceParams.ChunkParams.OriginalChunk;
+	auto spawner =  faceParams.ChunkParams.SpawnerPtr;
 	if (!faceParams.ChunkParams.ExecutedOnMainThread)
 	{
-		AsyncTask(ENamedThreads::GameThread, [this, voxelIdsInMesh, StreamSet, RMCActor]()
+		AsyncTask(ENamedThreads::GameThread, [this, voxelIdsInMesh, StreamSet, chunk, spawner]()
 		{
-			GenerateActorMesh(voxelIdsInMesh, *StreamSet, RMCActor);
+			GenerateActorMesh(voxelIdsInMesh, *StreamSet, chunk, spawner);
 		});
 	}
 	else
 	{
-		GenerateActorMesh(voxelIdsInMesh, *StreamSet, RMCActor);
+		GenerateActorMesh(voxelIdsInMesh, *StreamSet, chunk, spawner);
 	}
 
 	faceParams.ChunkParams.OriginalChunk->HasMesh = true;
@@ -387,19 +388,44 @@ bool URunLengthMesher::IsMaxBorder(const int x) const
 
 void URunLengthMesher::GenerateActorMesh(const TMap<uint32, uint16>& voxelIdsInMesh,
                                          const FRealtimeMeshStreamSet& StreamSet,
-                                         const TWeakObjectPtr<AChunkRmcActor>& RMCActor) const
+                                         const TSharedPtr<FChunkStruct>& chunk,
+                                         TWeakObjectPtr<AChunkSpawnerBase> spawner) const
 {
-	if (!RMCActor.IsValid())
+	auto world = GetWorld();
+	if (!IsValid(world))
 	{
 		return;
 	}
 
-	RMCActor->PrepareMesh();
-	auto RealtimeMesh = RMCActor->RealtimeMeshComponent->GetRealtimeMeshAs<
+	//Spawn actor
+	TWeakObjectPtr<AChunkRmcActor> ActorPtr = chunk->ChunkMeshActor;
+	auto spawnLocation = FVector(chunk->GridPosition) * VoxelGenerator->GetChunkSize();
+	if (ActorPtr == nullptr){
+		ActorPtr = world->SpawnActor<AChunkRmcActor>(AChunkRmcActor::StaticClass(), spawnLocation,
+													 FRotator::ZeroRotator);
+
+		if (!ActorPtr.IsValid() || !spawner.IsValid())
+		{
+			return;
+		}
+		
+		ActorPtr->AttachToActor(spawner.Get(), FAttachmentTransformRules::KeepWorldTransform);
+	}else
+	{
+		if (!ActorPtr.IsValid())
+		{
+			return;
+		}
+		ActorPtr->SetActorLocation(spawnLocation);
+	}
+
+	//Fill actor
+	ActorPtr->PrepareMesh();
+	auto RealtimeMesh = ActorPtr->RealtimeMeshComponent->GetRealtimeMeshAs<
 		URealtimeMeshSimple>();
 
 	// Now we create the section group, since the stream set has polygroups, this will create the sections as well
-	RealtimeMesh->CreateSectionGroup(RMCActor->GroupKey, StreamSet);
+	RealtimeMesh->CreateSectionGroup(ActorPtr->GroupKey, StreamSet);
 
 	for (auto voxelId : voxelIdsInMesh)
 	{
@@ -407,7 +433,7 @@ void URunLengthMesher::GenerateActorMesh(const TMap<uint32, uint16>& voxelIdsInM
 		auto voxelType = VoxelGenerator->GetVoxelTypeById(voxelId.Key);
 		RealtimeMesh->SetupMaterialSlot(materialId, voxelType.Key, voxelType.Value.Material);
 
-		auto key = FRealtimeMeshSectionKey::CreateForPolyGroup(RMCActor->GroupKey, materialId);
+		auto key = FRealtimeMeshSectionKey::CreateForPolyGroup(ActorPtr->GroupKey, materialId);
 		RealtimeMesh->UpdateSectionConfig(key, FRealtimeMeshSectionConfig(
 			                                  ERealtimeMeshSectionDrawType::Static, materialId),
 		                                  true);

@@ -1,6 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.pp[p
 #include "Spawners/Area/CenterAreaChunkSpawner.h"
 
+#include "Meshers/MeshingStructs/ChunkFaceParams.h"
+
 void ACenterAreaChunkSpawner::GenerateArea()
 {
 	auto initialCenter = CenterGridPosition;

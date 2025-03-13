@@ -3,11 +3,11 @@
 #include "CoreMinimal.h"
 #include "Chunks/ChunkStruct.h"
 #include "Components/ActorComponent.h"
-#include "Meshers/MeshingStructs/ChunkFaceParams.h"
 #include "Voxels/VoxelType.h"
 #include "Voxels/Interfaces/IVoxelGenerator.h"
 #include "VoxelGeneratorBase.generated.h"
 
+struct FChunkFaceParams;
 class UMesherBase;
 //TODO: specify class
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable)

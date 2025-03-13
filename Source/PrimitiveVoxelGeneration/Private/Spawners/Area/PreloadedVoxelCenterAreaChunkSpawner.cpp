@@ -1,6 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.pp[p
 #include "Spawners/Area/PreloadedVoxelCenterAreaChunkSpawner.h"
 
+#include "Meshers/MeshingStructs/ChunkFaceParams.h"
+
 void APreloadedVoxelCenterAreaChunkSpawner::GenerateArea()
 {
 	auto initialCenter = CenterGridPosition;
