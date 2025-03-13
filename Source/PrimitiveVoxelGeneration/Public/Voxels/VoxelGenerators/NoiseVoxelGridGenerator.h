@@ -4,7 +4,7 @@
 #include "VoxelGeneratorBase.h"
 #include "Components/ActorComponent.h"
 #include "Chunks/ChunkStruct.h"
-#include "Structs/NoiseGeneratorVariables.h"
+#include "Structs/SurfaceGenerator.h"
 #include "NoiseVoxelGridGenerator.generated.h"
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable)
@@ -25,5 +25,9 @@ protected:
 	virtual void BeginPlay() override;
 	
 	UPROPERTY()
-	TArray<FNoiseGeneratorVariables> NoiseGenerators;
+	TArray<FSurfaceGenerator> SurfaceGenerators;
+
+private:
+	static double GetSurfaceGradient(float posX, float posY, const FNoiseSurfaceGenerator& generator);
+	bool IsChunkPositionOutOfBounds(double minZPosition, double maxZPosition);
 };

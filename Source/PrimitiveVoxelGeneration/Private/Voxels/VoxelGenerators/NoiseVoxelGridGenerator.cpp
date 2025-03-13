@@ -20,9 +20,41 @@ void UNoiseVoxelGridGenerator::BeginPlay()
 		surfaceNoise->SetupFastNoise(voxelType.Value.SurfaceNoiseType, voxelType.Value.SurfaceSeed, voxelType.Value.SurfaceNoiseFrequency);
 		reversedSurfaceNoise->SetupFastNoise(voxelType.Value.ReversedSurfaceNoiseType, voxelType.Value.ReversedSurfaceSeed, voxelType.Value.ReversedSurfaceNoiseFrequency);
 		
-		auto noiseGenerator = FNoiseGeneratorVariables(surfaceNoise, reversedSurfaceNoise, voxelType.Value.SurfaceElevation / GetVoxelSize(), voxelType.Value.ReversedSurfaceDepth / GetVoxelSize(), voxelType.Value.GenerateReversedSurface, voxelType.Value.IsTransparent);
-		NoiseGenerators.Add(noiseGenerator);
+		auto noiseGenerator = FSurfaceGenerator();
+		noiseGenerator.GenerateReverseSurface = voxelType.Value.GenerateReversedSurface;
+		noiseGenerator.IsTransparent = voxelType.Value.IsTransparent;
+
+		noiseGenerator.SurfaceGenerator.SurfaceNoise = surfaceNoise;
+		// Value is divided by voxel size so the real world elevation reaches exact mark in UE world coordinated
+		noiseGenerator.SurfaceGenerator.MaxElevation = voxelType.Value.SurfaceElevation / GetVoxelSize();
+		noiseGenerator.SurfaceGenerator.RangeFromSeaLevel = voxelType.Value.RangeFromSeaLevel / GetVoxelSize();
+
+		noiseGenerator.ReverseSurfaceGenerator.SurfaceNoise = reversedSurfaceNoise;
+		noiseGenerator.ReverseSurfaceGenerator.MaxElevation = voxelType.Value.ReversedSurfaceDepth / GetVoxelSize();
+		noiseGenerator.ReverseSurfaceGenerator.RangeFromSeaLevel = voxelType.Value.ReversedRangeFromSeaLevel / GetVoxelSize();
+		
+		SurfaceGenerators.Add(noiseGenerator);
 	}
+}
+
+double UNoiseVoxelGridGenerator::GetSurfaceGradient(float posX, float posY, const FNoiseSurfaceGenerator& generator)
+{
+	return generator.SurfaceNoise->GetNoise2D(posX, posY) * generator.MaxElevation + generator.RangeFromSeaLevel;
+}
+
+bool UNoiseVoxelGridGenerator::IsChunkPositionOutOfBounds(double minZPosition, double maxZPosition)
+{
+	for (auto generator : SurfaceGenerators)
+	{
+		if (minZPosition < generator.SurfaceGenerator.MaxElevation + generator.SurfaceGenerator.RangeFromSeaLevel
+			|| generator.GenerateReverseSurface &&  
+			maxZPosition > -static_cast<double>(generator.ReverseSurfaceGenerator.MaxElevation + generator.ReverseSurfaceGenerator.
+				RangeFromSeaLevel)){
+			return false;	
+		}
+	}
+
+	return true;
 }
 
 int32 UNoiseVoxelGridGenerator::GetVoxelTypeCount() const
@@ -43,11 +75,19 @@ void UNoiseVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 	TRACE_CPUPROFILER_EVENT_SCOPE("Voxel generation")
 #endif
 
+	//This generation is very unoptimized because it is not part of bachelor thesis
+	
 	const auto chunkLenght = GetVoxelDimensionCount();
 	const int voxelTypeCount = GetVoxelTypeCount();
 
 	const auto gridPos = chunk.GridPosition * chunkLenght;
 
+	// Skip all chunks that dont need to be processed because it is guaranteed they are empty
+	if (IsChunkPositionOutOfBounds(gridPos.Z, gridPos.Z + chunkLenght - 1))
+	{
+		return;
+	}
+	
 	for (int x = 0; x < chunkLenght; x++)
 	{
 		for (int y = 0; y < chunkLenght; y++)
@@ -58,18 +98,20 @@ void UNoiseVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 				chunk.Voxels[index] = FVoxel();
 				for (int voxelId = 0; voxelId < voxelTypeCount; voxelId++)
 				{
-					auto noiseVariables = NoiseGenerators[voxelId];
+					auto surfaceGenerator = SurfaceGenerators[voxelId];
 					
-					auto voxel = FVoxel(voxelId, noiseVariables.IsTransparent);
-
-					const double elevation = noiseVariables.SurfaceGenerator->GetNoise2D(x + gridPos.X, y + gridPos.Y) * noiseVariables.MaxElevation;
-					const double depth = noiseVariables.ReverseSurfaceGenerator->GetNoise2D(x + gridPos.X, y + gridPos.Y) * noiseVariables.MaxDepth;
-
-					bool AddVoxel;
+					auto voxel = FVoxel(voxelId, surfaceGenerator.IsTransparent);
+					
+					float posX = x + gridPos.X;
+					float posY =  y + gridPos.Y;
 					double currentElevation = gridPos.Z + z;
+					const double elevation = GetSurfaceGradient(posX, posY, surfaceGenerator.SurfaceGenerator);
 					
-					if (noiseVariables.GenerateReverseSurface)
+					bool AddVoxel;
+					
+					if (surfaceGenerator.GenerateReverseSurface)
 					{
+						const double depth = GetSurfaceGradient(posX, posY, surfaceGenerator.ReverseSurfaceGenerator);
 						AddVoxel = currentElevation > -depth  && currentElevation < elevation;
 					}else
 					{
@@ -92,8 +134,8 @@ double UNoiseVoxelGridGenerator::GetHighestElevationAtLocation(const FVector& lo
 	
 	for (int voxelId = 0; voxelId < GetVoxelTypeCount(); voxelId++)
 	{
-		auto noiseVariables = NoiseGenerators[voxelId];
-		const auto elevation = noiseVariables.SurfaceGenerator->GetNoise2D(location.X, location.Y) * noiseVariables.MaxElevation;
+		auto surfaceGenerator = SurfaceGenerators[voxelId];
+		const auto elevation = GetSurfaceGradient(location.X, location.Y, surfaceGenerator.SurfaceGenerator);
 
 		if (elevation > maxElevation)
 		{
