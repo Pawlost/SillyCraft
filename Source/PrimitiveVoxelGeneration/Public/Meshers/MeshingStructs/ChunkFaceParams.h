@@ -16,6 +16,7 @@ struct PRIMITIVEVOXELGENERATION_API FChunkParams
 	UPROPERTY()
 	TWeakObjectPtr<AChunkSpawnerBase> SpawnerPtr = nullptr;
 
+	FAttachmentTransformRules ActorAttachmentRules = FAttachmentTransformRules::KeepWorldTransform; 
 	bool ShowBorders = false;
 	bool ExecutedOnMainThread = false;
 };

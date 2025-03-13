@@ -50,7 +50,7 @@ void APreloadedVoxelCenterAreaChunkSpawner::GenerateArea()
 					}
 				}
 
-				if (!VisitedSpawnPositions.Contains(position))
+				if (VisitedSpawnPositions.Find(position) == nullptr)
 				{
 					VisitedSpawnPositions.Add(position);
 					SpawnPositionsArray.Enqueue(position);

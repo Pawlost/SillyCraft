@@ -25,8 +25,12 @@ void ACenterAreaChunkSpawner::GenerateArea()
 	};
 
 	FIntVector centerPosition;
-	VisitedSpawnPositions.Add(CenterGridPosition);
-
+	
+	if (SpawnCenterChunk)
+	{
+		VisitedSpawnPositions.Add(CenterGridPosition);
+	}
+	
 	while (IsValid(this) && SpawnPositionsArray.Dequeue(centerPosition) && initialCenter == CenterGridPosition)
 	{
 
@@ -56,7 +60,7 @@ void ACenterAreaChunkSpawner::GenerateArea()
 					}
 				}
 
-				if (!VisitedSpawnPositions.Contains(position))
+				if (VisitedSpawnPositions.Find(position) == nullptr)
 				{
 					VisitedSpawnPositions.Add(position);
 					SpawnPositionsArray.Enqueue(position);

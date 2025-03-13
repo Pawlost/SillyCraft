@@ -359,18 +359,17 @@ void URunLengthMesher::GenerateMeshFromFaces(const FChunkFaceParams& faceParams)
 		return;
 	}
 
-	auto chunk = faceParams.ChunkParams.OriginalChunk;
-	auto spawner =  faceParams.ChunkParams.SpawnerPtr;
+	auto spawner = MakeShared<FChunkParams>(faceParams.ChunkParams);
 	if (!faceParams.ChunkParams.ExecutedOnMainThread)
 	{
-		AsyncTask(ENamedThreads::GameThread, [this, voxelIdsInMesh, StreamSet, chunk, spawner]()
+		AsyncTask(ENamedThreads::GameThread, [this, voxelIdsInMesh, StreamSet,  spawner]()
 		{
-			GenerateActorMesh(voxelIdsInMesh, *StreamSet, chunk, spawner);
+			GenerateActorMesh(voxelIdsInMesh, *StreamSet, spawner);
 		});
 	}
 	else
 	{
-		GenerateActorMesh(voxelIdsInMesh, *StreamSet, chunk, spawner);
+		GenerateActorMesh(voxelIdsInMesh, *StreamSet, spawner);
 	}
 
 	faceParams.ChunkParams.OriginalChunk->HasMesh = true;
@@ -388,8 +387,7 @@ bool URunLengthMesher::IsMaxBorder(const int x) const
 
 void URunLengthMesher::GenerateActorMesh(const TMap<uint32, uint16>& voxelIdsInMesh,
                                          const FRealtimeMeshStreamSet& StreamSet,
-                                         const TSharedPtr<FChunkStruct>& chunk,
-                                         TWeakObjectPtr<AChunkSpawnerBase> spawner) const
+                                         const TSharedPtr<FChunkParams>& ChunkParams) const
 {
 	auto world = GetWorld();
 	if (!IsValid(world))
@@ -398,18 +396,22 @@ void URunLengthMesher::GenerateActorMesh(const TMap<uint32, uint16>& voxelIdsInM
 	}
 
 	//Spawn actor
+	auto chunk = ChunkParams->OriginalChunk;
 	TWeakObjectPtr<AChunkRmcActor> ActorPtr = chunk->ChunkMeshActor;
 	auto spawnLocation = FVector(chunk->GridPosition) * VoxelGenerator->GetChunkSize();
 	if (ActorPtr == nullptr){
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding;
+		
 		ActorPtr = world->SpawnActor<AChunkRmcActor>(AChunkRmcActor::StaticClass(), spawnLocation,
-													 FRotator::ZeroRotator);
+													 FRotator::ZeroRotator, SpawnParams);
 
-		if (!ActorPtr.IsValid() || !spawner.IsValid())
+		if (!ActorPtr.IsValid() || !ChunkParams->SpawnerPtr.IsValid())
 		{
 			return;
 		}
 		
-		ActorPtr->AttachToActor(spawner.Get(), FAttachmentTransformRules::KeepWorldTransform);
+		ActorPtr->AttachToActor(ChunkParams->SpawnerPtr.Get(), ChunkParams->ActorAttachmentRules);
 	}else
 	{
 		if (!ActorPtr.IsValid())
@@ -418,6 +420,7 @@ void URunLengthMesher::GenerateActorMesh(const TMap<uint32, uint16>& voxelIdsInM
 		}
 		ActorPtr->SetActorLocation(spawnLocation);
 	}
+	chunk->ChunkMeshActor = ActorPtr;
 
 	//Fill actor
 	ActorPtr->PrepareMesh();

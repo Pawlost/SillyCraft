@@ -30,6 +30,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Chunk")
 	bool SpawnCenterChunk = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Chunk")
+	bool WorldCenter = true;
 	
 	virtual void ModifyVoxelAtChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition, const FVoxel& VoxelId) override;
 

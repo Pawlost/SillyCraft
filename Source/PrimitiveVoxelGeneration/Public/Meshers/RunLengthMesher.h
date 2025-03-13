@@ -72,6 +72,5 @@ private:
 
 	void GenerateActorMesh(const TMap<uint32, uint16>& voxelIdsInMesh,
 	                       const RealtimeMesh::FRealtimeMeshStreamSet& StreamSet,
-	                       const TSharedPtr<FChunkStruct>& chunk,
-	                       TWeakObjectPtr<AChunkSpawnerBase> spawner) const;
+	                       const TSharedPtr<FChunkParams>& ChunkParams) const;
 };
