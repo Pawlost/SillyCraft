@@ -9,7 +9,7 @@
 #include "RunLengthMesher.generated.h"
 //TODO: add forward declarations
 
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable)
+UCLASS(ClassGroup=(Meshers), meta=(BlueprintSpawnableComponent), Blueprintable)
 class PRIMITIVEVOXELGENERATION_API URunLengthMesher : public UMesherBase
 {
 	GENERATED_BODY()

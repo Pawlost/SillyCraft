@@ -47,6 +47,8 @@ void AAreaChunkSpawnerBase::ChangeVoxelInChunk(const FIntVector& chunkGridPositi
 void AAreaChunkSpawnerBase::BeginPlay()
 {
 	Super::BeginPlay();
+	checkf(VoxelGenerator, TEXT("Voxel generator must set"));
+	
 	if (WorldCenter)
 	{
 		CenterGridPosition = WorldPositionToChunkGridPosition(GetTransform().GetLocation());
@@ -86,11 +88,7 @@ void AAreaChunkSpawnerBase::GenerateChunkMesh(FChunkFaceParams& chunkParams, con
 	chunkParams.ChunkParams.SpawnerPtr = this;
 	chunkParams.ChunkParams.OriginalChunk = chunk;
 	chunkParams.ChunkParams.ShowBorders = ShowChunkBorders;
-
-	if (!WorldCenter)
-	{
-		chunkParams.ChunkParams.ActorAttachmentRules = FAttachmentTransformRules::KeepRelativeTransform;
-	}
+	chunkParams.ChunkParams.WorldTransform = WorldCenter;
 
 	AddChunkFromGrid(chunkParams, FGridDirectionToFace::TopDirection);
 	AddChunkFromGrid(chunkParams, FGridDirectionToFace::BottomDirection);

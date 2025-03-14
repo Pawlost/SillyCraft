@@ -8,6 +8,8 @@ void UNoiseVoxelGridGenerator::BeginPlay()
 {
 	Super::BeginPlay();
 
+	checkf(VoxelTypeTable, TEXT("Voxel table must be set"));
+
 	for (auto voxelName : VoxelTypeTable->GetRowNames())
 	{
 		auto voxelType = *VoxelTypeTable->FindRow<FVoxelType>(voxelName, "");
@@ -46,9 +48,9 @@ FVoxel UNoiseVoxelGridGenerator::GetVoxelByName(const FName& voxelName) const
 	return FVoxel();
 }
 
-double UNoiseVoxelGridGenerator::GetSurfaceGradient(float posX, float posY, const TObjectPtr<UFastNoiseWrapper>& generator, const FVoxelType& voxelType)
+double UNoiseVoxelGridGenerator::GetSurfaceGradient(float posX, float posY, const TObjectPtr<UFastNoiseWrapper>& generator, double elevation, double distanceFromSurfaceLevel)
 {
-	return generator->GetNoise2D(posX, posY) * voxelType.Surface_Elevation + voxelType.Surface_DistanceFromSeaLevel;
+	return generator->GetNoise2D(posX, posY) * elevation + distanceFromSurfaceLevel;
 }
 
 bool UNoiseVoxelGridGenerator::IsChunkPositionOutOfBounds(double minZPosition, double maxZPosition)
@@ -109,7 +111,7 @@ void UNoiseVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 				{
 					auto surfaceGenerator = SurfaceGenerators[voxelId];
 
-					if (!surfaceGenerator.VoxelType.bShouldGenerate)
+					if (!surfaceGenerator.VoxelType.bGenerateNoise)
 					{
 						continue;
 					}
@@ -119,13 +121,22 @@ void UNoiseVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 					float posX = x + gridPos.X;
 					float posY = y + gridPos.Y;
 					double currentElevation = gridPos.Z + z;
-					const double elevation = GetSurfaceGradient(posX, posY, surfaceGenerator.SurfaceGenerator, surfaceGenerator.VoxelType);
+
+					if (!IsValid(surfaceGenerator.SurfaceGenerator)){
+						return;
+					}
+					
+					const double elevation = GetSurfaceGradient(posX, posY, surfaceGenerator.SurfaceGenerator, surfaceGenerator.VoxelType.Surface_Elevation, surfaceGenerator.VoxelType.Surface_DistanceFromSeaLevel);
 
 					bool AddVoxel;
 
 					if (surfaceGenerator.VoxelType.bGenerateReversedSurface)
 					{
-						const double depth = GetSurfaceGradient(posX, posY, surfaceGenerator.ReverseSurfaceGenerator, surfaceGenerator.VoxelType);
+						if (!IsValid(surfaceGenerator.ReverseSurfaceGenerator)){
+							return;
+						}
+						
+						const double depth = GetSurfaceGradient(posX, posY, surfaceGenerator.ReverseSurfaceGenerator, surfaceGenerator.VoxelType.ReversedSurface_Depth, surfaceGenerator.VoxelType.ReversedSurface_DistanceFromSeaLevel);
 						AddVoxel = currentElevation > -depth && currentElevation < elevation;
 					}
 					else
@@ -150,7 +161,7 @@ double UNoiseVoxelGridGenerator::GetHighestElevationAtLocation(const FVector& lo
 	for (int voxelId = 0; voxelId < GetVoxelTypeCount(); voxelId++)
 	{
 		auto surfaceGenerator = SurfaceGenerators[voxelId];
-		const auto elevation = GetSurfaceGradient(location.X, location.Y, surfaceGenerator.SurfaceGenerator, surfaceGenerator.VoxelType);
+		const auto elevation = GetSurfaceGradient(location.X, location.Y, surfaceGenerator.SurfaceGenerator, surfaceGenerator.VoxelType.Surface_Elevation, surfaceGenerator.VoxelType.Surface_DistanceFromSeaLevel);
 
 		if (elevation > maxElevation)
 		{

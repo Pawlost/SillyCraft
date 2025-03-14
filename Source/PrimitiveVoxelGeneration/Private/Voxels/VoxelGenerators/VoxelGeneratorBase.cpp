@@ -36,15 +36,19 @@ void UVoxelGeneratorBase::AddVoxelAtIndex(FChunkStruct& chunk, const uint32& ind
 
 	FScopeLock Lock(&Mutex);
 	auto prevVoxel = chunk.Voxels[index];
-	if (!prevVoxel.IsEmptyVoxel())
+
+	auto voxelCount = chunk.ChunkVoxelTypeTable.Find(prevVoxel.VoxelId);
+	if (voxelCount != nullptr && !prevVoxel.IsEmptyVoxel())
 	{
-		(*chunk.ChunkVoxelTypeTable.Find(prevVoxel.VoxelId))--;
+		(*voxelCount) -= 1;
 	}
 
 	chunk.Voxels[index] = voxel;
-	if (chunk.ChunkVoxelTypeTable.Contains(voxel.VoxelId))
+
+	voxelCount = chunk.ChunkVoxelTypeTable.Find(voxel.VoxelId);
+	if (voxelCount != nullptr)
 	{
-		(*chunk.ChunkVoxelTypeTable.Find(voxel.VoxelId))++;
+		(*voxelCount) +=1;
 	}
 	else
 	{

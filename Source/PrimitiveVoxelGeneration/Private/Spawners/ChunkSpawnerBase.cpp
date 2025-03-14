@@ -48,10 +48,16 @@ void AChunkSpawnerBase::ChangeVoxelAtHit(const FVector& hitPosition, const FVect
 		adjustedNormal.Y = -FMath::Clamp(hitNormal.Y, -1, 0);
 		adjustedNormal.Z = -FMath::Clamp(hitNormal.Z, -1, 0);
 	}
-
+	
 	auto position = hitPosition - adjustedNormal * VoxelGenerator->GetVoxelSize();
+	
+	if (!WorldCenter)
+	{
+		position -= GetActorLocation();	
+	}
+	
 	auto chunkGridPosition = WorldPositionToChunkGridPosition(position);
-
+	
 	auto voxelPosition = FIntVector(
 		(position - FVector(chunkGridPosition * VoxelGenerator->GetChunkSize())) / VoxelGenerator
 		->GetVoxelSize());

@@ -224,11 +224,12 @@ bool URunLengthMesher::IsBorderVoxelVisible(const FVoxelIndexParams& faceData, c
 	{
 		auto faceContainerIndex = static_cast<uint8>(faceData.FaceDirection);
 		auto sideChunk = chunkStruct.SideChunks[faceContainerIndex];
-		if (sideChunk != nullptr){
+		if (sideChunk != nullptr)
+		{
 			auto nextVoxel = sideChunk->Voxels[faceData.CurrentVoxelIndex];
 			return nextVoxel.IsTransparent() && nextVoxel != faceData.currentVoxel;
 		}
-		
+
 		return sideChunk == nullptr && chunkStruct.ShowBorders;
 	}
 	return false;
@@ -236,7 +237,8 @@ bool URunLengthMesher::IsBorderVoxelVisible(const FVoxelIndexParams& faceData, c
 
 bool URunLengthMesher::IsVoxelVisible(const FVoxelIndexParams& faceData, const FChunkParams& chunkStruct)
 {
-	if (!faceData.IsBorder && chunkStruct.OriginalChunk->Voxels.IsValidIndex(faceData.ForwardVoxelIndex)){
+	if (!faceData.IsBorder && chunkStruct.OriginalChunk->Voxels.IsValidIndex(faceData.ForwardVoxelIndex))
+	{
 		auto nextVoxel = chunkStruct.OriginalChunk->Voxels[faceData.ForwardVoxelIndex];
 		return nextVoxel.IsTransparent() && nextVoxel != faceData.currentVoxel;
 	}
@@ -362,7 +364,7 @@ void URunLengthMesher::GenerateMeshFromFaces(const FChunkFaceParams& faceParams)
 	auto spawner = MakeShared<FChunkParams>(faceParams.ChunkParams);
 	if (!faceParams.ChunkParams.ExecutedOnMainThread)
 	{
-		AsyncTask(ENamedThreads::GameThread, [this, voxelIdsInMesh, StreamSet,  spawner]()
+		AsyncTask(ENamedThreads::GameThread, [this, voxelIdsInMesh, StreamSet, spawner]()
 		{
 			GenerateActorMesh(voxelIdsInMesh, *StreamSet, spawner);
 		});
@@ -399,26 +401,42 @@ void URunLengthMesher::GenerateActorMesh(const TMap<uint32, uint16>& voxelIdsInM
 	auto chunk = ChunkParams->OriginalChunk;
 	TWeakObjectPtr<AChunkRmcActor> ActorPtr = chunk->ChunkMeshActor;
 	auto spawnLocation = FVector(chunk->GridPosition) * VoxelGenerator->GetChunkSize();
-	if (ActorPtr == nullptr){
+
+	FAttachmentTransformRules ActorAttachmentRules = FAttachmentTransformRules::KeepWorldTransform;
+	if (!ChunkParams->WorldTransform)
+	{
+		ActorAttachmentRules = FAttachmentTransformRules::KeepRelativeTransform;
+	}
+
+	if (ActorPtr == nullptr)
+	{
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding;
-		
+
 		ActorPtr = world->SpawnActor<AChunkRmcActor>(AChunkRmcActor::StaticClass(), spawnLocation,
-													 FRotator::ZeroRotator, SpawnParams);
+		                                             FRotator::ZeroRotator, SpawnParams);
 
 		if (!ActorPtr.IsValid() || !ChunkParams->SpawnerPtr.IsValid())
 		{
 			return;
 		}
-		
-		ActorPtr->AttachToActor(ChunkParams->SpawnerPtr.Get(), ChunkParams->ActorAttachmentRules);
-	}else
+
+		ActorPtr->AttachToActor(ChunkParams->SpawnerPtr.Get(), ActorAttachmentRules);
+	}
+	else
 	{
 		if (!ActorPtr.IsValid())
 		{
 			return;
 		}
-		ActorPtr->SetActorLocation(spawnLocation);
+		if (!ChunkParams->WorldTransform)
+		{
+			ActorPtr->SetActorRelativeLocation(spawnLocation);
+		}
+		else
+		{
+			ActorPtr->SetActorLocation(spawnLocation);
+		}
 	}
 	chunk->ChunkMeshActor = ActorPtr;
 

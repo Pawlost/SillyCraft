@@ -5,6 +5,7 @@
 void ASingleChunkSpawnerBase::BeginPlay()
 {
 	Super::BeginPlay();
+	WorldCenter = true;
 
 	if (AlignGridPositionWithSpawner)
 	{

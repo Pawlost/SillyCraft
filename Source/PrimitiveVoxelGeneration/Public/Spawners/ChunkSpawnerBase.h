@@ -15,6 +15,9 @@ class PRIMITIVEVOXELGENERATION_API AChunkSpawnerBase : public AActor
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
 	TSubclassOf<UVoxelGeneratorBase> VoxelGeneratorBlueprint = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Chunk")
+	bool WorldCenter = true;
 	
 	UFUNCTION(BlueprintCallable)
 	double GetHighestElevationAtLocation(const FVector& location) const;

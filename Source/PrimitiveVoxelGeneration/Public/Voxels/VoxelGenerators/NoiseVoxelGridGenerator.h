@@ -29,6 +29,6 @@ protected:
 	virtual FVoxel GetVoxelByName(const FName& voxelName) const override;
 
 private:
-	static double GetSurfaceGradient(float posX, float posY, const TObjectPtr<UFastNoiseWrapper>& generator, const FVoxelType& voxelType);
+	static double GetSurfaceGradient(float posX, float posY, const TObjectPtr<UFastNoiseWrapper>& generator, double elevation, double distanceFromSurfaceLevel);
 	bool IsChunkPositionOutOfBounds(double minZPosition, double maxZPosition);
 };

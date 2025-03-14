@@ -4,10 +4,10 @@
 #include "SingleVoxelGeneratorBase.h"
 #include "Components/ActorComponent.h"
 #include "Chunks/ChunkStruct.h"
-#include "VoxelGridGenerator.generated.h"
+#include "SingleVoxelGenerator.generated.h"
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable)
-class PRIMITIVEVOXELGENERATION_API UVoxelGridGenerator : public USingleVoxelGeneratorBase
+class PRIMITIVEVOXELGENERATION_API USingleVoxelGenerator : public USingleVoxelGeneratorBase
 {
 	GENERATED_BODY()
 
