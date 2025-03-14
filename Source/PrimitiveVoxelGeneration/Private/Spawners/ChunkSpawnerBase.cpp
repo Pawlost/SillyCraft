@@ -27,38 +27,26 @@ void AChunkSpawnerBase::BeginPlay()
 	Super::BeginPlay();
 }
 
-void AChunkSpawnerBase::MoveSpawnToPosition(const FVector& newPosition)
-{
-	auto newGridPosition = WorldPositionToChunkGridPosition(newPosition);
-
-	if (CenterGridPosition != newGridPosition)
-	{
-		CenterGridPosition = newGridPosition;
-		SpawnChunks();
-		DespawnChunks();
-	}
-}
-
 double AChunkSpawnerBase::GetHighestElevationAtLocation(const FVector& location) const
 {
 	return VoxelGenerator->GetHighestElevationAtLocation(location);
 }
 
-void AChunkSpawnerBase::ChangeVoxelAt(const FVector& hitPosition, const FVector& hitNormal, const FVoxel& VoxelId,
-                                      bool place)
+void AChunkSpawnerBase::ChangeVoxelAtHit(const FVector& hitPosition, const FVector& hitNormal, const FName& VoxelName,
+                                      bool pick)
 {
 	FVector adjustedNormal;
-	if (place)
-	{
-		adjustedNormal.X = -FMath::Clamp(hitNormal.X, -1, 0);
-		adjustedNormal.Y = -FMath::Clamp(hitNormal.Y, -1, 0);
-		adjustedNormal.Z = -FMath::Clamp(hitNormal.Z, -1, 0);
-	}
-	else
+	if (pick)
 	{
 		adjustedNormal.X = FMath::Clamp(hitNormal.X, 0, 1);
 		adjustedNormal.Y = FMath::Clamp(hitNormal.Y, 0, 1);
 		adjustedNormal.Z = FMath::Clamp(hitNormal.Z, 0, 1);
+	}
+	else
+	{
+		adjustedNormal.X = -FMath::Clamp(hitNormal.X, -1, 0);
+		adjustedNormal.Y = -FMath::Clamp(hitNormal.Y, -1, 0);
+		adjustedNormal.Z = -FMath::Clamp(hitNormal.Z, -1, 0);
 	}
 
 	auto position = hitPosition - adjustedNormal * VoxelGenerator->GetVoxelSize();
@@ -68,7 +56,7 @@ void AChunkSpawnerBase::ChangeVoxelAt(const FVector& hitPosition, const FVector&
 		(position - FVector(chunkGridPosition * VoxelGenerator->GetChunkSize())) / VoxelGenerator
 		->GetVoxelSize());
 
-	ModifyVoxelAtChunk(chunkGridPosition, voxelPosition, VoxelId);
+	ChangeVoxelInChunk(chunkGridPosition, voxelPosition, VoxelName);
 }
 
 void AChunkSpawnerBase::AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirection direction,

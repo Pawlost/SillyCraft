@@ -15,19 +15,16 @@ class PRIMITIVEVOXELGENERATION_API AChunkSpawnerBase : public AActor
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
 	TSubclassOf<UVoxelGeneratorBase> VoxelGeneratorBlueprint = nullptr;
-
-	UFUNCTION(BlueprintCallable)
-	void MoveSpawnToPosition(const FVector& newPosition);
-
+	
 	UFUNCTION(BlueprintCallable)
 	double GetHighestElevationAtLocation(const FVector& location) const;
 
 	UFUNCTION(BlueprintCallable)
-	void ChangeVoxelAt(const FVector& hitPosition, const FVector& hitNormal,
-	const FVoxel& VoxelId, bool place);
+	void ChangeVoxelAtHit(const FVector& hitPosition, const FVector& hitNormal,
+	const FName& VoxelName, bool pick);
 	
 	UFUNCTION(BlueprintCallable)
-	virtual void ModifyVoxelAtChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition, const FVoxel& VoxelId) {};
+	virtual void ChangeVoxelInChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition, const FName& VoxelName) {};
 	
 protected:
 	// Called when the game starts

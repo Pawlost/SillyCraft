@@ -1,5 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-#pragma once
+﻿#pragma once
 #include "CoreMinimal.h"
 #include "AreaChunkSpawnerBase.h"
 #include "PreloadedVoxelCenterAreaChunkSpawner.generated.h"
@@ -12,5 +11,10 @@ class PRIMITIVEVOXELGENERATION_API APreloadedVoxelCenterAreaChunkSpawner : publi
 
 protected:
 	virtual void GenerateArea() override;
+
+private:
+	
+	// Called when the game starts
+	virtual void BeginPlay() override;
 	static void WaitForAllTasks(TArray<TSharedFuture<void>>& tasks);
 };

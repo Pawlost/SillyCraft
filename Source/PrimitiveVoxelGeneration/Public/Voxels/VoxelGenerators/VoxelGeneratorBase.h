@@ -16,7 +16,6 @@ class PRIMITIVEVOXELGENERATION_API UVoxelGeneratorBase : public UActorComponent,
 	GENERATED_BODY()
 
 public:
-	virtual TTuple<FName, FVoxelType> GetVoxelTypeById(const int32& voxelTypeIndex) const {return TTuple<FName, FVoxelType>();};
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Voxels")
 	int32 VoxelDimensionCount = 0;
@@ -41,8 +40,12 @@ public:
 
 	void GenerateMesh(FChunkFaceParams& faceParams) const;
 	
-	bool ChangeVoxelIdInChunk(const TSharedPtr<FChunkStruct>& chunk, const FIntVector& voxelPosition, const FVoxel& voxelId);
+	bool ChangeVoxelIdInChunk(const TSharedPtr<FChunkStruct>& chunk, const FIntVector& voxelPosition, const FName& voxelName);
 
+	virtual TTuple<FName, FVoxelType> GetVoxelTypeById(const int32& voxelTypeIndex) const {return TTuple<FName, FVoxelType>();}
+	virtual FVoxel GetVoxelByName(const FName& voxelName) const {return FVoxel();}
+
+	
 	virtual void GenerateVoxels(FChunkStruct& chunk) override
 	{
 	}

@@ -98,10 +98,12 @@ int32 UVoxelGeneratorBase::GetVoxelIndex(const FIntVector& indexVector) const
 }
 
 bool UVoxelGeneratorBase::ChangeVoxelIdInChunk(const TSharedPtr<FChunkStruct>& chunk, const FIntVector& voxelPosition,
-                                               const FVoxel& voxelId)
+                                               const FName& voxelName)
 {
 	auto index = GetVoxelIndex(voxelPosition);
 
+	auto voxelId = GetVoxelByName(voxelName);
+	
 	if (chunk.IsValid() && chunk->Voxels.IsValidIndex(index))
 	{
 		if (voxelId.IsEmptyVoxel())

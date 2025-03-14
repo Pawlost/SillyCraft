@@ -3,6 +3,11 @@
 
 #include "Meshers/MeshingStructs/ChunkFaceParams.h"
 
+void ACenterAreaChunkSpawner::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
 void ACenterAreaChunkSpawner::GenerateArea()
 {
 	auto initialCenter = CenterGridPosition;
@@ -12,6 +17,7 @@ void ACenterAreaChunkSpawner::GenerateArea()
 	SpawnPositionsArray.Enqueue(initialCenter);
 	SpawnChunk(initialCenter);
 	FChunkFaceParams faceParams;
+	faceParams.ChunkParams.ShowBorders = BufferZone == 0;
 	TArray<TSharedFuture<void>> tasks;
 	tasks.Reserve(6);
 

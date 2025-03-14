@@ -3,8 +3,8 @@
 
 #include "Meshers/MeshingStructs/ChunkFaceParams.h"
 
-void AAreaChunkSpawnerBase::ModifyVoxelAtChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition,
-                                               const FVoxel& VoxelId)
+void AAreaChunkSpawnerBase::ChangeVoxelInChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition,
+	const FName& VoxelId)
 {
 	if (EditHandle.IsValid() && !EditHandle.IsReady())
 	{
@@ -22,8 +22,7 @@ void AAreaChunkSpawnerBase::ModifyVoxelAtChunk(const FIntVector& chunkGridPositi
 
 		auto chunk = *foundChunk;
 
-		VoxelGenerator->ChangeVoxelIdInChunk(chunk, voxelPosition, FVoxel(VoxelId));
-
+		VoxelGenerator->ChangeVoxelIdInChunk(chunk, voxelPosition, VoxelId);
 
 		EditHandle = Async(EAsyncExecution::LargeThreadPool, [this, chunk]()
 		{
@@ -48,7 +47,8 @@ void AAreaChunkSpawnerBase::ModifyVoxelAtChunk(const FIntVector& chunkGridPositi
 void AAreaChunkSpawnerBase::BeginPlay()
 {
 	Super::BeginPlay();
-	if (WorldCenter){
+	if (WorldCenter)
+	{
 		CenterGridPosition = WorldPositionToChunkGridPosition(GetTransform().GetLocation());
 	}
 
@@ -82,16 +82,16 @@ void AAreaChunkSpawnerBase::GenerateChunkMesh(FChunkFaceParams& chunkParams, con
 	{
 		return;
 	}
-	
+
 	chunkParams.ChunkParams.SpawnerPtr = this;
-	chunkParams.ChunkParams.ShowBorders = BufferZone == 0;
 	chunkParams.ChunkParams.OriginalChunk = chunk;
+	chunkParams.ChunkParams.ShowBorders = ShowChunkBorders;
 
 	if (!WorldCenter)
 	{
 		chunkParams.ChunkParams.ActorAttachmentRules = FAttachmentTransformRules::KeepRelativeTransform;
 	}
-	
+
 	AddChunkFromGrid(chunkParams, FGridDirectionToFace::TopDirection);
 	AddChunkFromGrid(chunkParams, FGridDirectionToFace::BottomDirection);
 	AddChunkFromGrid(chunkParams, FGridDirectionToFace::RightDirection);
@@ -103,7 +103,7 @@ void AAreaChunkSpawnerBase::GenerateChunkMesh(FChunkFaceParams& chunkParams, con
 	{
 		UnusedActors.Dequeue(chunk->ChunkMeshActor);
 	}
-	
+
 	//Mesh could be spawned on a Async Thread similary to voxel models but it is not done so to showcase real time speed of mesh generation (requirement for bachelor thesis)
 	VoxelGenerator->GenerateMesh(chunkParams);
 
@@ -159,46 +159,8 @@ void AAreaChunkSpawnerBase::AddChunkFromGrid(FChunkFaceParams& params, const FGr
 
 void AAreaChunkSpawnerBase::SpawnChunks()
 {
-	SpawnHandle = Async(EAsyncExecution::Thread, [this]()
+	Async(EAsyncExecution::Thread, [this]()
 	{
 		GenerateArea();
-	}).Share();
-}
-
-void AAreaChunkSpawnerBase::DespawnChunks()
-{
-	AsyncTask(ENamedThreads::BackgroundThreadPriority, [this]()
-	{
-		TArray<FIntVector> chunkKeys;
-		ChunkGrid.GetKeys(chunkKeys);
-
-		for (auto chunkKey : chunkKeys)
-		{
-			if (FVector::Distance(FVector(CenterGridPosition), FVector(chunkKey)) > SpawnZone + DespawnZone)
-			{
-				if (!IsValid(this) || !ChunkGrid.Contains(chunkKey))
-				{
-					return;
-				}
-
-				auto chunk = *ChunkGrid.Find(chunkKey);
-
-				if (chunk->ChunkMeshActor != nullptr)
-				{
-					chunk->ChunkMeshActor->ClearMesh();
-					UnusedActors.Enqueue(chunk->ChunkMeshActor);
-					chunk->ChunkMeshActor = nullptr;
-				}
-
-				chunk->IsActive = false;
-				chunk->ChunkVoxelTypeTable.Reset();
-
-				Mutex.Lock();
-				ChunkGrid.Remove(chunkKey);
-				Mutex.Unlock();
-
-				DespawnedChunks.Enqueue(chunk);
-			}
-		}
 	});
 }

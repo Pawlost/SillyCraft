@@ -12,7 +12,7 @@ void APreloadedVoxelCenterAreaChunkSpawner::GenerateArea()
 	SpawnChunk(initialCenter);
 	TArray<TSharedFuture<void>> tasks;
 	tasks.Reserve(6);
-	
+
 	SpawnPositionsArray.Enqueue(initialCenter);
 
 	TTuple<FGridDirectionToFace, int32> Directions[6] = {
@@ -37,7 +37,7 @@ void APreloadedVoxelCenterAreaChunkSpawner::GenerateArea()
 
 			auto chunkPtr = ChunkGrid.Find(position);
 
-			if (FVector::Distance(FVector(initialCenter), FVector(position)) < direction.Value + BufferZone)
+			if (FVector::Distance(FVector(initialCenter), FVector(position)) < direction.Value)
 			{
 				if (chunkPtr == nullptr)
 				{
@@ -63,7 +63,7 @@ void APreloadedVoxelCenterAreaChunkSpawner::GenerateArea()
 			WaitForAllTasks(tasks);
 		}
 	}
-	
+
 	WaitForAllTasks(tasks);
 
 	FChunkFaceParams faceParams;
@@ -71,6 +71,12 @@ void APreloadedVoxelCenterAreaChunkSpawner::GenerateArea()
 	{
 		GenerateChunkMesh(faceParams, VisitedSpawnPosition);
 	}
+}
+
+void APreloadedVoxelCenterAreaChunkSpawner::BeginPlay()
+{
+	ShowChunkBorders = true;
+	Super::BeginPlay();
 }
 
 void APreloadedVoxelCenterAreaChunkSpawner::WaitForAllTasks(TArray<TSharedFuture<void>>& tasks)

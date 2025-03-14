@@ -18,13 +18,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
 	bool AlignGridPositionWithSpawner = true;
 
+	virtual void ChangeVoxelInChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition,
+									const FName& VoxelId) override;
+	
 protected:
 	virtual void BeginPlay() override;
 	
 	TSharedPtr<FChunkStruct> SingleChunk;
-	
-	virtual void ModifyVoxelAtChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition,
-	                                const FVoxel& VoxelId) override;
 	
 	virtual void StartMeshing() {};
 };

@@ -18,4 +18,5 @@ protected:
 	virtual void BeginPlay() override;
 	FVoxel GetSingleVoxel() const;
 	virtual TTuple<FName, FVoxelType> GetVoxelTypeById(const int32& voxelTypeIndex) const override;
+	virtual FVoxel GetVoxelByName(const FName& voxelName) const override;
 };

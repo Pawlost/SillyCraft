@@ -1,5 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-#pragma once
+﻿#pragma once
 #include "CoreMinimal.h"
 #include "Meshers/MeshingStructs/GridDirectionToFace.h"
 #include "Chunks/ChunkStruct.h"
@@ -16,47 +15,36 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
 	int32 SpawnZone = 2;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
-	int32 BufferZone = 1;
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
-	int32 DespawnZone = 2;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Chunk")
-	int32 ChunksAboveSpawner = 0;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Chunk")
-	int32 ChunksBelowSpawner = 0;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Chunk")
 	bool SpawnCenterChunk = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Chunk")
 	bool WorldCenter = true;
-	
-	virtual void ModifyVoxelAtChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition, const FVoxel& VoxelId) override;
+
+	virtual void ChangeVoxelInChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition,
+	                                const FName& VoxelId) override;
 
 protected:
-
 	TMap<FIntVector, TSharedPtr<FChunkStruct>> ChunkGrid;
-	
+	bool ShowChunkBorders = false;
+
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
 	TQueue<TSharedPtr<FChunkStruct>> DespawnedChunks;
 	TQueue<TWeakObjectPtr<AChunkRmcActor>, EQueueMode::Mpsc> UnusedActors;
-	virtual void GenerateArea(){}
-	
+
+	virtual void GenerateArea()
+	{
+	}
+
 	void GenerateChunkMesh(FChunkFaceParams& chunkParams, const FIntVector& chunkGridPosition);
 	void SpawnChunk(const FIntVector& chunkGridPosition, TSharedFuture<void>* asyncExecution = nullptr);
-	
+	virtual void SpawnChunks() override;
+
 private:
 	void AddChunkFromGrid(FChunkFaceParams& params, const FGridDirectionToFace& faceDirection);
-	
-	virtual void DespawnChunks() override;
-	virtual void SpawnChunks() override;
-	
-	TSharedFuture<void> SpawnHandle;
+
 	TSharedFuture<void> EditHandle;
 	FCriticalSection Mutex;
 };

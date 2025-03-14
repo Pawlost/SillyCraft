@@ -20,9 +20,9 @@ void ASingleChunkSpawnerBase::BeginPlay()
 	});
 }
 
-void ASingleChunkSpawnerBase::ModifyVoxelAtChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition,
-                                                 const FVoxel& VoxelId)
+void ASingleChunkSpawnerBase::ChangeVoxelInChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition,
+	const FName& VoxelId)
 {
-	VoxelGenerator->ChangeVoxelIdInChunk(SingleChunk, voxelPosition, FVoxel(VoxelId));
+	VoxelGenerator->ChangeVoxelIdInChunk(SingleChunk, voxelPosition, VoxelId);
 	StartMeshing();
 }
