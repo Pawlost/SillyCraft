@@ -10,5 +10,6 @@ class PRIMITIVEVOXELGENERATION_API ASingleChunkSpawner : public ASingleChunkSpaw
 {
 	GENERATED_BODY()
 protected:
+	virtual void BeginPlay() override;
 	virtual void StartMeshing() override;
 };

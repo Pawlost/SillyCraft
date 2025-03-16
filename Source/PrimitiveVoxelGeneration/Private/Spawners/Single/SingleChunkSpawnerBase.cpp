@@ -5,8 +5,7 @@
 void ASingleChunkSpawnerBase::BeginPlay()
 {
 	Super::BeginPlay();
-	WorldCenter = true;
-
+	
 	if (AlignGridPositionWithSpawner)
 	{
 		SingleChunkGridPosition = WorldPositionToChunkGridPosition(GetActorLocation());;
@@ -24,6 +23,11 @@ void ASingleChunkSpawnerBase::BeginPlay()
 void ASingleChunkSpawnerBase::ChangeVoxelInChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition,
 	const FName& VoxelId)
 {
+	if (chunkGridPosition != SingleChunkGridPosition)
+	{
+		return;
+	}
+	
 	VoxelGenerator->ChangeVoxelIdInChunk(SingleChunk, voxelPosition, VoxelId);
 	StartMeshing();
 }

@@ -9,6 +9,7 @@ void ASingleBorderlessChunkSpawner::StartMeshing()
 	FChunkFaceParams ChunkParams;
 	ChunkParams.ChunkParams.SpawnerPtr = this;
 	ChunkParams.ChunkParams.OriginalChunk = SingleChunk;
+	ChunkParams.ChunkParams.WorldTransform = WorldCenter;
 
 	SpawnSideChunk(ChunkParams, FGridDirectionToFace::TopDirection);
 	SpawnSideChunk(ChunkParams, FGridDirectionToFace::BottomDirection);

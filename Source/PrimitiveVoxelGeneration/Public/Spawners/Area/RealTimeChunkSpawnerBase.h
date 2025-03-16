@@ -21,7 +21,8 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
 	int32 BufferZone = 1;
-	
+
+	//Set center position
 	UFUNCTION(BlueprintCallable)
 	void MoveGridCenterToPosition(const FVector& newPosition);
 

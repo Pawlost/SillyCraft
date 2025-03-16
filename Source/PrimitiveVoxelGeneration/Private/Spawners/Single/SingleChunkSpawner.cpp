@@ -3,6 +3,12 @@
 
 #include "Meshers/MeshingStructs/ChunkFaceParams.h"
 
+void ASingleChunkSpawner::BeginPlay()
+{
+	WorldCenter = true;
+	Super::BeginPlay();
+}
+
 void ASingleChunkSpawner::StartMeshing()
 {
 	FChunkFaceParams params;
@@ -15,5 +21,6 @@ void ASingleChunkSpawner::StartMeshing()
 	AddSideChunk(params, EFaceDirection::Right, nullptr);
 	AddSideChunk(params, EFaceDirection::Left, nullptr);
 	params.ChunkParams.ShowBorders = true;
+	params.ChunkParams.WorldTransform = WorldCenter;
 	VoxelGenerator->GenerateMesh(params);
 }

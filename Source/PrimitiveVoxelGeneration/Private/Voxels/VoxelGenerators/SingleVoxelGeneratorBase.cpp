@@ -27,7 +27,7 @@ FVoxel USingleVoxelGeneratorBase::GetVoxelByName(const FName& voxelName) const
 	TArray<FName> RowNames = VoxelType.DataTable->GetRowNames();
 	for (int32 Index = 0; Index < RowNames.Num(); Index++)
 	{
-		if (RowNames[Index] == VoxelType.RowName)
+		if (RowNames[Index] == voxelName)
 		{
 			auto voxelType = VoxelType.DataTable->FindRow<FVoxelType>(VoxelType.RowName, "");
 			return FVoxel(Index, voxelType->bIsTransparent);
