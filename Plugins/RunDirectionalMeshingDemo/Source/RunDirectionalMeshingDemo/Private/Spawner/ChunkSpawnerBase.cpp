@@ -1,6 +1,6 @@
 ﻿#include "Spawner/ChunkSpawnerBase.h"
 
-#include "Mesher/MeshingStructs/MesherVariables.h"
+#include "Mesher/MeshingUtils/MesherVariables.h"
 
 void AChunkSpawnerBase::BeginPlay()
 {
@@ -48,7 +48,7 @@ void AChunkSpawnerBase::ChangeVoxelAtHit(const FVector& HitPosition, const FVect
 	
 	auto position = HitPosition - adjustedNormal * VoxelGenerator->GetVoxelSize();
 	
-	if (!WorldCenter)
+	if (!LocalChunkTransform)
 	{
 		position -= GetActorLocation();	
 	}

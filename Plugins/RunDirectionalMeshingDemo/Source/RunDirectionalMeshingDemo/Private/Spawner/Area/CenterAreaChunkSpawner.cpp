@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.pp[p
 #include "Spawner/Area/CenterAreaChunkSpawner.h"
 
-#include "Mesher/MeshingStructs/MesherVariables.h"
+#include "Mesher/MeshingUtils/MesherVariables.h"
 
 void ACenterAreaChunkSpawner::BeginPlay()
 {
@@ -12,7 +12,7 @@ void ACenterAreaChunkSpawner::GenerateArea()
 {
 	auto initialCenter = CenterGridPosition;
 	TSet<FIntVector> VisitedSpawnPositions;
-	VisitedSpawnPositions.Reserve(SpawnZone * SpawnZone * SpawnZone * FACE_SIDE_COUNT);
+	VisitedSpawnPositions.Reserve(SpawnZone * SpawnZone * SpawnZone * CHUNK_FACE_COUNT);
 	TQueue<FIntVector> SpawnPositionsArray;
 	SpawnPositionsArray.Enqueue(initialCenter);
 	SpawnChunk(initialCenter);
@@ -21,13 +21,13 @@ void ACenterAreaChunkSpawner::GenerateArea()
 	TArray<TSharedFuture<void>> tasks;
 	tasks.Reserve(6);
 
-	TTuple<FGridDirectionToFace, int32> Directions[6] = {
-		TTuple<FGridDirectionToFace, int32>(FGridDirectionToFace::FrontDirection, SpawnZone),
-		TTuple<FGridDirectionToFace, int32>(FGridDirectionToFace::RightDirection, SpawnZone),
-		TTuple<FGridDirectionToFace, int32>(FGridDirectionToFace::LeftDirection, SpawnZone),
-		TTuple<FGridDirectionToFace, int32>(FGridDirectionToFace::BackDirection, SpawnZone),
-		TTuple<FGridDirectionToFace, int32>(FGridDirectionToFace::TopDirection, ChunksAboveSpawner),
-		TTuple<FGridDirectionToFace, int32>(FGridDirectionToFace::BottomDirection, ChunksBelowSpawner)
+	TTuple<FFaceToDirection, int32> Directions[6] = {
+		TTuple<FFaceToDirection, int32>(FFaceToDirection::FrontDirection, SpawnZone),
+		TTuple<FFaceToDirection, int32>(FFaceToDirection::RightDirection, SpawnZone),
+		TTuple<FFaceToDirection, int32>(FFaceToDirection::LeftDirection, SpawnZone),
+		TTuple<FFaceToDirection, int32>(FFaceToDirection::BackDirection, SpawnZone),
+		TTuple<FFaceToDirection, int32>(FFaceToDirection::TopDirection, ChunksAboveSpawner),
+		TTuple<FFaceToDirection, int32>(FFaceToDirection::BottomDirection, ChunksBelowSpawner)
 	};
 
 	FIntVector centerPosition;
@@ -45,7 +45,7 @@ void ACenterAreaChunkSpawner::GenerateArea()
 			WaitForAllTasks(tasks);
 		}
 		
-		for (int32 s = 0; s < FACE_SIDE_COUNT; s++)
+		for (int32 s = 0; s < CHUNK_FACE_COUNT; s++)
 		{
 			auto direction = Directions[s];
 

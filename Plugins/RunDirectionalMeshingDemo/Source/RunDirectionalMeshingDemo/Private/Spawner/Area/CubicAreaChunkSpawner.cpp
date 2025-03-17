@@ -2,7 +2,7 @@
 
 #include "Spawner/Area/CubicAreaChunkSpawner.h"
 
-#include "Mesher/MeshingStructs/MesherVariables.h"
+#include "Mesher/MeshingUtils/MesherVariables.h"
 
 void ACubicAreaChunkSpawner::GenerateArea()
 {

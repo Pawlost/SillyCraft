@@ -1,11 +1,11 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.pp[p
 #include "Spawner/Single/SingleChunkSpawner.h"
 
-#include "Mesher/MeshingStructs/MesherVariables.h"
+#include "Mesher/MeshingUtils/MesherVariables.h"
 
 void ASingleChunkSpawner::BeginPlay()
 {
-	WorldCenter = true;
+	LocalChunkTransform = true;
 	Super::BeginPlay();
 }
 
@@ -21,6 +21,6 @@ void ASingleChunkSpawner::StartMeshing()
 	AddSideChunk(params, EFaceDirection::Right, nullptr);
 	AddSideChunk(params, EFaceDirection::Left, nullptr);
 	params.ChunkParams.ShowBorders = true;
-	params.ChunkParams.WorldTransform = WorldCenter;
+	params.ChunkParams.WorldTransform = LocalChunkTransform;
 	VoxelGenerator->GenerateMesh(params);
 }

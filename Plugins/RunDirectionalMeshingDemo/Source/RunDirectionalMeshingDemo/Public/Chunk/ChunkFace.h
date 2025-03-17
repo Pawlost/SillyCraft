@@ -12,7 +12,7 @@ struct RUNDIRECTIONALMESHINGDEMO_API FChunkFace
 	FIntVector EndVertexDown;
 	FIntVector EndVertexUp;
 	FIntVector StartVertexUp;
-	
+
 	// Create something like singletons
 	static FChunkFace FrontFace;
 	static FChunkFace BackFace;
@@ -53,6 +53,7 @@ struct RUNDIRECTIONALMESHINGDEMO_API FChunkFace
 	FVector3f GetFinalStartVertexUp(const double& VoxelSize) const;
 	FVector3f GetFinalEndVertexDown(const double& VoxelSize) const;
 	FVector3f GetFinalEndVertexUp(const double& VoxelSize) const;
+
 private:
 	static FChunkFace CreateChunkFace(const FIntVector& InitialPosition, const FVoxel& Voxel, FChunkFace Face);
 };

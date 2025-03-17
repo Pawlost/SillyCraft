@@ -1,12 +1,12 @@
 ﻿#include "Spawner/Area/PreloadedVoxelCenterAreaChunkSpawner.h"
 
-#include "Mesher/MeshingStructs/MesherVariables.h"
+#include "Mesher/MeshingUtils/MesherVariables.h"
 
 void APreloadedVoxelCenterAreaChunkSpawner::GenerateArea()
 {
 	auto initialCenter = CenterGridPosition;
 	TSet<FIntVector> VisitedSpawnPositions;
-	VisitedSpawnPositions.Reserve(SpawnZone * SpawnZone * SpawnZone * FACE_SIDE_COUNT);
+	VisitedSpawnPositions.Reserve(SpawnZone * SpawnZone * SpawnZone * CHUNK_FACE_COUNT);
 	TQueue<FIntVector> SpawnPositionsArray;
 	SpawnChunk(initialCenter);
 	TArray<TSharedFuture<void>> tasks;
@@ -14,13 +14,13 @@ void APreloadedVoxelCenterAreaChunkSpawner::GenerateArea()
 
 	SpawnPositionsArray.Enqueue(initialCenter);
 
-	TTuple<FGridDirectionToFace, int32> Directions[6] = {
-		TTuple<FGridDirectionToFace, int32>(FGridDirectionToFace::FrontDirection, SpawnZone),
-		TTuple<FGridDirectionToFace, int32>(FGridDirectionToFace::RightDirection, SpawnZone),
-		TTuple<FGridDirectionToFace, int32>(FGridDirectionToFace::LeftDirection, SpawnZone),
-		TTuple<FGridDirectionToFace, int32>(FGridDirectionToFace::BackDirection, SpawnZone),
-		TTuple<FGridDirectionToFace, int32>(FGridDirectionToFace::TopDirection, SpawnZone),
-		TTuple<FGridDirectionToFace, int32>(FGridDirectionToFace::BottomDirection, SpawnZone)
+	TTuple<FFaceToDirection, int32> Directions[6] = {
+		TTuple<FFaceToDirection, int32>(FFaceToDirection::FrontDirection, SpawnZone),
+		TTuple<FFaceToDirection, int32>(FFaceToDirection::RightDirection, SpawnZone),
+		TTuple<FFaceToDirection, int32>(FFaceToDirection::LeftDirection, SpawnZone),
+		TTuple<FFaceToDirection, int32>(FFaceToDirection::BackDirection, SpawnZone),
+		TTuple<FFaceToDirection, int32>(FFaceToDirection::TopDirection, SpawnZone),
+		TTuple<FFaceToDirection, int32>(FFaceToDirection::BottomDirection, SpawnZone)
 	};
 
 	FIntVector centerPosition;
@@ -28,7 +28,7 @@ void APreloadedVoxelCenterAreaChunkSpawner::GenerateArea()
 
 	while (IsValid(this) && SpawnPositionsArray.Dequeue(centerPosition) && initialCenter == CenterGridPosition)
 	{
-		for (int32 s = 0; s < FACE_SIDE_COUNT; s++)
+		for (int32 s = 0; s < CHUNK_FACE_COUNT; s++)
 		{
 			auto direction = Directions[s];
 

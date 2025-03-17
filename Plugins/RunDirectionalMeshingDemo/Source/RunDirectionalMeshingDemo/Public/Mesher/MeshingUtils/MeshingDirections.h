@@ -1,14 +1,14 @@
 ﻿#pragma once
-#include "StaticNaiveMeshingData.h"
+#include "StaticMergeData.h"
 
-struct FNaiveMeshingData
+struct FMeshingDirections
 {
-	const FStaticNaiveMeshingData& StaticMeshingData;
+	const FStaticMergeData& StaticMeshingData;
 	int32 ForwardVoxelIndex;
 	int32 ChunkBorderIndex;
 	int32 PreviousVoxelIndex;
 
-	explicit FNaiveMeshingData(FStaticNaiveMeshingData& staticMeshingData) : StaticMeshingData(staticMeshingData),
+	explicit FMeshingDirections(FStaticMergeData& StaticMeshingData) : StaticMeshingData(StaticMeshingData),
 	                                                                         ForwardVoxelIndex(0), ChunkBorderIndex(0),
 	                                                                         PreviousVoxelIndex(0)
 	{

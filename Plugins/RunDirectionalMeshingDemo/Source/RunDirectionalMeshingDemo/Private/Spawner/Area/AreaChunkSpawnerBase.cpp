@@ -1,5 +1,5 @@
 ﻿#include "Spawner/Area/AreaChunkSpawnerBase.h"
-#include "Mesher/MeshingStructs/MesherVariables.h"
+#include "Mesher/MeshingUtils/MesherVariables.h"
 
 
 void AAreaChunkSpawnerBase::ChangeVoxelInChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition,
@@ -30,7 +30,7 @@ void AAreaChunkSpawnerBase::ChangeVoxelInChunk(const FIntVector& chunkGridPositi
 			GenerateChunkMesh(chunkParams, chunk->GridPosition);
 			FMesherVariables sideParams;
 
-			for (int32 s = 0; s < FACE_SIDE_COUNT; s++)
+			for (int32 s = 0; s < CHUNK_FACE_COUNT; s++)
 			{
 				auto sideChunk = chunkParams.ChunkParams.SideChunks[s];
 				if (sideChunk.IsValid())
@@ -48,7 +48,7 @@ void AAreaChunkSpawnerBase::BeginPlay()
 	Super::BeginPlay();
 	checkf(VoxelGenerator, TEXT("Voxel generator must set"));
 	
-	if (WorldCenter)
+	if (LocalChunkTransform)
 	{
 		CenterGridPosition = WorldPositionToChunkGridPosition(GetTransform().GetLocation());
 	}
@@ -87,14 +87,14 @@ void AAreaChunkSpawnerBase::GenerateChunkMesh(FMesherVariables& chunkParams, con
 	chunkParams.ChunkParams.SpawnerPtr = this;
 	chunkParams.ChunkParams.OriginalChunk = chunk;
 	chunkParams.ChunkParams.ShowBorders = ShowChunkBorders;
-	chunkParams.ChunkParams.WorldTransform = WorldCenter;
+	chunkParams.ChunkParams.LocalTransform = LocalChunkTransform;
 
-	AddChunkFromGrid(chunkParams, FGridDirectionToFace::TopDirection);
-	AddChunkFromGrid(chunkParams, FGridDirectionToFace::BottomDirection);
-	AddChunkFromGrid(chunkParams, FGridDirectionToFace::RightDirection);
-	AddChunkFromGrid(chunkParams, FGridDirectionToFace::LeftDirection);
-	AddChunkFromGrid(chunkParams, FGridDirectionToFace::FrontDirection);
-	AddChunkFromGrid(chunkParams, FGridDirectionToFace::BackDirection);
+	AddChunkFromGrid(chunkParams, FFaceToDirection::TopDirection);
+	AddChunkFromGrid(chunkParams, FFaceToDirection::BottomDirection);
+	AddChunkFromGrid(chunkParams, FFaceToDirection::RightDirection);
+	AddChunkFromGrid(chunkParams, FFaceToDirection::LeftDirection);
+	AddChunkFromGrid(chunkParams, FFaceToDirection::FrontDirection);
+	AddChunkFromGrid(chunkParams, FFaceToDirection::BackDirection);
 
 	if (chunk->ChunkMeshActor == nullptr)
 	{
@@ -141,7 +141,7 @@ void AAreaChunkSpawnerBase::SpawnChunk(const FIntVector& chunkGridPosition, TSha
 	Mutex.Unlock();
 }
 
-void AAreaChunkSpawnerBase::AddChunkFromGrid(FMesherVariables& params, const FGridDirectionToFace& faceDirection)
+void AAreaChunkSpawnerBase::AddChunkFromGrid(FMesherVariables& params, const FFaceToDirection& faceDirection)
 {
 	auto chunk = ChunkGrid.Find(params.ChunkParams.OriginalChunk->GridPosition + faceDirection.Direction);
 	if (chunk == nullptr)

@@ -10,10 +10,10 @@ struct RUNDIRECTIONALMESHINGDEMO_API FChunk
 	GENERATED_BODY()
 
 	UPROPERTY()
-	TWeakObjectPtr<AChunkRmcActor> ChunkMeshActor = nullptr;
+	TWeakObjectPtr<AChunkRMCActor> ChunkMeshActor = nullptr;
 
 	// Saving voxel grids is not implemented in this demo, but a property specifier for saving has been added.
-	
+
 	UPROPERTY(SaveGame)
 	TArray<FVoxel> VoxelGrid;
 
@@ -29,7 +29,7 @@ struct RUNDIRECTIONALMESHINGDEMO_API FChunk
 
 	UPROPERTY(VisibleInstanceOnly)
 	bool bHasMesh = false;
-	
+
 	UPROPERTY(VisibleInstanceOnly)
 	bool bIsActive = false;
 };

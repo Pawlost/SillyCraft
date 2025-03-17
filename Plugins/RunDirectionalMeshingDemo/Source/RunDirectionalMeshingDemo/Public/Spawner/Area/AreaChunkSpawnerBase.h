@@ -3,7 +3,7 @@
 #include "Spawner/ChunkSpawnerBase.h"
 #include "AreaChunkSpawnerBase.generated.h"
 
-class AChunkRmcActor;
+class AChunkRMCActor;
 
 UCLASS(Abstract)
 class RUNDIRECTIONALMESHINGDEMO_API AAreaChunkSpawnerBase : public AChunkSpawnerBase
@@ -28,7 +28,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	TQueue<TSharedPtr<FChunk>> DespawnedChunks;
-	TQueue<TWeakObjectPtr<AChunkRmcActor>, EQueueMode::Mpsc> UnusedActors;
+	TQueue<TWeakObjectPtr<AChunkRMCActor>, EQueueMode::Mpsc> UnusedActors;
 
 	virtual void GenerateArea()
 	{
@@ -39,7 +39,7 @@ protected:
 	virtual void SpawnChunks() override;
 
 private:
-	void AddChunkFromGrid(FMesherVariables& params, const FGridDirectionToFace& faceDirection);
+	void AddChunkFromGrid(FMesherVariables& params, const FFaceToDirection& faceDirection);
 
 	TSharedFuture<void> EditHandle;
 	FCriticalSection Mutex;

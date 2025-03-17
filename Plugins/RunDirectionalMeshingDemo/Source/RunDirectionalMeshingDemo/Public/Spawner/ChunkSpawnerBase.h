@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "CoreMinimal.h"
-#include "Mesher/MeshingStructs/FaceDirection.h"
+#include "Mesher/MeshingUtils/FaceDirection.h"
 #include "Voxel/Generators/VoxelGeneratorBase.h"
 #include "ChunkSpawnerBase.generated.h"
 
@@ -15,7 +15,7 @@ public:
 	TSubclassOf<UVoxelGeneratorBase> VoxelGeneratorBlueprint = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Chunk")
-	bool WorldCenter = true;
+	bool LocalChunkTransform = false;
 
 	UFUNCTION(BlueprintCallable)
 	double GetHighestElevationAtLocation(const FVector& Location) const;

@@ -1,69 +1,23 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-#include "Mesher/RunDirectionalMesher.h"
+﻿#include "Mesher/RunDirectionalMesher.h"
 
 #include "RealtimeMeshComponent.h"
 #include "RealtimeMeshSimple.h"
 #include "Mesh/RealtimeMeshBuilder.h"
+#include "Mesher/MeshingUtils/MesherVariables.h"
 #include "Spawner/ChunkSpawnerBase.h"
 
-const URunDirectionalMesher::FNormalsAndTangents URunDirectionalMesher::FaceNormalsAndTangents[] = {
-	{FVector3f(-1.0f, 0.0f, 0.0f), FVector3f(0.0, 1.0, 0.0)}, //Front
-	{FVector3f(1.0f, 0.0f, 0.0f), FVector3f(0.0, 1.0, 0.0)}, //Back
-	{FVector3f(0.0f, -1.0f, 0.0f), FVector3f(1.0f, 0.0f, 0.0f)}, // Right 
-	{FVector3f(0.0f, 1.0f, 0.0f), FVector3f(1.0, 0.0, 0.0)}, // Left
-	{FVector3f(0.0f, 0.0f, -1.0f), FVector3f(1.0f, 0.0f, 0.0f)}, //Bottom
-	{FVector3f(0.0f, 0.0f, 1.0f), FVector3f(1.0f, 0.0f, 0.0f)} //Top
-};
+class URealtimeMeshSimple;
 
-void URunDirectionalMesher::UpdateAllFacesParams()
+void URunDirectionalMesher::GenerateMesh(FMesherVariables& MesherVariables)
 {
-	auto chunkLenght = VoxelGenerator->GetVoxelCountPerChunkDimension();
-	//Axis X
-	UpdateFaceParams(FrontFaceTemplate, FIntVector(-1, 0, 0),
-	                 FIntVector(chunkLenght - 1, 0, 0),
-	                 FIntVector(0, -1, 0));
-
-	UpdateFaceParams(BackFaceTemplate, FIntVector(1, 0, 0),
-	                 FIntVector(0, 0, 0),
-	                 FIntVector(0, -1, 0));
-
-	//Axis Y
-	UpdateFaceParams(RightFaceTemplate, FIntVector(0, -1, 0),
-	                 FIntVector(0, chunkLenght - 1, 0),
-	                 FIntVector(-1, 0, 0));
-
-	UpdateFaceParams(LeftFaceTemplate, FIntVector(0, 1, 0),
-	                 FIntVector(0, 0, 0),
-	                 FIntVector(-1, 0, 0));
-
-	// Axis Z
-	UpdateFaceParams(BottomFaceTemplate, FIntVector(0, 0, -1),
-	                 FIntVector(0, 0, chunkLenght - 1),
-	                 FIntVector(0, -1, 0));
-
-	UpdateFaceParams(TopFaceTemplate, FIntVector(0, 0, 1),
-	                 FIntVector(0, 0, 0),
-	                 FIntVector(0, -1, 0));
-}
-
-void URunDirectionalMesher::UpdateFaceParams(FNaiveMeshingData& face, FIntVector forwardVoxelIndexVector,
-                                        FIntVector chunkBorderIndexVector,
-                                        FIntVector previousVoxelIndexVector) const
-{
-	face.ForwardVoxelIndex = VoxelGenerator->CalculateVoxelIndex(forwardVoxelIndexVector);
-	face.PreviousVoxelIndex = VoxelGenerator->CalculateVoxelIndex(previousVoxelIndexVector);
-	face.ChunkBorderIndex = VoxelGenerator->CalculateVoxelIndex(chunkBorderIndexVector);
-}
-
-void URunDirectionalMesher::GenerateMesh(FMesherVariables& faceParams)
-{
-	faceParams.ChunkParams.OriginalChunk->bHasMesh = false;
-	if (faceParams.ChunkParams.OriginalChunk->ChunkVoxelIdTable.IsEmpty())
+	MesherVariables.ChunkParams.OriginalChunk->bHasMesh = false;
+	
+	if (MesherVariables.ChunkParams.OriginalChunk->ChunkVoxelIdTable.IsEmpty())
 	{
-		if (faceParams.ChunkParams.OriginalChunk->ChunkMeshActor.IsValid())
+		if (MesherVariables.ChunkParams.OriginalChunk->ChunkMeshActor.IsValid())
 		{
-			faceParams.ChunkParams.OriginalChunk->ChunkMeshActor->ClearMesh();
+			// If chunk is full of empty voxels but actor was pulled from pool, clear its mesh
+			MesherVariables.ChunkParams.OriginalChunk->ChunkMeshActor->ClearMesh();
 		}
 		return;
 	}
@@ -71,54 +25,51 @@ void URunDirectionalMesher::GenerateMesh(FMesherVariables& faceParams)
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh generation")
 #endif
-
-	// Voxel faces need to be hidden under multiple layers of abstraction because Realtime Mesh Component requires it
-
-	InitFaceContainers(faceParams);
-	FaceGeneration(faceParams);
-	DirectionalGreedyMeshing(faceParams);
-	GenerateMeshFromFaces(faceParams);
+	
+	InitFaceContainers(MesherVariables);
+	FaceGeneration(MesherVariables);
+	DirectionalGreedyMeshing(MesherVariables);
+	GenerateMeshFromFaces(MesherVariables);
 }
 
-void URunDirectionalMesher::VoxelGeneratorSet()
-{
-	UpdateAllFacesParams();
-}
-
-void URunDirectionalMesher::InitFaceContainers(FMesherVariables& faceParams) const
+void URunDirectionalMesher::InitFaceContainers(FMesherVariables& MesherVariables)
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh generation intialization")
 #endif
 
-	int32 chunkPlane = VoxelGenerator->GetVoxelCountPerChunk();
-	faceParams.VoxelIdToLocalVoxelMap.Reserve(faceParams.ChunkParams.OriginalChunk->ChunkVoxelIdTable.Num());
-	faceParams.VoxelIdToLocalVoxelMap.Empty();
+	MesherVariables.VoxelIdToLocalVoxelMap.Reserve(MesherVariables.ChunkParams.OriginalChunk->ChunkVoxelIdTable.Num());
+	MesherVariables.VoxelIdToLocalVoxelMap.Empty();
 
-	for (auto voxelId : faceParams.ChunkParams.OriginalChunk->ChunkVoxelIdTable)
+	for (const auto VoxelId : MesherVariables.ChunkParams.OriginalChunk->ChunkVoxelIdTable)
 	{
-		auto localVoxelId = faceParams.VoxelIdToLocalVoxelMap.Num();
-		faceParams.VoxelIdToLocalVoxelMap.Add(voxelId.Key, localVoxelId);
+		const auto LocalVoxelId = MesherVariables.VoxelIdToLocalVoxelMap.Num();
+		MesherVariables.VoxelIdToLocalVoxelMap.Add(VoxelId.Key, LocalVoxelId);
 	}
 
-	for (int f = 0; f < FACE_SIDE_COUNT; f++)
+	for (uint8 f = 0; f < CHUNK_FACE_COUNT; f++)
 	{
-		//TODO: Use chunk voxel typ table for memory allocation.
-		for (auto voxel : faceParams.VoxelIdToLocalVoxelMap)
+		// Voxel faces need to be sorted to different arrays by Id because Realtime Mesh Component requires it
+		for (const auto Voxel : MesherVariables.VoxelIdToLocalVoxelMap)
 		{
-			faceParams.Faces[f].SetNum(faceParams.ChunkParams.OriginalChunk->ChunkVoxelIdTable.Num());
-			auto faceArray = faceParams.Faces[f][voxel.Value];
-			if (faceArray == nullptr || !faceArray.IsValid())
+			TMap<int32, uint32>& VoxelTable = MesherVariables.ChunkParams.OriginalChunk->ChunkVoxelIdTable;
+			MesherVariables.Faces[f].SetNum(VoxelTable.Num());
+			
+			auto FaceArray = MesherVariables.Faces[f][Voxel.Value];
+			if (FaceArray == nullptr || !FaceArray.IsValid())
 			{
-				faceArray = MakeShared<TArray<FChunkFace>>();
-				faceArray->Reserve(chunkPlane);
+				FaceArray = MakeShared<TArray<FChunkFace>>();
+				MesherVariables.Faces[f][Voxel.Value] = FaceArray;
 			}
 			else
 			{
-				faceArray->Empty();
+				// If array was pulled from a pool, just empty it 
+				FaceArray->Empty();
 			}
-
-			faceParams.Faces[f][voxel.Value] = faceArray;
+			
+			// Preallocate memory needed for meshing
+			const uint32 Count = *VoxelTable.Find(Voxel.Value);
+			FaceArray->Reserve(Count);
 		}
 	}
 }
@@ -129,166 +80,195 @@ void URunDirectionalMesher::FaceGeneration(FMesherVariables& faceParams) const
 	TRACE_CPUPROFILER_EVENT_SCOPE("Run lenght meshing generation")
 #endif
 
-	auto chunkLenght = VoxelGenerator->GetVoxelCountPerChunkDimension();
-	// culling and run meshing
-	for (int32 x = 0; x < chunkLenght; x++)
+	const auto ChunkDimension = VoxelGenerator->GetVoxelCountPerChunkDimension();
+	
+	// Traverse through voxel grid
+	for (uint32 x = 0; x < ChunkDimension; x++)
 	{
-		auto minBorder = IsMinBorder(x);
-		auto maxBorder = IsMaxBorder(x);
+		// Border is necessary to know if voxels from neighboring chunk are needed.
+		const auto bMinBorder = IsMinBorder(x);
+		const auto bMaxBorder = IsMaxBorder(x);
 
-		auto xAxisIndex = VoxelGenerator->CalculateVoxelIndex(x, 0, 0);
-		auto yAxisIndex = VoxelGenerator->CalculateVoxelIndex(0, x, 0);
-		auto zAxisIndex = VoxelGenerator->CalculateVoxelIndex(0, 0, x);
+		// Get last voxel coordinate which is different for each face
+		const auto XAxisIndex = VoxelGenerator->CalculateVoxelIndex(x, 0, 0);
+		const auto YAxisIndex = VoxelGenerator->CalculateVoxelIndex(0, x, 0);
+		const auto ZAxisIndex = VoxelGenerator->CalculateVoxelIndex(0, 0, x);
 
-		for (int32 z = 0; z < chunkLenght; z++)
+		for (uint32 z = 0; z < ChunkDimension; z++)
 		{
-			for (int32 y = 0; y < chunkLenght; y++)
+			for (uint32 y = 0; y < ChunkDimension; y++)
 			{
-				IncrementRun(x, y, z, xAxisIndex, minBorder, maxBorder, FrontFaceTemplate, BackFaceTemplate,
+				/*
+				* Increment run for each chunk axis
+				* Coordinates are different in order to create a sorted array of quads/faces.
+				* Sorted array is then used in Run Direction Greedy meshing, because it is sorted the array needs to traversed only once.
+				* Grid is only read from, it doesn't matter which coordinate is first
+				* Each voxel needs to be visited only once per face.
+				* Indices are same for face and reversed face.
+				*/
+				IncrementRun(x, y, z, XAxisIndex, bMinBorder, bMaxBorder, FrontFaceTemplate, BackFaceTemplate,
 				             faceParams);
-				IncrementRun(y, x, z, yAxisIndex, minBorder, maxBorder, RightFaceTemplate, LeftFaceTemplate,
+				IncrementRun(y, x, z, YAxisIndex, bMinBorder, bMaxBorder, RightFaceTemplate, LeftFaceTemplate,
 				             faceParams);
-				IncrementRun(z, y, x, zAxisIndex, minBorder, maxBorder, BottomFaceTemplate, TopFaceTemplate,
+				IncrementRun(z, y, x, ZAxisIndex, bMinBorder, bMaxBorder, BottomFaceTemplate, TopFaceTemplate,
 				             faceParams);
 			}
 		}
 	}
 }
 
-void URunDirectionalMesher::IncrementRun(int x, int y, int z, int32 axisVoxelIndex, bool isMinBorder, bool isMaxBorder,
-                                    const FNaiveMeshingData& faceTemplate,
-                                    const FNaiveMeshingData& reversedFaceTemplate,
-                                    FMesherVariables& chunkParams) const
+void URunDirectionalMesher::IncrementRun(const int X, const int Y, const int Z, const int32 AxisVoxelIndex, const bool bIsMinBorder, const bool bIsMaxBorder,
+                                    const FMeshingDirections& FaceTemplate,
+                                    const FMeshingDirections& ReversedFaceTemplate,
+                                    FMesherVariables& MesherVariables) const
 {
-	auto index = VoxelGenerator->CalculateVoxelIndex(x, y, z);
-	auto voxel = chunkParams.ChunkParams.OriginalChunk->VoxelGrid[index];
+	// Get voxel at current position of the run.
+	const auto Position = FIntVector(X, Y, Z);
+	const int32 Index = VoxelGenerator->CalculateVoxelIndex(Position);
+	const FVoxel Voxel = MesherVariables.ChunkParams.OriginalChunk->VoxelGrid[Index];
 
-	if (!voxel.IsEmptyVoxel())
+	// If voxel is empty, no mesh should be generated
+	if (!Voxel.IsEmptyVoxel())
 	{
-		auto position = FIntVector(x, y, z);
-		auto originalChunk = chunkParams.ChunkParams.OriginalChunk;
-		if (!originalChunk.IsValid())
-		{
-			return;
-		}
-		auto localVoxelId = chunkParams.VoxelIdToLocalVoxelMap[voxel.VoxelId];
-		auto faceContainerIndex = static_cast<uint8>(faceTemplate.StaticMeshingData.faceSide);
-		auto faceContainerVoxelIndex = static_cast<uint8>(reversedFaceTemplate.StaticMeshingData.faceSide);
-		AddFace(faceTemplate, isMinBorder, index, position, voxel, axisVoxelIndex,
-		        chunkParams.Faces[faceContainerIndex][localVoxelId], chunkParams.ChunkParams);
-		AddFace(reversedFaceTemplate, isMaxBorder, index, position, voxel, axisVoxelIndex,
-		        chunkParams.Faces[faceContainerVoxelIndex][localVoxelId], chunkParams.ChunkParams);
+		// Get correct face containers
+		auto OriginalChunk = MesherVariables.ChunkParams.OriginalChunk;
+		const auto LocalVoxelId = MesherVariables.VoxelIdToLocalVoxelMap[Voxel.VoxelId];
+		const auto FaceContainerIndex = static_cast<uint8>(FaceTemplate.StaticMeshingData.FaceSide);
+		const auto FaceContainerVoxelIndex = static_cast<uint8>(ReversedFaceTemplate.StaticMeshingData.FaceSide);
+
+		// Generate face for each direction
+		AddFace(FaceTemplate, bIsMinBorder, Index, Position, Voxel, AxisVoxelIndex,
+		        MesherVariables.Faces[FaceContainerIndex][LocalVoxelId], MesherVariables.ChunkParams);
+		AddFace(ReversedFaceTemplate, bIsMaxBorder, Index, Position, Voxel, AxisVoxelIndex,
+		        MesherVariables.Faces[FaceContainerVoxelIndex][LocalVoxelId], MesherVariables.ChunkParams);
 	}
 }
 
-void URunDirectionalMesher::AddFace(const FNaiveMeshingData& faceTemplate, bool isBorder,
-                               const int32& index, const FIntVector& position, const FVoxel& voxel,
-                               const int32& axisVoxelIndex,
-                               const TSharedPtr<TArray<FChunkFace>>& chunkFaces, const FChunkParams& chunkParams)
+void URunDirectionalMesher::AddFace(const FMeshingDirections& FaceTemplate, const bool bIsBorder,
+                               const int32& Index, const FIntVector& Position, const FVoxel& Voxel,
+                               const int32& AxisVoxelIndex,
+                               const TSharedPtr<TArray<FChunkFace>>& ChunkFaces, const FChunkParams& ChunkParams)
 {
-	const FVoxelIndexParams voxelIndexParams =
+	// Calculate indices need to check if face should be generated
+	const FVoxelIndexParams VoxelIndexParams =
 	{
-		isBorder,
-		faceTemplate.ForwardVoxelIndex + index,
-		faceTemplate.PreviousVoxelIndex + index,
-		index - axisVoxelIndex + faceTemplate.ChunkBorderIndex,
-		voxel,
-		faceTemplate.StaticMeshingData.faceSide
+		bIsBorder,
+		FaceTemplate.ForwardVoxelIndex + Index,
+		FaceTemplate.PreviousVoxelIndex + Index,
+		Index - AxisVoxelIndex + FaceTemplate.ChunkBorderIndex,
+		Voxel,
+		FaceTemplate.StaticMeshingData.FaceSide
 	};
 
-	if (IsBorderVoxelVisible(voxelIndexParams, chunkParams) || IsVoxelVisible(voxelIndexParams, chunkParams))
+	// Check if face should be generated
+	if (IsBorderVoxelVisible(VoxelIndexParams, ChunkParams) || IsVoxelVisible(VoxelIndexParams, ChunkParams))
 	{
-		FChunkFace newFace =
+		// Generate new face with coordinates
+		const FChunkFace NewFace =
 		{
-			voxel,
-			faceTemplate.StaticMeshingData.faceTemplate.StartVertexDown + position,
-			faceTemplate.StaticMeshingData.faceTemplate.EndVertexDown + position,
-			faceTemplate.StaticMeshingData.faceTemplate.EndVertexUp + position,
-			faceTemplate.StaticMeshingData.faceTemplate.StartVertexUp + position,
+			Voxel,
+			FaceTemplate.StaticMeshingData.FaceTemplate.StartVertexDown + Position,
+			FaceTemplate.StaticMeshingData.FaceTemplate.EndVertexDown + Position,
+			FaceTemplate.StaticMeshingData.FaceTemplate.EndVertexUp + Position,
+			FaceTemplate.StaticMeshingData.FaceTemplate.StartVertexUp + Position,
 		};
 
-		if (!chunkFaces->IsEmpty())
+		if (!ChunkFaces->IsEmpty())
 		{
-			FChunkFace& prevFace = chunkFaces->Last();
-			if (faceTemplate.StaticMeshingData.naiveFaceMerge(prevFace, newFace))
+			// Tries to merge face coordinates into previous face. Because faces are sorted, the last one is always the correct one.
+			FChunkFace& PrevFace = ChunkFaces->Last();
+			
+			if (FaceTemplate.StaticMeshingData.RunDirectionFaceMerge(PrevFace, NewFace))
 			{
-				//return when new face was merged
+				// Return when new face was merged
 				return;
 			}
 		}
 
-		chunkFaces->Push(newFace);
+		ChunkFaces->Push(NewFace);
 	}
 }
 
-bool URunDirectionalMesher::IsBorderVoxelVisible(const FVoxelIndexParams& faceData, const FChunkParams& chunkStruct)
+bool URunDirectionalMesher::IsBorderVoxelVisible(const FVoxelIndexParams& FaceData, const FChunkParams& ChunkStruct)
 {
-	if (faceData.IsBorder)
+	if (FaceData.IsBorder)
 	{
-		auto faceContainerIndex = static_cast<uint8>(faceData.FaceDirection);
-		auto sideChunk = chunkStruct.SideChunks[faceContainerIndex];
-		if (sideChunk != nullptr)
+		// Check voxel visibility in side chunk (crosschunk)
+		const auto FaceContainerIndex = static_cast<uint8>(FaceData.FaceDirection);
+		const auto SideChunk = ChunkStruct.SideChunks[FaceContainerIndex];
+		if (SideChunk != nullptr)
 		{
-			auto nextVoxel = sideChunk->VoxelGrid[faceData.CurrentVoxelIndex];
-			return nextVoxel.IsTransparent() && nextVoxel != faceData.currentVoxel;
+			const auto NextVoxel = SideChunk->VoxelGrid[FaceData.CurrentVoxelIndex];
+			return NextVoxel.IsTransparent() && NextVoxel != FaceData.CurrentVoxel;
 		}
 
-		return sideChunk == nullptr && chunkStruct.ShowBorders;
+		return SideChunk == nullptr && ChunkStruct.ShowBorders;
 	}
 	return false;
 }
 
-bool URunDirectionalMesher::IsVoxelVisible(const FVoxelIndexParams& faceData, const FChunkParams& chunkStruct)
+bool URunDirectionalMesher::IsVoxelVisible(const FVoxelIndexParams& FaceData, const FChunkParams& ChunkStruct)
 {
-	if (!faceData.IsBorder && chunkStruct.OriginalChunk->VoxelGrid.IsValidIndex(faceData.ForwardVoxelIndex))
+	if (!FaceData.IsBorder && ChunkStruct.OriginalChunk->VoxelGrid.IsValidIndex(FaceData.ForwardVoxelIndex))
 	{
-		auto nextVoxel = chunkStruct.OriginalChunk->VoxelGrid[faceData.ForwardVoxelIndex];
-		return nextVoxel.IsTransparent() && nextVoxel != faceData.currentVoxel;
+		// Check if next voxel is visible based on calculated index
+		const auto NextVoxel = ChunkStruct.OriginalChunk->VoxelGrid[FaceData.ForwardVoxelIndex];
+		return NextVoxel.IsTransparent() && NextVoxel != FaceData.CurrentVoxel;
 	}
 	return false;
 }
 
-void URunDirectionalMesher::DirectionalGreedyMeshing(const FMesherVariables& faceParams)
+void URunDirectionalMesher::DirectionalGreedyMeshing(const FMesherVariables& MesherVariables)
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Run directional greedy mesh generation")
 #endif
 
-	for (int8 f = 0; f < FACE_SIDE_COUNT; f++)
+	// Merge faces in sorted arrays
+	for (uint8 f = 0; f < CHUNK_FACE_COUNT; f++)
 	{
-		for (auto voxelId : faceParams.VoxelIdToLocalVoxelMap)
+		for (const auto VoxelId : MesherVariables.VoxelIdToLocalVoxelMap)
 		{
-			auto faceContainer = faceParams.Faces[f][voxelId.Value];
-			auto lastElementIndex = faceContainer->Num() - 1;
+			auto FaceContainer = MesherVariables.Faces[f][VoxelId.Value];
+			const int LastElementIndex = FaceContainer->Num() - 1;
 
-			for (int32 i = lastElementIndex - 1; i >= 0; i--)
+			// Iterate from last face
+			for (int32 i = LastElementIndex - 1; i >= 0; i--)
 			{
-				FChunkFace& nextFace = (*faceContainer)[i + 1];
+				FChunkFace& NextFace = (*FaceContainer)[i + 1];
 
-				int backTrackIndex = i;
-				while (faceContainer->IsValidIndex(backTrackIndex))
+				int BackTrackIndex = i;
+
+				/*
+				 * Face may be last in the coordinate row.
+				 * It is necessary to iterate through the current coordinate row to reach previous coordinate row.
+				 * It is necessary to go only -1 coordinate because if there is a merge, it will accumulate.
+				 */
+				while (FaceContainer->IsValidIndex(BackTrackIndex))
 				{
-					FChunkFace& face = (*faceContainer)[backTrackIndex];
+					FChunkFace& Face = (*FaceContainer)[BackTrackIndex];
 
-					if (face.StartVertexUp.Z < nextFace.StartVertexDown.Z)
+					if (Face.StartVertexUp.Z < NextFace.StartVertexDown.Z)
 					{
+						// Break the iteration if coordinate row is too far.
 						break;
 					}
 
-					if (FChunkFace::MergeFaceUp(face, nextFace))
+					if (FChunkFace::MergeFaceUp(Face, NextFace))
 					{
-						faceContainer->RemoveAt(i + 1, EAllowShrinking::No);
+						// Break the iteration if merge was found
+						FaceContainer->RemoveAt(i + 1, EAllowShrinking::No);
 						break;
 					}
 
-					backTrackIndex--;
+					BackTrackIndex--;
 				}
 			}
 		}
 	}
 }
 
-void URunDirectionalMesher::GenerateMeshFromFaces(const FMesherVariables& faceParams) const
+void URunDirectionalMesher::GenerateMeshFromFaces(const FMesherVariables& MesherVariables) const
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh stream generation")
@@ -301,7 +281,6 @@ void URunDirectionalMesher::GenerateMeshFromFaces(const FMesherVariables& facePa
 	Builder.EnableTexCoords();
 	Builder.EnableColors();
 	Builder.EnableTangents();
-
 	Builder.EnablePolyGroups();
 
 	if (!IsValid(VoxelGenerator))
@@ -309,115 +288,109 @@ void URunDirectionalMesher::GenerateMeshFromFaces(const FMesherVariables& facePa
 		return;
 	}
 
-	auto voxelSize = VoxelGenerator->GetVoxelSize();
+	auto VoxelSize = VoxelGenerator->GetVoxelSize();
 
-	TMap<uint32, uint16> voxelIdsInMesh;
+	// Local voxel table 
+	TMap<uint32, uint16> LocalVoxelTable;
 
-	// Because of RealTimeMesh component voxelId needs to be first
-	for (auto voxelId : faceParams.VoxelIdToLocalVoxelMap)
+	// Iterate through merged faces
+	for (auto VoxelId : MesherVariables.VoxelIdToLocalVoxelMap)
 	{
-		for (int faceIndex = 0; faceIndex < FACE_SIDE_COUNT; faceIndex++)
+		for (uint8 FaceIndex = 0; FaceIndex < CHUNK_FACE_COUNT; FaceIndex++)
 		{
-			auto faceContainer = faceParams.Faces[faceIndex];
+			auto FaceContainer = MesherVariables.Faces[FaceIndex];
 
-			auto sideFaces = faceContainer[voxelId.Value];
+			auto SideFaces = FaceContainer[VoxelId.Value];
 
-			auto faceNormalAndTangent = FaceNormalsAndTangents[faceIndex];
-			for (auto Face : *sideFaces)
+			auto [Normal, Tangent] = FaceNormalsAndTangents[FaceIndex];
+
+			// Create quad foreach face
+			for (auto Face : *SideFaces)
 			{
-				// Add our first vertex
-				int32 V0 = Builder.AddVertex(Face.GetFinalStartVertexDown(voxelSize))
+				int32 V0 = Builder.AddVertex(Face.GetFinalStartVertexDown(VoxelSize))
 				                  .SetColor(FColor::White)
 				                  .SetTexCoord(FVector2f(0, 0))
-				                  .SetNormalAndTangent(faceNormalAndTangent.Normal, faceNormalAndTangent.Tangent);
-
-				// Add our second vertex
-				int32 V1 = Builder.AddVertex(Face.GetFinalEndVertexDown(voxelSize))
+				                  .SetNormalAndTangent(Normal, Tangent);
+				
+				int32 V1 = Builder.AddVertex(Face.GetFinalEndVertexDown(VoxelSize))
 				                  .SetColor(FColor::White)
 				                  .SetTexCoord(FVector2f(1, 0))
-				                  .SetNormalAndTangent(faceNormalAndTangent.Normal, faceNormalAndTangent.Tangent);
+				                  .SetNormalAndTangent(Normal, Tangent);
 
-				// Add our third vertex
-				int32 V2 = Builder.AddVertex(Face.GetFinalEndVertexUp(voxelSize))
+
+				int32 V2 = Builder.AddVertex(Face.GetFinalEndVertexUp(VoxelSize))
 				                  .SetColor(FColor::White)
 				                  .SetTexCoord(FVector2f(1, 1))
-				                  .SetNormalAndTangent(faceNormalAndTangent.Normal, faceNormalAndTangent.Tangent);
+				                  .SetNormalAndTangent(Normal, Tangent);
 
-				int32 V3 = Builder.AddVertex(Face.GetFinalStartVertexUp(voxelSize))
+				int32 V3 = Builder.AddVertex(Face.GetFinalStartVertexUp(VoxelSize))
 				                  .SetColor(FColor::White)
 				                  .SetTexCoord(FVector2f(0, 1))
-				                  .SetNormalAndTangent(faceNormalAndTangent.Normal, faceNormalAndTangent.Tangent);
+				                  .SetNormalAndTangent(Normal, Tangent);
 
-				if (!voxelIdsInMesh.Contains(voxelId.Key))
+				if (!LocalVoxelTable.Contains(VoxelId.Key))
 				{
-					voxelIdsInMesh.Add(voxelId.Key, voxelIdsInMesh.Num());
+					// Keep track of how many voxel quads are actually displayed
+					LocalVoxelTable.Add(VoxelId.Key, LocalVoxelTable.Num());
 				}
 
-				Builder.AddTriangle(V0, V1, V2, voxelIdsInMesh[voxelId.Key]);
-				Builder.AddTriangle(V2, V3, V0, voxelIdsInMesh[voxelId.Key]);
+				// Create quad from 2 triangles
+				Builder.AddTriangle(V0, V1, V2, LocalVoxelTable[VoxelId.Key]);
+				Builder.AddTriangle(V2, V3, V0, LocalVoxelTable[VoxelId.Key]);
 			}
 		}
 	}
 
-	if (!faceParams.ChunkParams.OriginalChunk.IsValid() || voxelIdsInMesh.IsEmpty())
+	if (!MesherVariables.ChunkParams.OriginalChunk.IsValid() || LocalVoxelTable.IsEmpty())
 	{
 		return;
 	}
 
-	auto spawner = MakeShared<FChunkParams>(faceParams.ChunkParams);
-	if (!faceParams.ChunkParams.ExecutedOnMainThread)
+	auto Spawner = MakeShared<FChunkParams>(MesherVariables.ChunkParams);
+
+	if (!MesherVariables.ChunkParams.ExecutedOnMainThread)
 	{
-		AsyncTask(ENamedThreads::GameThread, [this, voxelIdsInMesh, StreamSet, spawner]()
+		// Synchronize Mesh generation with game thread.
+		AsyncTask(ENamedThreads::GameThread, [this, LocalVoxelTable, StreamSet, Spawner]()
 		{
-			GenerateActorMesh(voxelIdsInMesh, *StreamSet, spawner);
+			GenerateActorMesh(LocalVoxelTable, *StreamSet, Spawner);
 		});
 	}
 	else
 	{
-		GenerateActorMesh(voxelIdsInMesh, *StreamSet, spawner);
+		//Creating AsyncTask from main thread will cause deadlock
+		GenerateActorMesh(LocalVoxelTable, *StreamSet, Spawner);
 	}
 
-	faceParams.ChunkParams.OriginalChunk->bHasMesh = true;
+	MesherVariables.ChunkParams.OriginalChunk->bHasMesh = true;
 }
 
-bool URunDirectionalMesher::IsMinBorder(const int x)
-{
-	return x == 0;
-}
-
-bool URunDirectionalMesher::IsMaxBorder(const int x) const
-{
-	return x == VoxelGenerator->GetVoxelCountPerChunkDimension() - 1;
-}
-
-void URunDirectionalMesher::GenerateActorMesh(const TMap<uint32, uint16>& voxelIdsInMesh,
+void URunDirectionalMesher::GenerateActorMesh(const TMap<uint32, uint16>& LocalVoxelTable,
                                          const FRealtimeMeshStreamSet& StreamSet,
                                          const TSharedPtr<FChunkParams>& ChunkParams) const
 {
-	auto world = GetWorld();
-	if (!IsValid(world))
+	const auto World = GetWorld();
+	if (!IsValid(World))
 	{
 		return;
 	}
 
 	//Spawn actor
-	auto chunk = ChunkParams->OriginalChunk;
-	TWeakObjectPtr<AChunkRmcActor> ActorPtr = chunk->ChunkMeshActor;
-	auto spawnLocation = FVector(chunk->GridPosition) * VoxelGenerator->GetChunkAxisSize();
+	const auto Chunk = ChunkParams->OriginalChunk;
+	TWeakObjectPtr<AChunkRMCActor> ActorPtr = Chunk->ChunkMeshActor;
+	const auto SpawnLocation = FVector(Chunk->GridPosition) * VoxelGenerator->GetChunkAxisSize();
 
 	FAttachmentTransformRules ActorAttachmentRules = FAttachmentTransformRules::KeepWorldTransform;
-	if (!ChunkParams->WorldTransform)
+	if (!ChunkParams->LocalTransform)
 	{
 		ActorAttachmentRules = FAttachmentTransformRules::KeepRelativeTransform;
 	}
 
 	if (ActorPtr == nullptr)
 	{
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding;
-
-		ActorPtr = world->SpawnActor<AChunkRmcActor>(AChunkRmcActor::StaticClass(), spawnLocation,
-		                                             FRotator::ZeroRotator, SpawnParams);
+		// If there is no actor spawn new one.
+		ActorPtr = World->SpawnActor<AChunkRMCActor>(AChunkRMCActor::StaticClass(), SpawnLocation,
+		                                             FRotator::ZeroRotator);
 
 		if (!ActorPtr.IsValid() || !ChunkParams->SpawnerPtr.IsValid())
 		{
@@ -432,34 +405,49 @@ void URunDirectionalMesher::GenerateActorMesh(const TMap<uint32, uint16>& voxelI
 		{
 			return;
 		}
-		if (!ChunkParams->WorldTransform)
+		
+		// If actor exists, ensure correct location
+		if (ChunkParams->LocalTransform)
 		{
-			ActorPtr->SetActorRelativeLocation(spawnLocation);
+			ActorPtr->SetActorRelativeLocation(SpawnLocation);
 		}
 		else
 		{
-			ActorPtr->SetActorLocation(spawnLocation);
+			ActorPtr->SetActorLocation(SpawnLocation);
 		}
 	}
-	chunk->ChunkMeshActor = ActorPtr;
+	
+	Chunk->ChunkMeshActor = ActorPtr;
 
-	//Fill actor
+
 	ActorPtr->PrepareMesh();
-	auto RealtimeMesh = ActorPtr->RealtimeMeshComponent->GetRealtimeMeshAs<
+	const auto RealtimeMesh = ActorPtr->RealtimeMeshComponent->GetRealtimeMeshAs<
 		URealtimeMeshSimple>();
 
+	// Fill actor with mesh
 	// Now we create the section group, since the stream set has polygroups, this will create the sections as well
 	RealtimeMesh->CreateSectionGroup(ActorPtr->GroupKey, StreamSet);
 
-	for (auto voxelId : voxelIdsInMesh)
+	for (const auto VoxelId : LocalVoxelTable)
 	{
-		auto materialId = voxelId.Value;
-		auto voxelType = VoxelGenerator->GetVoxelTypeById(voxelId.Key);
-		RealtimeMesh->SetupMaterialSlot(materialId, voxelType.Key, voxelType.Value.Material);
+		// Add voxel materials to mesh
+		const auto MaterialId = VoxelId.Value;
+		const auto VoxelType = VoxelGenerator->GetVoxelTypeById(VoxelId.Key);
+		RealtimeMesh->SetupMaterialSlot(MaterialId, VoxelType.Key, VoxelType.Value.Material);
 
-		auto key = FRealtimeMeshSectionKey::CreateForPolyGroup(ActorPtr->GroupKey, materialId);
-		RealtimeMesh->UpdateSectionConfig(key, FRealtimeMeshSectionConfig(
-			                                  ERealtimeMeshSectionDrawType::Static, materialId),
+		const auto Key = FRealtimeMeshSectionKey::CreateForPolyGroup(ActorPtr->GroupKey, MaterialId);
+
+		/**
+		* This code may cause debugger trigger when closing editor while collision is still generating.
+		* It seems that collider is created on async thread, but currently there is no way to wait for its creation or kill it.
+		* Async thread becomes invalid and wrong memory is access which causes the trigger.
+		* It does not break the execution, you can continue after breakpoint trigger, it will only log to console.
+		* For futher details you may join discord channel: https://discord.gg/KGvBBTv 
+		*/
+
+		// Generate collider
+		RealtimeMesh->UpdateSectionConfig(Key, FRealtimeMeshSectionConfig(
+			                                  ERealtimeMeshSectionDrawType::Static, MaterialId),
 		                                  true);
 	}
 }
