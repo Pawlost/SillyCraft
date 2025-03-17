@@ -1,16 +1,11 @@
 ﻿#include "Voxel/Generators/Single/SingleVoxelGenerator.h"
 
-void USingleVoxelGenerator::GenerateVoxels(FChunk& chunk)
-{
-#if CPUPROFILERTRACE_ENABLED
-	TRACE_CPUPROFILER_EVENT_SCOPE("Voxel generation")
-#endif
+#include "Chunk/Chunk.h"
 
-	auto voxelFillIndex = GetSingleVoxel();
-	auto voxelGridDensity = GetVoxelCountPerChunk();
-	
-	for (int i = 0; i < voxelGridDensity; i++)
-	{
-		ChangeKnownVoxelAtIndex(chunk, i, voxelFillIndex);
-	}
+void USingleVoxelGenerator::GenerateVoxels(FChunk& Chunk)
+{
+	const auto VoxelFillIndex = GetSingleVoxel();
+	const auto VoxelGridDensity = GetVoxelCountPerChunk();
+
+	Chunk.Voxels.Init(VoxelFillIndex, VoxelGridDensity);
 }

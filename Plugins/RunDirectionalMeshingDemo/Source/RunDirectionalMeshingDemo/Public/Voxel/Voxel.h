@@ -13,8 +13,7 @@ struct RUNDIRECTIONALMESHINGDEMO_API FVoxel
 	GENERATED_BODY()
 
 	// Tied to FVoxel namespace
-	// TODO: constexpr
-	static const int32 EMPTY_VOXEL = -1; 
+	static constexpr int32 EMPTY_VOXEL = -1; 
 
 	// Saving voxel grids is not implemented in this demo, but a property specifier for saving has been added.
 	UPROPERTY(SaveGame)

@@ -35,8 +35,7 @@ public:
 	 */
 	bool ChangeUnknownVoxelIdInChunk(const TSharedPtr<FChunk>& Chunk, const FIntVector& VoxelPosition,
 	                                 const FName& VoxelName);
-
-	UFUNCTION(BlueprintCallable)
+	
 	/**
 	 * Calculate voxel index in chunk grid from grid coordinates.
 	 */

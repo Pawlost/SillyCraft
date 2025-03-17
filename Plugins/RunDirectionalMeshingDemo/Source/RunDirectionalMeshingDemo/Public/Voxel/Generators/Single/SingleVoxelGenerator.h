@@ -2,14 +2,13 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "SingleVoxelGeneratorBase.h"
-#include "Components/ActorComponent.h"
 #include "SingleVoxelGenerator.generated.h"
 
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable)
+UCLASS(ClassGroup=(VoxelGeneration), Blueprintable)
 class RUNDIRECTIONALMESHINGDEMO_API USingleVoxelGenerator : public USingleVoxelGeneratorBase
 {
 	GENERATED_BODY()
 
 public:
-	virtual void GenerateVoxels(FChunk& chunk) override;
+	virtual void GenerateVoxels(FChunk& Chunk) override;
 };

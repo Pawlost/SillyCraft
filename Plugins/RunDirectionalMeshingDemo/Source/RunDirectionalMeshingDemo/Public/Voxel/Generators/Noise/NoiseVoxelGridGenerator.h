@@ -1,33 +1,33 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-#pragma once
+﻿#pragma once
 #include "CoreMinimal.h"
-#include "NoiseSurfaceGenerator.h"
-#include "Components/ActorComponent.h"
 #include "Voxel/Generators/VoxelGeneratorBase.h"
 #include "NoiseVoxelGridGenerator.generated.h"
 
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable)
+struct FNoiseSurfaceGenerator;
+
+UCLASS(ClassGroup=(VoxelGeneration), Blueprintable)
 class RUNDIRECTIONALMESHINGDEMO_API UNoiseVoxelGridGenerator : public UVoxelGeneratorBase
 {
 	GENERATED_BODY()
 
 public:
-	int32 GetVoxelTypeCount() const;
-	virtual void GenerateVoxels(FChunk& chunk) override;
-	virtual double GetHighestElevationAtLocation(const FVector& location) override;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Voxels")
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Voxels")
 	TObjectPtr<UDataTable> VoxelTypeTable;
-	virtual TTuple<FName, FVoxelType> GetVoxelTypeById(const int32& voxelTypeIndex) const override;
-	
+
+	virtual void GenerateVoxels(FChunk& Chunk) override;
+
+	virtual double GetHighestElevationAtLocation(const FVector& Location) override;
+	virtual TTuple<FName, FVoxelType> GetVoxelType(const FVoxel& Voxel) const override;
+	virtual FVoxel GetVoxelByName(const FName& VoxelName) const override;
+
 protected:
 	virtual void BeginPlay() override;
-	
-	UPROPERTY()
+
+	UPROPERTY(VisibleAnywhere, Category = "Voxels")
 	TArray<FNoiseSurfaceGenerator> SurfaceGenerators;
-	virtual FVoxel GetVoxelByName(const FName& voxelName) const override;
 
 private:
-	static double GetSurfaceGradient(float posX, float posY, const TObjectPtr<UFastNoiseWrapper>& generator, double elevation, double distanceFromSurfaceLevel);
-	bool IsChunkPositionOutOfBounds(double minZPosition, double maxZPosition);
+	static double ComputeSurfaceGradient(float PosX, float PosY, const TObjectPtr<UFastNoiseWrapper>& Generator,
+	                                     double Elevation, double DistanceFromSurfaceLevel);
+	bool IsChunkPositionOutOfBounds(double MinZPosition, double MaxZPosition) const;
 };

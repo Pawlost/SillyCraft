@@ -1,9 +1,7 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿#include "Voxel/Generators/Noise/NoiseVoxelGridGenerator.h"
 
-#include "Voxel/Generators/Noise/NoiseVoxelGridGenerator.h"
-
-#include "FastNoiseWrapper.h"
-#include "RunDirectionalMeshingDemo/Public/Voxel/Voxel.h"
+#include "Chunk/Chunk.h"
+#include "Voxel/Generators/Noise/NoiseSurfaceGenerator.h"
 
 void UNoiseVoxelGridGenerator::BeginPlay()
 {
@@ -11,143 +9,117 @@ void UNoiseVoxelGridGenerator::BeginPlay()
 
 	checkf(VoxelTypeTable, TEXT("Voxel table must be set"));
 
-	for (auto voxelName : VoxelTypeTable->GetRowNames())
+	for (const FName VoxelName : VoxelTypeTable->GetRowNames())
 	{
-		auto voxelType = *VoxelTypeTable->FindRow<FVoxelType>(voxelName, "");
+		// Voxel type is copied from table for consistency
+		const auto VoxelType = *VoxelTypeTable->FindRow<FVoxelType>(VoxelName, "");
+
+		// Initialize all values for surface noise
+		auto SurfaceNoise = NewObject<UFastNoiseWrapper>(this);
+		auto ReversedSurfaceNoise = NewObject<UFastNoiseWrapper>(this);
+
+		SurfaceNoise->SetupFastNoise(VoxelType.SurfaceNoise_Type, VoxelType.SurfaceNoise_Seed,
+		                             VoxelType.SurfaceNoise_Frequency);
+
+		ReversedSurfaceNoise->SetupFastNoise(VoxelType.ReversedSurfaceNoise_Type,
+		                                     VoxelType.ReversedSurfaceNoise_Seed,
+		                                     VoxelType.ReversedSurfaceNoise_Frequency);
 		
-		// Create the component dynamically
-		TObjectPtr<UFastNoiseWrapper> surfaceNoise = NewObject<UFastNoiseWrapper>(this);
-		TObjectPtr<UFastNoiseWrapper> reversedSurfaceNoise = NewObject<UFastNoiseWrapper>(this);
-		
-		surfaceNoise->SetupFastNoise(voxelType.SurfaceNoise_Type, voxelType.SurfaceNoise_Seed,
-									 voxelType.SurfaceNoise_Frequency);
-			
-		reversedSurfaceNoise->SetupFastNoise(voxelType.ReversedSurfaceNoise_Type,
-											 voxelType.ReversedSurfaceNoise_Seed,
-											 voxelType.ReversedSurfaceNoise_Frequency);
+		auto SurfaceGenerator = FNoiseSurfaceGenerator(SurfaceNoise,
+		                                               ReversedSurfaceNoise, VoxelName, VoxelType);
 
-		auto surfaceGenerator = FNoiseSurfaceGenerator();
-		surfaceGenerator.VoxelName = voxelName;
-		surfaceGenerator.VoxelType = voxelType;
-
-		surfaceGenerator.SurfaceGenerator = surfaceNoise;
-		surfaceGenerator.ReverseSurfaceGenerator = reversedSurfaceNoise;
-		SurfaceGenerators.Add(surfaceGenerator);
+		SurfaceGenerators.Add(SurfaceGenerator);
 	}
 }
 
-FVoxel UNoiseVoxelGridGenerator::GetVoxelByName(const FName& voxelName) const
-{
-	for (int32 Index = 0; Index < SurfaceGenerators.Num(); Index++)
-	{
-		auto surfaceGenerator = SurfaceGenerators[Index];
-		if (surfaceGenerator.VoxelName == voxelName)
-		{
-			return FVoxel(Index, surfaceGenerator.VoxelType.bIsTransparent);
-		}
-	}
-	return FVoxel();
-}
-
-double UNoiseVoxelGridGenerator::GetSurfaceGradient(float posX, float posY, const TObjectPtr<UFastNoiseWrapper>& generator, double elevation, double distanceFromSurfaceLevel)
-{
-	return generator->GetNoise2D(posX, posY) * elevation + distanceFromSurfaceLevel;
-}
-
-bool UNoiseVoxelGridGenerator::IsChunkPositionOutOfBounds(double minZPosition, double maxZPosition)
-{
-	for (auto generator : SurfaceGenerators)
-	{
-		if (minZPosition < generator.VoxelType.Surface_Elevation + generator.VoxelType.Surface_DistanceFromSeaLevel
-			|| generator.VoxelType.bGenerateReversedSurface &&
-			maxZPosition > -generator.VoxelType.Surface_DistanceFromSeaLevel + generator.VoxelType.ReversedSurface_DistanceFromSeaLevel)
-		{
-			return false;
-		}
-	}
-
-	return true;
-}
-
-int32 UNoiseVoxelGridGenerator::GetVoxelTypeCount() const
-{
-	return SurfaceGenerators.Num();
-}
-
-TTuple<FName, FVoxelType> UNoiseVoxelGridGenerator::GetVoxelTypeById(const int32& voxelTypeIndex) const
-{
-	auto surfaceGenerator = SurfaceGenerators[voxelTypeIndex];
-
-	return TTuple<FName, FVoxelType>(surfaceGenerator.VoxelName, surfaceGenerator.VoxelType);
-}
-
-void UNoiseVoxelGridGenerator::GenerateVoxels(FChunk& chunk)
+void UNoiseVoxelGridGenerator::GenerateVoxels(FChunk& Chunk)
 {
 #if CPUPROFILERTRACE_ENABLED
-	TRACE_CPUPROFILER_EVENT_SCOPE("Voxel generation")
+	TRACE_CPUPROFILER_EVENT_SCOPE("Noise Voxel generation");
 #endif
 
-	//This generation is very unoptimized because it is not part of bachelor thesis
+	//NOTICE: This generation is unoptimized because it is not major part of my bachelor's thesis
+	const auto ChunkDimension = GetVoxelCountPerChunkDimension();
+	const auto VoxelTypeCount = SurfaceGenerators.Num();
 
-	const auto chunkLenght = GetVoxelCountPerChunkDimension();
-	const int voxelTypeCount = GetVoxelTypeCount();
+	const auto GridPos = Chunk.GridPosition * ChunkDimension;
 
-	const auto gridPos = chunk.GridPosition * chunkLenght;
-
-	// Skip all chunks that dont need to be processed because it is guaranteed they are empty
-	if (IsChunkPositionOutOfBounds(gridPos.Z, gridPos.Z + chunkLenght - 1))
+	if (IsChunkPositionOutOfBounds(GridPos.Z, GridPos.Z + ChunkDimension - 1))
 	{
+		// Skip all chunks outside possible noise fill
 		return;
 	}
 
-	for (int x = 0; x < chunkLenght; x++)
+	// Iteration through voxel grid (voxel model)
+	for (uint16 x = 0; x < ChunkDimension; x++)
 	{
-		for (int y = 0; y < chunkLenght; y++)
+		for (uint16 y = 0; y < ChunkDimension; y++)
 		{
-			for (int z = 0; z < chunkLenght; z++)
+			for (uint16 z = 0; z < ChunkDimension; z++)
 			{
-				const auto index = CalculateVoxelIndex(x, y, z);
-				chunk.Voxels[index] = FVoxel();
-				for (int voxelId = 0; voxelId < voxelTypeCount; voxelId++)
+				const auto Index = CalculateVoxelIndex(x, y, z);
+				// In case no voxel is added make it empty
+				// This is important in case of reusing chunks
+				Chunk.Voxels[Index] = FVoxel();
+
+				// VoxelId is given by position of surface generator in array.
+				// Generators keep rewriting position and last Voxel will rewrite the rest
+				for (int32 VoxelId = 0; VoxelId < VoxelTypeCount; VoxelId++)
 				{
-					auto surfaceGenerator = SurfaceGenerators[voxelId];
+					auto SurfaceGenerator = SurfaceGenerators[VoxelId];
 
-					if (!surfaceGenerator.VoxelType.bGenerateNoise)
+					if (!IsValid(SurfaceGenerator.SurfaceGenerator))
 					{
-						continue;
-					}
-					
-					auto voxel = FVoxel(voxelId, surfaceGenerator.VoxelType.bIsTransparent);
-
-					float posX = x + gridPos.X;
-					float posY = y + gridPos.Y;
-					double currentElevation = gridPos.Z + z;
-
-					if (!IsValid(surfaceGenerator.SurfaceGenerator)){
 						return;
 					}
-					
-					const double elevation = GetSurfaceGradient(posX, posY, surfaceGenerator.SurfaceGenerator, surfaceGenerator.VoxelType.Surface_Elevation, surfaceGenerator.VoxelType.Surface_DistanceFromSeaLevel);
+
+					if (!SurfaceGenerator.VoxelType.bGenerateNoise)
+					{
+						// Skip all voxel types that should not be generated
+						continue;
+					}
+
+					// Initialize voxel with given id and set transparency
+					auto Voxel = FVoxel(VoxelId, SurfaceGenerator.VoxelType.bIsTransparent);
+
+					// Calculate scene position using chunk and voxel grid coordinates
+					const float PosX = x + GridPos.X;
+					const float PosY = y + GridPos.Y;
+					const double CurrentElevation = GridPos.Z + z;
+
+					// Always get surface elevation
+					const double Elevation = ComputeSurfaceGradient(PosX, PosY, SurfaceGenerator.SurfaceGenerator,
+					                                                SurfaceGenerator.VoxelType.Surface_Elevation,
+					                                                SurfaceGenerator.VoxelType.
+					                                                Surface_DistanceFromSeaLevel);
 
 					bool AddVoxel;
 
-					if (surfaceGenerator.VoxelType.bGenerateReversedSurface)
+					if (SurfaceGenerator.VoxelType.bGenerateReversedSurface)
 					{
-						if (!IsValid(surfaceGenerator.ReverseSurfaceGenerator)){
+						if (!IsValid(SurfaceGenerator.ReverseSurfaceGenerator))
+						{
 							return;
 						}
-						
-						const double depth = GetSurfaceGradient(posX, posY, surfaceGenerator.ReverseSurfaceGenerator, surfaceGenerator.VoxelType.ReversedSurface_Depth, surfaceGenerator.VoxelType.ReversedSurface_DistanceFromSeaLevel);
-						AddVoxel = currentElevation > -depth && currentElevation < elevation;
+
+						const double Depth = ComputeSurfaceGradient(
+							PosX, PosY, SurfaceGenerator.ReverseSurfaceGenerator,
+							SurfaceGenerator.VoxelType.ReversedSurface_Depth,
+							SurfaceGenerator.VoxelType.ReversedSurface_DistanceFromSeaLevel);
+
+						// Create a span between depth and elevation where voxel may be generated, used to create floating islands
+						AddVoxel = CurrentElevation > -Depth && CurrentElevation < Elevation;
 					}
 					else
 					{
-						AddVoxel = currentElevation < elevation;
+						// Depth may be infinite if the lowest point is not defined
+						AddVoxel = CurrentElevation < Elevation;
 					}
 
 					if (AddVoxel)
 					{
-						ChangeKnownVoxelAtIndex(chunk, index, voxel);
+						// Rewrite voxel at index from previous value
+						ChangeKnownVoxelAtIndex(Chunk, Index, Voxel);
 					}
 				}
 			}
@@ -155,20 +127,67 @@ void UNoiseVoxelGridGenerator::GenerateVoxels(FChunk& chunk)
 	}
 }
 
-double UNoiseVoxelGridGenerator::GetHighestElevationAtLocation(const FVector& location)
+double UNoiseVoxelGridGenerator::GetHighestElevationAtLocation(const FVector& Location)
 {
-	double maxElevation = 0.0;
+	double MaxElevation = 0.0;
 
-	for (int voxelId = 0; voxelId < GetVoxelTypeCount(); voxelId++)
+	for (int32 VoxelId = 0; VoxelId < SurfaceGenerators.Num(); VoxelId++)
 	{
-		auto surfaceGenerator = SurfaceGenerators[voxelId];
-		const auto elevation = GetSurfaceGradient(location.X, location.Y, surfaceGenerator.SurfaceGenerator, surfaceGenerator.VoxelType.Surface_Elevation, surfaceGenerator.VoxelType.Surface_DistanceFromSeaLevel);
+		auto SurfaceGenerator = SurfaceGenerators[VoxelId];
+		const auto Elevation = ComputeSurfaceGradient(Location.X, Location.Y, SurfaceGenerator.SurfaceGenerator,
+		                                              SurfaceGenerator.VoxelType.Surface_Elevation,
+		                                              SurfaceGenerator.VoxelType.Surface_DistanceFromSeaLevel);
 
-		if (elevation > maxElevation)
+		// Generate gradients at position, since noise is pseudorandom number generator using seed the values will be the same
+		if (Elevation > MaxElevation)
 		{
-			maxElevation = elevation;
+			MaxElevation = Elevation;
 		}
 	}
 
-	return maxElevation * VoxelSize;
+	return MaxElevation * VoxelSize;
+}
+
+TTuple<FName, FVoxelType> UNoiseVoxelGridGenerator::GetVoxelType(const FVoxel& Voxel) const
+{
+	auto SurfaceGenerator = SurfaceGenerators[Voxel.VoxelId];
+	return TTuple<FName, FVoxelType>(SurfaceGenerator.VoxelName, SurfaceGenerator.VoxelType);
+}
+
+FVoxel UNoiseVoxelGridGenerator::GetVoxelByName(const FName& VoxelName) const
+{
+	for (int32 Index = 0; Index < SurfaceGenerators.Num(); Index++)
+	{
+		auto SurfaceGenerator = SurfaceGenerators[Index];
+		if (SurfaceGenerator.VoxelName == VoxelName)
+		{
+			return FVoxel(Index, SurfaceGenerator.VoxelType.bIsTransparent);
+		}
+	}
+	return FVoxel();
+}
+
+double UNoiseVoxelGridGenerator::ComputeSurfaceGradient(const float PosX, const float PosY,
+                                                        const TObjectPtr<UFastNoiseWrapper>& Generator,
+                                                        const double Elevation, const double DistanceFromSurfaceLevel)
+{
+	return Generator->GetNoise2D(PosX, PosY) * Elevation + DistanceFromSurfaceLevel;
+}
+
+bool UNoiseVoxelGridGenerator::IsChunkPositionOutOfBounds(const double MinZPosition, const double MaxZPosition) const
+{
+	for (const auto Generator : SurfaceGenerators)
+	{
+		if (MinZPosition < Generator.VoxelType.Surface_Elevation + Generator.VoxelType.Surface_DistanceFromSeaLevel
+			|| Generator.VoxelType.bGenerateReversedSurface &&
+			MaxZPosition > -Generator.VoxelType.Surface_DistanceFromSeaLevel + Generator.VoxelType.
+			ReversedSurface_DistanceFromSeaLevel)
+		{
+			// If there is a possibility to generate noise gradient in chunk, return false
+			return false;
+		}
+	}
+
+	// Max possible position is out of bounds for all generators
+	return true;
 }
