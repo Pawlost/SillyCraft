@@ -2,33 +2,39 @@
 
 void USingleVoxelGeneratorBase::BeginPlay()
 {
-	checkf(!VoxelType.IsNull(), TEXT("Voxel Type must by set"))
+	checkf(!VoxelTypeHandle.IsNull(), TEXT("Table row with voxel type must by set"))
 	Super::BeginPlay();
 }
 
 FVoxel USingleVoxelGeneratorBase::GetSingleVoxel() const
 {
-	return GetVoxelByName(VoxelType.RowName);
+	return GetVoxelByName(VoxelTypeHandle.RowName);
 }
 
-TTuple<FName, FVoxelType> USingleVoxelGeneratorBase::GetVoxelTypeById(const int32& voxelTypeIndex) const
+TTuple<FName, FVoxelType> USingleVoxelGeneratorBase::GetVoxelType(const FVoxel& Voxel) const
 {
-
-	auto voxelTable = VoxelType.DataTable;
-	auto rowName = voxelTable->GetRowNames()[voxelTypeIndex];
-
-	return TTuple<FName, FVoxelType>(rowName, *voxelTable->FindRow<FVoxelType>(rowName, ""));
+	// Explore voxel table attached to row handle
+	const auto VoxelTable = VoxelTypeHandle.DataTable;
+	auto RowNames = VoxelTable->GetRowNames();
+	checkf(!RowNames.IsValidIndex(Voxel.VoxelId), TEXT("Voxel Id out of bounds"));
+	// Voxel index should be created from the same table
+	auto RowName = RowNames[Voxel.VoxelId];
+	return TTuple<FName, FVoxelType>(
+		RowName, *VoxelTable->FindRow<FVoxelType>(RowName, "Could not find voxel id in row handle"));
 }
 
-FVoxel USingleVoxelGeneratorBase::GetVoxelByName(const FName& voxelName) const
+FVoxel USingleVoxelGeneratorBase::GetVoxelByName(const FName& VoxelName) const
 {
-	TArray<FName> RowNames = VoxelType.DataTable->GetRowNames();
+	// Explore voxel table attached to row handle
+	TArray<FName> RowNames = VoxelTypeHandle.DataTable->GetRowNames();
 	for (int32 Index = 0; Index < RowNames.Num(); Index++)
 	{
-		if (RowNames[Index] == voxelName)
+		// Search row name
+		if (RowNames[Index] == VoxelName)
 		{
-			auto voxelType = VoxelType.DataTable->FindRow<FVoxelType>(VoxelType.RowName, "");
-			return FVoxel(Index, voxelType->bIsTransparent);
+			const auto VoxelType = VoxelTypeHandle.DataTable->FindRow<FVoxelType>(
+				VoxelTypeHandle.RowName, "Could not find voxel name in row handle");
+			return FVoxel(Index, VoxelType->bIsTransparent);
 		}
 	}
 	return FVoxel();

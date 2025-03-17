@@ -35,7 +35,7 @@ void UVoxelGeneratorBase::ChangeKnownVoxelAtIndex(FChunk& Chunk, const uint32& I
 	FScopeLock Lock(&Mutex);
 	const auto PrevVoxel = Chunk.Voxels[Index];
 	RemoveVoxelFromChunkTable(Chunk, PrevVoxel);
-	
+
 	// Replace the voxel
 	Chunk.Voxels[Index] = Voxel;
 
@@ -53,7 +53,7 @@ void UVoxelGeneratorBase::ChangeKnownVoxelAtIndex(FChunk& Chunk, const uint32& I
 }
 
 bool UVoxelGeneratorBase::ChangeUnknownVoxelIdInChunk(const TSharedPtr<FChunk>& Chunk, const FIntVector& VoxelPosition,
-                                               const FName& VoxelName)
+                                                      const FName& VoxelName)
 {
 	const auto Index = CalculateVoxelIndex(VoxelPosition);
 	const auto VoxelId = GetVoxelByName(VoxelName);

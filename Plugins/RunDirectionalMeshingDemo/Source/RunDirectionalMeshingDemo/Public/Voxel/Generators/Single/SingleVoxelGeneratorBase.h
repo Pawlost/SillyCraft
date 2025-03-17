@@ -1,22 +1,21 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "Voxel/Generators/VoxelGeneratorBase.h"
 #include "SingleVoxelGeneratorBase.generated.h"
 
-UCLASS(Abstract)
+UCLASS(ClassGroup=(VoxelGeneration), Abstract, Blueprintable)
 class RUNDIRECTIONALMESHINGDEMO_API USingleVoxelGeneratorBase : public UVoxelGeneratorBase
 {
 	GENERATED_BODY()
+
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Voxels")
-	FDataTableRowHandle VoxelType;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Voxels")
+	FDataTableRowHandle VoxelTypeHandle;
 
 protected:
 	virtual void BeginPlay() override;
 	FVoxel GetSingleVoxel() const;
-	virtual TTuple<FName, FVoxelType> GetVoxelTypeById(const int32& voxelTypeIndex) const override;
-	virtual FVoxel GetVoxelByName(const FName& voxelName) const override;
+	virtual TTuple<FName, FVoxelType> GetVoxelType(const FVoxel& Voxel) const override;
+	virtual FVoxel GetVoxelByName(const FName& VoxelName) const override;
 };

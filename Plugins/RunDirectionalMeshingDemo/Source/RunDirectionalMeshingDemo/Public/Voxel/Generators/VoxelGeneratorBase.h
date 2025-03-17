@@ -1,5 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-#pragma once
+﻿#pragma once
 #include "CoreMinimal.h"
 #include "Voxel/Voxel.h"
 #include "Voxel/VoxelType.h"
@@ -34,20 +33,21 @@ public:
 	/**
 	 * @return True if chunk position are valid and voxel was changed.
 	 */
-	bool ChangeUnknownVoxelIdInChunk(const TSharedPtr<FChunk>& Chunk, const FIntVector& VoxelPosition, const FName& VoxelName);
+	bool ChangeUnknownVoxelIdInChunk(const TSharedPtr<FChunk>& Chunk, const FIntVector& VoxelPosition,
+	                                 const FName& VoxelName);
 
 	UFUNCTION(BlueprintCallable)
 	/**
 	 * Calculate voxel index in chunk grid from grid coordinates.
 	 */
 	int32 CalculateVoxelIndex(const int32 X, const int32 Y, const int32 Z) const;
-	
+
 	UFUNCTION(BlueprintCallable)
 	/**
 	 * Calculate voxel index in chunk grid from vector grid coordinates.
 	 */
 	int32 CalculateVoxelIndex(const FIntVector& VoxelPosition) const;
-	
+
 	double GetChunkAxisSize() const;
 	double GetVoxelSize() const;
 	int32 GetVoxelCountPerChunkDimension() const;
@@ -74,7 +74,7 @@ protected:
 
 private:
 	static void RemoveVoxelFromChunkTable(FChunk& Chunk, const FVoxel& Voxel);
-	
+
 	double ChunkSize = 0.0, InternalVoxelSize = 0.0;
 	int32 VoxelCountY = 0, VoxelCountYZ = 0, VoxelCountXYZ = 0;
 	FCriticalSection Mutex;
