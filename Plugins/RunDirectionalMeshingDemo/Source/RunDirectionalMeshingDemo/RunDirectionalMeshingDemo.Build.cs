@@ -27,7 +27,7 @@ public class RunDirectionalMeshingDemo : ModuleRules
 			{
 				"Core",
 				"FastNoise",
-				"FastNoiseGenerator",
+				"FastNoiseGenerator", "RealtimeMeshComponent", "RealtimeMeshComponent",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

@@ -8,11 +8,6 @@
 			"Name": "SillyCraft",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
-		},
-		{
-			"Name": "PrimitiveVoxelGeneration",
-			"Type": "Runtime",
-			"LoadingPhase": "Default"
 		}
 	],
 	"Plugins": [
