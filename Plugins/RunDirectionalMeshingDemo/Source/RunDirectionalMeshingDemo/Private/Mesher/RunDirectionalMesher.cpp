@@ -5,7 +5,7 @@
 #include "RealtimeMeshComponent.h"
 #include "RealtimeMeshSimple.h"
 #include "Mesh/RealtimeMeshBuilder.h"
-#include "Mesher/ChunkSpawnerBase.h"
+#include "Spawner/ChunkSpawnerBase.h"
 
 const URunDirectionalMesher::FNormalsAndTangents URunDirectionalMesher::FaceNormalsAndTangents[] = {
 	{FVector3f(-1.0f, 0.0f, 0.0f), FVector3f(0.0, 1.0, 0.0)}, //Front
@@ -58,8 +58,8 @@ void URunDirectionalMesher::UpdateFaceParams(FNaiveMeshingData& face, FIntVector
 
 void URunDirectionalMesher::GenerateMesh(FMesherVariables& faceParams)
 {
-	faceParams.ChunkParams.OriginalChunk->HasMesh = false;
-	if (faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable.IsEmpty())
+	faceParams.ChunkParams.OriginalChunk->bHasMesh = false;
+	if (faceParams.ChunkParams.OriginalChunk->ChunkVoxelIdTable.IsEmpty())
 	{
 		if (faceParams.ChunkParams.OriginalChunk->ChunkMeshActor.IsValid())
 		{
@@ -92,10 +92,10 @@ void URunDirectionalMesher::InitFaceContainers(FMesherVariables& faceParams) con
 #endif
 
 	int32 chunkPlane = VoxelGenerator->GetVoxelCountPerChunk();
-	faceParams.VoxelIdToLocalVoxelMap.Reserve(faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable.Num());
+	faceParams.VoxelIdToLocalVoxelMap.Reserve(faceParams.ChunkParams.OriginalChunk->ChunkVoxelIdTable.Num());
 	faceParams.VoxelIdToLocalVoxelMap.Empty();
 
-	for (auto voxelId : faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable)
+	for (auto voxelId : faceParams.ChunkParams.OriginalChunk->ChunkVoxelIdTable)
 	{
 		auto localVoxelId = faceParams.VoxelIdToLocalVoxelMap.Num();
 		faceParams.VoxelIdToLocalVoxelMap.Add(voxelId.Key, localVoxelId);
@@ -106,7 +106,7 @@ void URunDirectionalMesher::InitFaceContainers(FMesherVariables& faceParams) con
 		//TODO: Use chunk voxel typ table for memory allocation.
 		for (auto voxel : faceParams.VoxelIdToLocalVoxelMap)
 		{
-			faceParams.Faces[f].SetNum(faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable.Num());
+			faceParams.Faces[f].SetNum(faceParams.ChunkParams.OriginalChunk->ChunkVoxelIdTable.Num());
 			auto faceArray = faceParams.Faces[f][voxel.Value];
 			if (faceArray == nullptr || !faceArray.IsValid())
 			{
@@ -161,7 +161,7 @@ void URunDirectionalMesher::IncrementRun(int x, int y, int z, int32 axisVoxelInd
                                     FMesherVariables& chunkParams) const
 {
 	auto index = VoxelGenerator->CalculateVoxelIndex(x, y, z);
-	auto voxel = chunkParams.ChunkParams.OriginalChunk->Voxels[index];
+	auto voxel = chunkParams.ChunkParams.OriginalChunk->VoxelGrid[index];
 
 	if (!voxel.IsEmptyVoxel())
 	{
@@ -229,7 +229,7 @@ bool URunDirectionalMesher::IsBorderVoxelVisible(const FVoxelIndexParams& faceDa
 		auto sideChunk = chunkStruct.SideChunks[faceContainerIndex];
 		if (sideChunk != nullptr)
 		{
-			auto nextVoxel = sideChunk->Voxels[faceData.CurrentVoxelIndex];
+			auto nextVoxel = sideChunk->VoxelGrid[faceData.CurrentVoxelIndex];
 			return nextVoxel.IsTransparent() && nextVoxel != faceData.currentVoxel;
 		}
 
@@ -240,9 +240,9 @@ bool URunDirectionalMesher::IsBorderVoxelVisible(const FVoxelIndexParams& faceDa
 
 bool URunDirectionalMesher::IsVoxelVisible(const FVoxelIndexParams& faceData, const FChunkParams& chunkStruct)
 {
-	if (!faceData.IsBorder && chunkStruct.OriginalChunk->Voxels.IsValidIndex(faceData.ForwardVoxelIndex))
+	if (!faceData.IsBorder && chunkStruct.OriginalChunk->VoxelGrid.IsValidIndex(faceData.ForwardVoxelIndex))
 	{
-		auto nextVoxel = chunkStruct.OriginalChunk->Voxels[faceData.ForwardVoxelIndex];
+		auto nextVoxel = chunkStruct.OriginalChunk->VoxelGrid[faceData.ForwardVoxelIndex];
 		return nextVoxel.IsTransparent() && nextVoxel != faceData.currentVoxel;
 	}
 	return false;
@@ -377,7 +377,7 @@ void URunDirectionalMesher::GenerateMeshFromFaces(const FMesherVariables& facePa
 		GenerateActorMesh(voxelIdsInMesh, *StreamSet, spawner);
 	}
 
-	faceParams.ChunkParams.OriginalChunk->HasMesh = true;
+	faceParams.ChunkParams.OriginalChunk->bHasMesh = true;
 }
 
 bool URunDirectionalMesher::IsMinBorder(const int x)

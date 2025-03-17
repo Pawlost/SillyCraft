@@ -26,6 +26,6 @@ void ASingleBorderlessChunkSpawner::SpawnSideChunk(FMesherVariables& chunkParams
 	auto chunk = MakeShared<FChunk>().ToSharedPtr();
 	SideChunk[index] = chunk;
 	auto gridPosition = SingleChunkGridPosition + faceDirection.Direction;
-	InitChunk(chunk, gridPosition);
+	AddChunkToGrid(chunk, gridPosition);
 	AddSideChunk(chunkParams, faceDirection.FaceSide, SideChunk[index]);
 }

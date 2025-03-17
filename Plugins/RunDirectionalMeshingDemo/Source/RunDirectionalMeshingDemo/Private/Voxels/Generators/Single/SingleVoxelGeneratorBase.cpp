@@ -11,14 +11,14 @@ FVoxel USingleVoxelGeneratorBase::GetSingleVoxel() const
 	return GetVoxelByName(VoxelTypeHandle.RowName);
 }
 
-TTuple<FName, FVoxelType> USingleVoxelGeneratorBase::GetVoxelType(const FVoxel& Voxel) const
+TTuple<FName, FVoxelType> USingleVoxelGeneratorBase::GetVoxelTypeById(const int32& VoxelId) const
 {
 	// Explore voxel table attached to row handle
 	const auto VoxelTable = VoxelTypeHandle.DataTable;
 	auto RowNames = VoxelTable->GetRowNames();
-	checkf(!RowNames.IsValidIndex(Voxel.VoxelId), TEXT("Voxel Id out of bounds"));
+	checkf(!RowNames.IsValidIndex(VoxelId), TEXT("Voxel Id out of bounds"));
 	// Voxel index should be created from the same table
-	auto RowName = RowNames[Voxel.VoxelId];
+	auto RowName = RowNames[VoxelId];
 	return TTuple<FName, FVoxelType>(
 		RowName, *VoxelTable->FindRow<FVoxelType>(RowName, "Could not find voxel id in row handle"));
 }

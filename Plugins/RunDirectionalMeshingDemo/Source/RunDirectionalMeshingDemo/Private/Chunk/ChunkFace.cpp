@@ -1,5 +1,7 @@
 ﻿#include "Chunk/ChunkFace.h"
 
+// Initialized quad vertices
+
 FChunkFace FChunkFace::FrontFace = FChunkFace(
 	FIntVector(0, 0, 0),
 	FIntVector(0, 1, 0),
@@ -36,117 +38,111 @@ FChunkFace FChunkFace::BottomFace = FChunkFace(
 	FIntVector(1, 0, 0),
 	FIntVector(1, 1, 0));
 
-FVector3f FChunkFace::GetFinalStartVertexDown(const double& voxelSize) const
+FChunkFace FChunkFace::CreateChunkFace(const FIntVector& InitialPosition, const FVoxel& Voxel, FChunkFace Face)
 {
-	return static_cast<FVector3f>(StartVertexDown) * voxelSize;
+	// Combine voxel and static quad definition
+	Face.Voxel = Voxel;
+	Face.StartVertexDown += InitialPosition;
+	Face.StartVertexUp += InitialPosition;
+	Face.EndVertexDown += InitialPosition;
+	Face.EndVertexUp += InitialPosition;
+	return Face;
 }
 
-FVector3f FChunkFace::GetFinalStartVertexUp(const double& voxelSize) const
+FChunkFace FChunkFace::CreateFrontFace(const FIntVector& InitialPosition, const FVoxel& Voxel)
 {
-	return static_cast<FVector3f>(StartVertexUp) * voxelSize;
+	return CreateChunkFace(InitialPosition, Voxel, FrontFace);
 }
 
-FVector3f FChunkFace::GetFinalEndVertexDown(const double& voxelSize) const
+FChunkFace FChunkFace::CreateBackFace(const FIntVector& InitialPosition, const FVoxel& Voxel)
 {
-	return static_cast<FVector3f>(EndVertexDown) * voxelSize;
+	return CreateChunkFace(InitialPosition, Voxel, BackFace);
+}
+
+FChunkFace FChunkFace::CreateLeftFace(const FIntVector& InitialPosition, const FVoxel& Voxel)
+{
+	return CreateChunkFace(InitialPosition, Voxel, LeftFace);
+}
+
+FChunkFace FChunkFace::CreateRightFace(const FIntVector& InitialPosition, const FVoxel& Voxel)
+{
+	return CreateChunkFace(InitialPosition, Voxel, RightFace);
+}
+
+FChunkFace FChunkFace::CreateTopFace(const FIntVector& InitialPosition, const FVoxel& Voxel)
+{
+	return CreateChunkFace(InitialPosition, Voxel, TopFace);
+}
+
+FChunkFace FChunkFace::CreateBottomFace(const FIntVector& InitialPosition, const FVoxel& Voxel)
+{
+	return CreateChunkFace(InitialPosition, Voxel, BottomFace);
+}
+
+/**
+ * Compare vertices and merge quads
+ * @return true if previous face was merged
+ */
+bool FChunkFace::MergeFaceEnd(FChunkFace& PrevFace, const FChunkFace& NewFace)
+{
+	if (PrevFace.EndVertexDown == NewFace.StartVertexDown &&
+		PrevFace.EndVertexUp == NewFace.StartVertexUp)
+	{
+		PrevFace.EndVertexDown = NewFace.EndVertexDown;
+		PrevFace.EndVertexUp = NewFace.EndVertexUp;
+		return true;
+	}
+	return false;
+}
+
+/**
+ * Compare vertices and merge quads
+ * @return true if previous face was merged
+ */
+bool FChunkFace::MergeFaceStart(FChunkFace& PrevFace, const FChunkFace& NewFace)
+{
+	if (PrevFace.StartVertexUp == NewFace.EndVertexUp &&
+		PrevFace.StartVertexDown == NewFace.EndVertexDown)
+	{
+		PrevFace.StartVertexDown = NewFace.StartVertexDown;
+		PrevFace.StartVertexUp = NewFace.StartVertexUp;
+		return true;
+	}
+	return false;
+}
+
+/**
+ * Compare vertices and merge quads
+ * @return true if previous face was merged
+ */
+bool FChunkFace::MergeFaceUp(FChunkFace& PrevFace, const FChunkFace& NewFace)
+{
+	if (PrevFace.StartVertexUp == NewFace.StartVertexDown &&
+		PrevFace.EndVertexUp == NewFace.EndVertexDown)
+	{
+		PrevFace.StartVertexUp = NewFace.StartVertexUp;
+		PrevFace.EndVertexUp = NewFace.EndVertexUp;
+		return true;
+	}
+	return false;
+}
+
+FVector3f FChunkFace::GetFinalStartVertexDown(const double& VoxelSize) const
+{
+	return static_cast<FVector3f>(StartVertexDown) * VoxelSize;
+}
+
+FVector3f FChunkFace::GetFinalStartVertexUp(const double& VoxelSize) const
+{
+	return static_cast<FVector3f>(StartVertexUp) * VoxelSize;
+}
+
+FVector3f FChunkFace::GetFinalEndVertexDown(const double& VoxelSize) const
+{
+	return static_cast<FVector3f>(EndVertexDown) * VoxelSize;
 }
 
 FVector3f FChunkFace::GetFinalEndVertexUp(const double& voxelSize) const
 {
 	return static_cast<FVector3f>(EndVertexUp) * voxelSize;
-}
-
-FChunkFace FChunkFace::CreateFrontFace(const FIntVector& InitialPosition, const FVoxel& voxel)
-{
-	return CreateChunkFace(InitialPosition, voxel, FrontFace);
-}
-
-FChunkFace FChunkFace::CreateBackFace(const FIntVector& InitialPosition, const FVoxel& voxel)
-{
-	return CreateChunkFace(InitialPosition, voxel, BackFace);
-}
-
-FChunkFace FChunkFace::CreateLeftFace(const FIntVector& InitialPosition, const FVoxel& voxel)
-{
-	return CreateChunkFace(InitialPosition, voxel, LeftFace);
-}
-
-FChunkFace FChunkFace::CreateRightFace(const FIntVector& InitialPosition, const FVoxel& voxel)
-{
-	return CreateChunkFace(InitialPosition, voxel, RightFace);
-}
-
-FChunkFace FChunkFace::CreateTopFace(const FIntVector& InitialPosition, const FVoxel& voxel)
-{
-	return CreateChunkFace(InitialPosition, voxel, TopFace);
-}
-
-FChunkFace FChunkFace::CreateBottomFace(const FIntVector& InitialPosition, const FVoxel& voxel)
-{
-	return CreateChunkFace(InitialPosition, voxel, BottomFace);
-}
-
-bool FChunkFace::MergeFaceEnd(FChunkFace& prevFace, const FChunkFace& newFace)
-{
-	if (prevFace.EndVertexDown == newFace.StartVertexDown &&
-		prevFace.EndVertexUp == newFace.StartVertexUp)
-	{
-		prevFace.EndVertexDown = newFace.EndVertexDown;
-		prevFace.EndVertexUp = newFace.EndVertexUp;
-		return true;
-	}
-	return false;
-}
-
-bool FChunkFace::MergeFaceStart(FChunkFace& prevFace, const FChunkFace& newFace)
-{
-	if (prevFace.StartVertexUp == newFace.EndVertexUp &&
-		prevFace.StartVertexDown == newFace.EndVertexDown)
-	{
-		prevFace.StartVertexDown = newFace.StartVertexDown;
-		prevFace.StartVertexUp = newFace.StartVertexUp;
-		return true;
-	}
-	return false;
-}
-
-bool FChunkFace::MergeFaceUp(FChunkFace& prevFace, const FChunkFace& newFace)
-{
-	if (prevFace.StartVertexUp == newFace.StartVertexDown &&
-		prevFace.EndVertexUp == newFace.EndVertexDown)
-	{
-		prevFace.StartVertexUp = newFace.StartVertexUp;
-		prevFace.EndVertexUp = newFace.EndVertexUp;
-		return true;
-	}
-	return false;
-}
-
-FChunkFace FChunkFace::CreateChunkFace(const FIntVector& InitialPosition, const FVoxel& voxel, FChunkFace face)
-{
-	face.Voxel = voxel;
-	face += InitialPosition;
-	return face;
-}
-
-void operator+=(FChunkFace& ChunkFace, const FIntVector& Vector)
-{
-	ChunkFace.StartVertexDown += Vector;
-	ChunkFace.StartVertexUp += Vector;
-	ChunkFace.EndVertexDown += Vector;
-	ChunkFace.EndVertexUp += Vector;
-}
-
-void operator-=(FChunkFace& ChunkFace, const FIntVector& Vector)
-{
-	ChunkFace.StartVertexDown -= Vector;
-	ChunkFace.StartVertexUp -= Vector;
-	ChunkFace.EndVertexDown -= Vector;
-	ChunkFace.EndVertexUp -= Vector;
-}
-
-FChunkFace operator-(FChunkFace ChunkFace, const FIntVector& Vector)
-{
-	ChunkFace -= Vector;
-	return ChunkFace;
 }

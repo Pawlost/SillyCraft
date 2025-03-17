@@ -12,17 +12,24 @@ struct RUNDIRECTIONALMESHINGDEMO_API FChunk
 	UPROPERTY()
 	TWeakObjectPtr<AChunkRmcActor> ChunkMeshActor = nullptr;
 
-	UPROPERTY()
-	TArray<FVoxel> Voxels;
+	// Saving voxel grids is not implemented in this demo, but a property specifier for saving has been added.
+	
+	UPROPERTY(SaveGame)
+	TArray<FVoxel> VoxelGrid;
 
 	//Key: voxel ID; Value: voxel count
 	UPROPERTY()
-	TMap<int32, uint32> ChunkVoxelTypeTable;
+	TMap<int32, uint32> ChunkVoxelIdTable;
 
 	UPROPERTY()
 	FIntVector GridPosition;
 
-	bool IsInitialized = false;
-	bool HasMesh = false;
-	bool IsActive = false;
+	UPROPERTY(VisibleInstanceOnly)
+	bool bIsInitialized = false;
+
+	UPROPERTY(VisibleInstanceOnly)
+	bool bHasMesh = false;
+	
+	UPROPERTY(VisibleInstanceOnly)
+	bool bIsActive = false;
 };

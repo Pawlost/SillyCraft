@@ -2,21 +2,18 @@
 #include "CoreMinimal.h"
 #include "RunDirectionalMeshingDemo/Public/Voxel/Voxel.h"
 
+/**
+ * Struct representing single voxel face. Inside helper struct not intended to be used with Unreal Engine.
+ */
 struct RUNDIRECTIONALMESHINGDEMO_API FChunkFace
 {
+	FVoxel Voxel;
 	FIntVector StartVertexDown;
-	FIntVector StartVertexUp;
 	FIntVector EndVertexDown;
 	FIntVector EndVertexUp;
-
-	FVector3f GetFinalStartVertexDown(const double& voxelSize) const;
-	FVector3f GetFinalStartVertexUp(const double& voxelSize) const;
-	FVector3f GetFinalEndVertexDown(const double& voxelSize) const;
-	FVector3f GetFinalEndVertexUp(const double& voxelSize) const;
-
-	bool IsMark = false;
-	FVoxel Voxel = FVoxel();
-
+	FIntVector StartVertexUp;
+	
+	// Create something like singletons
 	static FChunkFace FrontFace;
 	static FChunkFace BackFace;
 	static FChunkFace LeftFace;
@@ -24,46 +21,38 @@ struct RUNDIRECTIONALMESHINGDEMO_API FChunkFace
 	static FChunkFace TopFace;
 	static FChunkFace BottomFace;
 
-	static FChunkFace CreateFrontFace(const FIntVector& InitialPosition, const FVoxel& voxel);
-	static FChunkFace CreateBackFace(const FIntVector& InitialPosition, const FVoxel& voxel);
-	static FChunkFace CreateLeftFace(const FIntVector& InitialPosition, const FVoxel& voxel);
-	static FChunkFace CreateRightFace(const FIntVector& InitialPosition, const FVoxel& voxel);
-	static FChunkFace CreateTopFace(const FIntVector& InitialPosition, const FVoxel& voxel);
-	static FChunkFace CreateBottomFace(const FIntVector& InitialPosition, const FVoxel& voxel);
-
-	FChunkFace(): StartVertexDown(), StartVertexUp(), EndVertexDown(), EndVertexUp()
+	FChunkFace() : Voxel(FVoxel()), StartVertexDown(), EndVertexDown(), EndVertexUp(), StartVertexUp()
 	{
 	}
 
-	FChunkFace(const FVoxel& voxel, const FIntVector& startVertexDown, const FIntVector& endVertexDown,
-	           const FIntVector& endVertexUp, const FIntVector& startVertexUp)
+	FChunkFace(const FVoxel& Voxel, const FIntVector& StartVertexDown, const FIntVector& EndVertexDown,
+	           const FIntVector& EndVertexUp, const FIntVector& StartVertexUp) : Voxel(Voxel),
+		StartVertexDown(StartVertexDown),
+		EndVertexDown(EndVertexDown), EndVertexUp(EndVertexUp), StartVertexUp(StartVertexUp)
 	{
-		Voxel = voxel;
-		StartVertexDown = startVertexDown;
-		StartVertexUp = startVertexUp;
-		EndVertexDown = endVertexDown;
-		EndVertexUp = endVertexUp;
 	}
 
-	FChunkFace(const FIntVector& startVertexDown, const FIntVector& endVertexDown, const FIntVector& endVertexUp,
-	           const FIntVector& startVertexUp)
+	FChunkFace(const FIntVector& StartVertexDown, const FIntVector& EndVertexDown,
+	           const FIntVector& EndVertexUp, const FIntVector& StartVertexUp) : StartVertexDown(StartVertexDown),
+		EndVertexDown(EndVertexDown), EndVertexUp(EndVertexUp), StartVertexUp(StartVertexUp)
 	{
-		StartVertexDown = startVertexDown;
-		StartVertexUp = startVertexUp;
-		EndVertexDown = endVertexDown;
-		EndVertexUp = endVertexUp;
 	}
 
-	static bool MergeFaceEnd(FChunkFace& prevFace, const FChunkFace& newFace);
-	static bool MergeFaceStart(FChunkFace& prevFace, const FChunkFace& newFace);
-	static bool MergeFaceUp(FChunkFace& prevFace, const FChunkFace& newFace);
+	static FChunkFace CreateFrontFace(const FIntVector& InitialPosition, const FVoxel& Voxel);
+	static FChunkFace CreateBackFace(const FIntVector& InitialPosition, const FVoxel& Voxel);
+	static FChunkFace CreateLeftFace(const FIntVector& InitialPosition, const FVoxel& Voxel);
+	static FChunkFace CreateRightFace(const FIntVector& InitialPosition, const FVoxel& Voxel);
+	static FChunkFace CreateTopFace(const FIntVector& InitialPosition, const FVoxel& Voxel);
+	static FChunkFace CreateBottomFace(const FIntVector& InitialPosition, const FVoxel& Voxel);
 
+	static bool MergeFaceEnd(FChunkFace& PrevFace, const FChunkFace& NewFace);
+	static bool MergeFaceStart(FChunkFace& PrevFace, const FChunkFace& NewFace);
+	static bool MergeFaceUp(FChunkFace& PrevFace, const FChunkFace& NewFace);
+
+	FVector3f GetFinalStartVertexDown(const double& VoxelSize) const;
+	FVector3f GetFinalStartVertexUp(const double& VoxelSize) const;
+	FVector3f GetFinalEndVertexDown(const double& VoxelSize) const;
+	FVector3f GetFinalEndVertexUp(const double& VoxelSize) const;
 private:
-	static FChunkFace CreateChunkFace(const FIntVector& InitialPosition, const FVoxel& voxel, FChunkFace face);
+	static FChunkFace CreateChunkFace(const FIntVector& InitialPosition, const FVoxel& Voxel, FChunkFace Face);
 };
-
-inline void operator+=(FChunkFace& ChunkFace, const FIntVector& Vector);
-
-inline void operator-=(FChunkFace& ChunkFace, const FIntVector& Vector);
-
-inline FChunkFace operator-(FChunkFace ChunkFace, const FIntVector& Vector);

@@ -1,7 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-
-#include "Mesher/ChunkSpawnerBase.h"
+﻿#include "Spawner/ChunkSpawnerBase.h"
 
 #include "Mesher/MeshingStructs/MesherVariables.h"
 
@@ -27,29 +24,29 @@ void AChunkSpawnerBase::BeginPlay()
 	Super::BeginPlay();
 }
 
-double AChunkSpawnerBase::GetHighestElevationAtLocation(const FVector& location) const
+double AChunkSpawnerBase::GetHighestElevationAtLocation(const FVector& Location) const
 {
-	return VoxelGenerator->GetHighestElevationAtLocation(location);
+	return VoxelGenerator->GetHighestElevationAtLocation(Location);
 }
 
-void AChunkSpawnerBase::ChangeVoxelAtHit(const FVector& hitPosition, const FVector& hitNormal, const FName& VoxelName,
-                                      bool pick)
+void AChunkSpawnerBase::ChangeVoxelAtHit(const FVector& HitPosition, const FVector& HitNormal, const FName& VoxelName,
+                                      bool bPick)
 {
 	FVector adjustedNormal;
-	if (pick)
+	if (bPick)
 	{
-		adjustedNormal.X = FMath::Clamp(hitNormal.X, 0, 1);
-		adjustedNormal.Y = FMath::Clamp(hitNormal.Y, 0, 1);
-		adjustedNormal.Z = FMath::Clamp(hitNormal.Z, 0, 1);
+		adjustedNormal.X = FMath::Clamp(HitNormal.X, 0, 1);
+		adjustedNormal.Y = FMath::Clamp(HitNormal.Y, 0, 1);
+		adjustedNormal.Z = FMath::Clamp(HitNormal.Z, 0, 1);
 	}
 	else
 	{
-		adjustedNormal.X = -FMath::Clamp(hitNormal.X, -1, 0);
-		adjustedNormal.Y = -FMath::Clamp(hitNormal.Y, -1, 0);
-		adjustedNormal.Z = -FMath::Clamp(hitNormal.Z, -1, 0);
+		adjustedNormal.X = -FMath::Clamp(HitNormal.X, -1, 0);
+		adjustedNormal.Y = -FMath::Clamp(HitNormal.Y, -1, 0);
+		adjustedNormal.Z = -FMath::Clamp(HitNormal.Z, -1, 0);
 	}
 	
-	auto position = hitPosition - adjustedNormal * VoxelGenerator->GetVoxelSize();
+	auto position = HitPosition - adjustedNormal * VoxelGenerator->GetVoxelSize();
 	
 	if (!WorldCenter)
 	{
@@ -65,42 +62,42 @@ void AChunkSpawnerBase::ChangeVoxelAtHit(const FVector& hitPosition, const FVect
 	ChangeVoxelInChunk(chunkGridPosition, voxelPosition, VoxelName);
 }
 
-void AChunkSpawnerBase::AddSideChunk(FMesherVariables& chunkParams, EFaceDirection direction,
-                                     const TSharedPtr<FChunk>& chunk)
+void AChunkSpawnerBase::AddSideChunk(FMesherVariables& ChunkParams, EFaceDirection Direction,
+                                     const TSharedPtr<FChunk>& Chunk)
 {
-	auto directionIndex = static_cast<uint8>(direction);
-	chunkParams.ChunkParams.SideChunks[directionIndex] = chunk.IsValid() ? chunk : nullptr;
+	auto directionIndex = static_cast<uint8>(Direction);
+	ChunkParams.ChunkParams.SideChunks[directionIndex] = Chunk.IsValid() ? Chunk : nullptr;
 }
 
-void AChunkSpawnerBase::InitChunk(TSharedPtr<FChunk>& chunk,
-                                  const FIntVector& gridPosition, TSharedFuture<void>* asyncExecution) const
+void AChunkSpawnerBase::AddChunkToGrid(TSharedPtr<FChunk>& Chunk,
+                                  const FIntVector& GridPosition, TSharedFuture<void>* AsyncExecution) const
 {
 	//Actor must always be respawned because of stationary mesh
 
-	chunk->GridPosition = gridPosition;
+	Chunk->GridPosition = GridPosition;
 
-	if (!chunk->IsInitialized)
+	if (!Chunk->bIsInitialized)
 	{
-		chunk->Voxels.SetNum(VoxelGenerator->GetVoxelCountPerChunk());
+		Chunk->VoxelGrid.SetNum(VoxelGenerator->GetVoxelCountPerChunk());
 	}
 
-	chunk->IsInitialized = true;
-	if (asyncExecution != nullptr)
+	Chunk->bIsInitialized = true;
+	if (AsyncExecution != nullptr)
 	{
-		*asyncExecution = Async(EAsyncExecution::LargeThreadPool, [this, chunk]()
+		*AsyncExecution = Async(EAsyncExecution::LargeThreadPool, [this, Chunk]()
 		{
-			VoxelGenerator->GenerateVoxels(*chunk.Get());
+			VoxelGenerator->GenerateVoxels(*Chunk.Get());
 		}).Share();
 
 	}else
 	{
-		VoxelGenerator->GenerateVoxels(*chunk);
+		VoxelGenerator->GenerateVoxels(*Chunk);
 	}
 }
 
-FIntVector AChunkSpawnerBase::WorldPositionToChunkGridPosition(const FVector& worldPosition) const
+FIntVector AChunkSpawnerBase::WorldPositionToChunkGridPosition(const FVector& WorldPosition) const
 {
-	auto location = worldPosition / VoxelGenerator->GetChunkAxisSize();
+	auto location = WorldPosition / VoxelGenerator->GetChunkAxisSize();
 	return FIntVector(FMath::FloorToInt32(location.X), FMath::FloorToInt32(location.Y),
 	                  FMath::FloorToInt32(location.Z));
 }

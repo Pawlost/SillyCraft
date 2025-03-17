@@ -26,7 +26,7 @@ void AAreaChunkSpawnerBase::ChangeVoxelInChunk(const FIntVector& chunkGridPositi
 		EditHandle = Async(EAsyncExecution::LargeThreadPool, [this, chunk]()
 		{
 			FMesherVariables chunkParams;
-			chunk->IsActive = false;
+			chunk->bIsActive = false;
 			GenerateChunkMesh(chunkParams, chunk->GridPosition);
 			FMesherVariables sideParams;
 
@@ -35,7 +35,7 @@ void AAreaChunkSpawnerBase::ChangeVoxelInChunk(const FIntVector& chunkGridPositi
 				auto sideChunk = chunkParams.ChunkParams.SideChunks[s];
 				if (sideChunk.IsValid())
 				{
-					sideChunk->IsActive = false;
+					sideChunk->bIsActive = false;
 					GenerateChunkMesh(sideParams, sideChunk->GridPosition);
 				}
 			}
@@ -79,7 +79,7 @@ void AAreaChunkSpawnerBase::GenerateChunkMesh(FMesherVariables& chunkParams, con
 
 	TSharedPtr<FChunk>& chunk = *ChunkGrid.Find(chunkGridPosition);
 
-	if (chunk->IsActive)
+	if (chunk->bIsActive)
 	{
 		return;
 	}
@@ -104,7 +104,7 @@ void AAreaChunkSpawnerBase::GenerateChunkMesh(FMesherVariables& chunkParams, con
 	//Mesh could be spawned on a Async Thread similary to voxel models but it is not done so to showcase real time speed of mesh generation (requirement for bachelor thesis)
 	VoxelGenerator->GenerateMesh(chunkParams);
 
-	if (!chunk->HasMesh)
+	if (!chunk->bHasMesh)
 	{
 		UnusedActors.Enqueue(chunk->ChunkMeshActor);
 		chunk->ChunkMeshActor = nullptr;
@@ -118,7 +118,7 @@ void AAreaChunkSpawnerBase::GenerateChunkMesh(FMesherVariables& chunkParams, con
 		}
 	}
 
-	chunk->IsActive = true;
+	chunk->bIsActive = true;
 }
 
 void AAreaChunkSpawnerBase::SpawnChunk(const FIntVector& chunkGridPosition, TSharedFuture<void>* asyncExecution)
@@ -134,7 +134,7 @@ void AAreaChunkSpawnerBase::SpawnChunk(const FIntVector& chunkGridPosition, TSha
 		Chunk = MakeShared<FChunk>().ToSharedPtr();
 	}
 
-	InitChunk(Chunk, chunkGridPosition, asyncExecution);
+	AddChunkToGrid(Chunk, chunkGridPosition, asyncExecution);
 
 	Mutex.Lock();
 	ChunkGrid.Add(chunkGridPosition, Chunk);

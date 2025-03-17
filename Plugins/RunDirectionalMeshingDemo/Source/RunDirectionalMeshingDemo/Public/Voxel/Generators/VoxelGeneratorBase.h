@@ -1,13 +1,16 @@
 ﻿#pragma once
 #include "CoreMinimal.h"
+#include "Chunk/Chunk.h"
 #include "Voxel/Voxel.h"
 #include "Voxel/VoxelType.h"
 #include "VoxelGeneratorBase.generated.h"
 
-struct FChunk;
 struct FMesherVariables;
 class UMesherBase;
 
+/**
+ * Base for components used to fill voxel models with voxels.
+ */
 UCLASS(ClassGroup=(VoxelGeneration), Abstract, Blueprintable)
 class RUNDIRECTIONALMESHINGDEMO_API UVoxelGeneratorBase : public UActorComponent
 {
@@ -58,7 +61,7 @@ public:
 	virtual double GetHighestElevationAtLocation(const FVector& Location);
 
 	// Abstract functions
-	virtual TTuple<FName, FVoxelType> GetVoxelType(const FVoxel& Voxel) const PURE_VIRTUAL(
+	virtual TTuple<FName, FVoxelType> GetVoxelTypeById(const int32& VoxelId) const PURE_VIRTUAL(
 		UVoxelGeneratorBase::GetVoxelType, return TTuple<FName, FVoxelType>();)
 
 	virtual FVoxel GetVoxelByName(const FName& VoxelName) const PURE_VIRTUAL(

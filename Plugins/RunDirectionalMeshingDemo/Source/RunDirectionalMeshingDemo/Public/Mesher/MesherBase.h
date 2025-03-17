@@ -6,6 +6,9 @@
 
 struct FMesherVariables;
 
+/**
+ * Base for components used to convert voxel models to mesh
+ */
 UCLASS(Abstract, Blueprintable)
 class RUNDIRECTIONALMESHINGDEMO_API UMesherBase : public UActorComponent
 {

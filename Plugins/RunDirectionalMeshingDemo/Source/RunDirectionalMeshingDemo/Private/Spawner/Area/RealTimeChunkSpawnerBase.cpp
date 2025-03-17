@@ -47,8 +47,8 @@ void ARealTimeChunkSpawnerBase::DespawnChunks()
 					chunk->ChunkMeshActor = nullptr;
 				}
 
-				chunk->IsActive = false;
-				chunk->ChunkVoxelTypeTable.Reset();
+				chunk->bIsActive = false;
+				chunk->ChunkVoxelIdTable.Reset();
 
 				m_CriticalSection.Lock();
 				ChunkGrid.Remove(chunkKey);

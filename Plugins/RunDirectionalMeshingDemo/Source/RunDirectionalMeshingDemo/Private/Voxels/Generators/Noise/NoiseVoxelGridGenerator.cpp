@@ -60,7 +60,7 @@ void UNoiseVoxelGridGenerator::GenerateVoxels(FChunk& Chunk)
 				const auto Index = CalculateVoxelIndex(x, y, z);
 				// In case no voxel is added make it empty
 				// This is important in case of reusing chunks
-				Chunk.Voxels[Index] = FVoxel();
+				Chunk.VoxelGrid[Index] = FVoxel();
 
 				// VoxelId is given by position of surface generator in array.
 				// Generators keep rewriting position and last Voxel will rewrite the rest
@@ -148,9 +148,9 @@ double UNoiseVoxelGridGenerator::GetHighestElevationAtLocation(const FVector& Lo
 	return MaxElevation * VoxelSize;
 }
 
-TTuple<FName, FVoxelType> UNoiseVoxelGridGenerator::GetVoxelType(const FVoxel& Voxel) const
+TTuple<FName, FVoxelType> UNoiseVoxelGridGenerator::GetVoxelTypeById(const int32& VoxelId) const
 {
-	auto SurfaceGenerator = SurfaceGenerators[Voxel.VoxelId];
+	auto SurfaceGenerator = SurfaceGenerators[VoxelId];
 	return TTuple<FName, FVoxelType>(SurfaceGenerator.VoxelName, SurfaceGenerator.VoxelType);
 }
 

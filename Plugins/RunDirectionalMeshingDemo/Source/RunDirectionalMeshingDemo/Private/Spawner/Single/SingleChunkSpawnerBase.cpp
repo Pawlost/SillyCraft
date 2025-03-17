@@ -13,7 +13,7 @@ void ASingleChunkSpawnerBase::BeginPlay()
 
 	AsyncTask(ENamedThreads::AnyThread, [this]()
 	{
-		InitChunk(SingleChunk, SingleChunkGridPosition);
+		AddChunkToGrid(SingleChunk, SingleChunkGridPosition);
 		StartMeshing();
 	});
 }
@@ -21,6 +21,8 @@ void ASingleChunkSpawnerBase::BeginPlay()
 void ASingleChunkSpawnerBase::ChangeVoxelInChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition,
 	const FName& VoxelId)
 {
+
+	//TODO: add async
 	if (chunkGridPosition != SingleChunkGridPosition)
 	{
 		return;

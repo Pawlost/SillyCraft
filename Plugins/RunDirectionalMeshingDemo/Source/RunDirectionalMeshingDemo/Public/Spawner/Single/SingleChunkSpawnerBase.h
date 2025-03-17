@@ -1,9 +1,7 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "Mesher/ChunkSpawnerBase.h"
+#include "Spawner/ChunkSpawnerBase.h"
 #include "SingleChunkSpawnerBase.generated.h"
 
 UCLASS(Abstract)

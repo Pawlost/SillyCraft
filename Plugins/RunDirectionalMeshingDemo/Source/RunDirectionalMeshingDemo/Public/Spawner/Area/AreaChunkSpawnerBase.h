@@ -1,11 +1,10 @@
 ﻿#pragma once
 #include "CoreMinimal.h"
-#include "Mesher/ChunkSpawnerBase.h"
-#include "Mesher/MeshingStructs/GridDirectionToFace.h"
+#include "Spawner/ChunkSpawnerBase.h"
 #include "AreaChunkSpawnerBase.generated.h"
 
 class AChunkRmcActor;
-//TODO: add forward declarations
+
 UCLASS(Abstract)
 class RUNDIRECTIONALMESHINGDEMO_API AAreaChunkSpawnerBase : public AChunkSpawnerBase
 {
