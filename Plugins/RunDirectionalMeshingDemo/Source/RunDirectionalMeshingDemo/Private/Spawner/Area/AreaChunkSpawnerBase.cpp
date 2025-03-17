@@ -1,5 +1,5 @@
 ﻿#include "Spawner/Area/AreaChunkSpawnerBase.h"
-#include "Mesher/MeshingStructs/ChunkFaceParams.h"
+#include "Mesher/MeshingStructs/MesherVariables.h"
 
 
 void AAreaChunkSpawnerBase::ChangeVoxelInChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition,
@@ -21,14 +21,14 @@ void AAreaChunkSpawnerBase::ChangeVoxelInChunk(const FIntVector& chunkGridPositi
 
 		auto chunk = *foundChunk;
 
-		VoxelGenerator->ChangeVoxelIdInChunk(chunk, voxelPosition, VoxelId);
+		VoxelGenerator->ChangeUnknownVoxelIdInChunk(chunk, voxelPosition, VoxelId);
 
 		EditHandle = Async(EAsyncExecution::LargeThreadPool, [this, chunk]()
 		{
-			FChunkFaceParams chunkParams;
+			FMesherVariables chunkParams;
 			chunk->IsActive = false;
 			GenerateChunkMesh(chunkParams, chunk->GridPosition);
-			FChunkFaceParams sideParams;
+			FMesherVariables sideParams;
 
 			for (int32 s = 0; s < FACE_SIDE_COUNT; s++)
 			{
@@ -57,7 +57,7 @@ void AAreaChunkSpawnerBase::BeginPlay()
 	{
 		//Spawn center chunk
 		SpawnChunk(CenterGridPosition);
-		FChunkFaceParams faceParams;
+		FMesherVariables faceParams;
 		faceParams.ChunkParams.ExecutedOnMainThread = true;
 		GenerateChunkMesh(faceParams, CenterGridPosition);
 	}
@@ -66,7 +66,7 @@ void AAreaChunkSpawnerBase::BeginPlay()
 }
 
 //Running on main thread may cause deadlock
-void AAreaChunkSpawnerBase::GenerateChunkMesh(FChunkFaceParams& chunkParams, const FIntVector& chunkGridPosition)
+void AAreaChunkSpawnerBase::GenerateChunkMesh(FMesherVariables& chunkParams, const FIntVector& chunkGridPosition)
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Area Mesh generation prepartion")
@@ -77,7 +77,7 @@ void AAreaChunkSpawnerBase::GenerateChunkMesh(FChunkFaceParams& chunkParams, con
 		return;
 	}
 
-	TSharedPtr<FChunkStruct>& chunk = *ChunkGrid.Find(chunkGridPosition);
+	TSharedPtr<FChunk>& chunk = *ChunkGrid.Find(chunkGridPosition);
 
 	if (chunk->IsActive)
 	{
@@ -128,10 +128,10 @@ void AAreaChunkSpawnerBase::SpawnChunk(const FIntVector& chunkGridPosition, TSha
 		return;
 	}
 
-	TSharedPtr<FChunkStruct> Chunk;
+	TSharedPtr<FChunk> Chunk;
 	if (!DespawnedChunks.Dequeue(Chunk))
 	{
-		Chunk = MakeShared<FChunkStruct>().ToSharedPtr();
+		Chunk = MakeShared<FChunk>().ToSharedPtr();
 	}
 
 	InitChunk(Chunk, chunkGridPosition, asyncExecution);
@@ -141,7 +141,7 @@ void AAreaChunkSpawnerBase::SpawnChunk(const FIntVector& chunkGridPosition, TSha
 	Mutex.Unlock();
 }
 
-void AAreaChunkSpawnerBase::AddChunkFromGrid(FChunkFaceParams& params, const FGridDirectionToFace& faceDirection)
+void AAreaChunkSpawnerBase::AddChunkFromGrid(FMesherVariables& params, const FGridDirectionToFace& faceDirection)
 {
 	auto chunk = ChunkGrid.Find(params.ChunkParams.OriginalChunk->GridPosition + faceDirection.Direction);
 	if (chunk == nullptr)

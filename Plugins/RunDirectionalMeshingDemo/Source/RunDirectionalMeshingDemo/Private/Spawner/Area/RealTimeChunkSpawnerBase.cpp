@@ -1,6 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.pp[p
 #include "Spawner/Area/RealTimeChunkSpawnerBase.h"
 
+#include "Chunk/Chunk.h"
+
 void ARealTimeChunkSpawnerBase::MoveGridCenterToPosition(const FVector& newPosition)
 {
 	auto newGridPosition = WorldPositionToChunkGridPosition(newPosition);
@@ -21,6 +23,7 @@ void ARealTimeChunkSpawnerBase::BeginPlay()
 
 void ARealTimeChunkSpawnerBase::DespawnChunks()
 {
+	//TODO: only one thread despawn
 	AsyncTask(ENamedThreads::BackgroundThreadPriority, [this]()
 	{
 		TArray<FIntVector> chunkKeys;

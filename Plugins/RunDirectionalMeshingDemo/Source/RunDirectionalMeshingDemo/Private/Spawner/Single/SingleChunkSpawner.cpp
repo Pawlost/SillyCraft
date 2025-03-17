@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.pp[p
 #include "Spawner/Single/SingleChunkSpawner.h"
 
-#include "Mesher/MeshingStructs/ChunkFaceParams.h"
+#include "Mesher/MeshingStructs/MesherVariables.h"
 
 void ASingleChunkSpawner::BeginPlay()
 {
@@ -11,7 +11,7 @@ void ASingleChunkSpawner::BeginPlay()
 
 void ASingleChunkSpawner::StartMeshing()
 {
-	FChunkFaceParams params;
+	FMesherVariables params;
 	params.ChunkParams.SpawnerPtr = this;
 	params.ChunkParams.OriginalChunk = SingleChunk;
 	AddSideChunk(params, EFaceDirection::Top, nullptr);

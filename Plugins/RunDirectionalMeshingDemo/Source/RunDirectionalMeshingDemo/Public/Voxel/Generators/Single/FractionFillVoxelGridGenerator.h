@@ -19,5 +19,5 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "1"), Category = "Voxel grid size")
 	int32 ZFraction;
 	
-	virtual void GenerateVoxels(FChunkStruct& chunk) override;
+	virtual void GenerateVoxels(FChunk& chunk) override;
 };

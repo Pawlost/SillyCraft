@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.pp[p
 #include "Spawner/Area/CenterAreaChunkSpawner.h"
 
-#include "Mesher/MeshingStructs/ChunkFaceParams.h"
+#include "Mesher/MeshingStructs/MesherVariables.h"
 
 void ACenterAreaChunkSpawner::BeginPlay()
 {
@@ -16,7 +16,7 @@ void ACenterAreaChunkSpawner::GenerateArea()
 	TQueue<FIntVector> SpawnPositionsArray;
 	SpawnPositionsArray.Enqueue(initialCenter);
 	SpawnChunk(initialCenter);
-	FChunkFaceParams faceParams;
+	FMesherVariables faceParams;
 	faceParams.ChunkParams.ShowBorders = BufferZone == 0;
 	TArray<TSharedFuture<void>> tasks;
 	tasks.Reserve(6);

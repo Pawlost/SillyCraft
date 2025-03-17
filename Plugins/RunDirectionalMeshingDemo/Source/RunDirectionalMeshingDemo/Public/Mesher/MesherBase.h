@@ -4,7 +4,7 @@
 #include "Voxel/Generators/VoxelGeneratorBase.h"
 #include "MesherBase.generated.h"
 
-struct FChunkFaceParams;
+struct FMesherVariables;
 
 UCLASS(Abstract, Blueprintable)
 class RUNDIRECTIONALMESHINGDEMO_API UMesherBase : public UActorComponent
@@ -14,7 +14,7 @@ class RUNDIRECTIONALMESHINGDEMO_API UMesherBase : public UActorComponent
 public:
 	void SetVoxelGenerator(const TObjectPtr<UVoxelGeneratorBase>& VoxelGeneratorBase);
 
-	virtual void GenerateMesh(FChunkFaceParams& faceParams)
+	virtual void GenerateMesh(FMesherVariables& faceParams)
 	{
 	}
 

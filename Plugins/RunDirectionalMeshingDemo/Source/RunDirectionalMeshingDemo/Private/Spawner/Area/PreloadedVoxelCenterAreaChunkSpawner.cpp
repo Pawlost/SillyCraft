@@ -1,6 +1,6 @@
 ﻿#include "Spawner/Area/PreloadedVoxelCenterAreaChunkSpawner.h"
 
-#include "Mesher/MeshingStructs/ChunkFaceParams.h"
+#include "Mesher/MeshingStructs/MesherVariables.h"
 
 void APreloadedVoxelCenterAreaChunkSpawner::GenerateArea()
 {
@@ -65,7 +65,7 @@ void APreloadedVoxelCenterAreaChunkSpawner::GenerateArea()
 
 	WaitForAllTasks(tasks);
 
-	FChunkFaceParams faceParams;
+	FMesherVariables faceParams;
 	for (auto VisitedSpawnPosition : VisitedSpawnPositions)
 	{
 		GenerateChunkMesh(faceParams, VisitedSpawnPosition);

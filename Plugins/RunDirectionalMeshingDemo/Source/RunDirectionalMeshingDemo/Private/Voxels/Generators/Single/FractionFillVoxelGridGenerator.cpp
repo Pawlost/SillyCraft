@@ -1,13 +1,13 @@
 ﻿#include "Voxel/Generators/Single/FractionFillVoxelGridGenerator.h"
 
-void UFractionFillVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
+void UFractionFillVoxelGridGenerator::GenerateVoxels(FChunk& chunk)
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Voxel generation")
 #endif
 
 	auto voxelFillIndex = GetSingleVoxel();
-	const auto chunkLenght = GetVoxelDimensionCount();
+	const auto chunkLenght = GetVoxelCountPerChunkDimension();
 		
 	for (int x = 0; x < chunkLenght/XFraction; x++)
 	{
@@ -15,9 +15,9 @@ void UFractionFillVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 		{
 			for (int z = 0; z < chunkLenght/ZFraction; z++)
 			{
-				const auto index = GetVoxelIndex(x, y, z);
+				const auto index = CalculateVoxelIndex(x, y, z);
 
-				AddVoxelAtIndex(chunk, index, voxelFillIndex);
+				ChangeKnownVoxelAtIndex(chunk, index, voxelFillIndex);
 			}
 		}
 	}

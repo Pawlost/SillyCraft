@@ -81,7 +81,7 @@ TTuple<FName, FVoxelType> UNoiseVoxelGridGenerator::GetVoxelTypeById(const int32
 	return TTuple<FName, FVoxelType>(surfaceGenerator.VoxelName, surfaceGenerator.VoxelType);
 }
 
-void UNoiseVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
+void UNoiseVoxelGridGenerator::GenerateVoxels(FChunk& chunk)
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Voxel generation")
@@ -89,7 +89,7 @@ void UNoiseVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 
 	//This generation is very unoptimized because it is not part of bachelor thesis
 
-	const auto chunkLenght = GetVoxelDimensionCount();
+	const auto chunkLenght = GetVoxelCountPerChunkDimension();
 	const int voxelTypeCount = GetVoxelTypeCount();
 
 	const auto gridPos = chunk.GridPosition * chunkLenght;
@@ -106,7 +106,7 @@ void UNoiseVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 		{
 			for (int z = 0; z < chunkLenght; z++)
 			{
-				const auto index = GetVoxelIndex(x, y, z);
+				const auto index = CalculateVoxelIndex(x, y, z);
 				chunk.Voxels[index] = FVoxel();
 				for (int voxelId = 0; voxelId < voxelTypeCount; voxelId++)
 				{
@@ -147,7 +147,7 @@ void UNoiseVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 
 					if (AddVoxel)
 					{
-						AddVoxelAtIndex(chunk, index, voxel);
+						ChangeKnownVoxelAtIndex(chunk, index, voxel);
 					}
 				}
 			}

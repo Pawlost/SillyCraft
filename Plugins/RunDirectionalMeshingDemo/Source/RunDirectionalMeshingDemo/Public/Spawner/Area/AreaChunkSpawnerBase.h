@@ -4,6 +4,7 @@
 #include "Mesher/MeshingStructs/GridDirectionToFace.h"
 #include "AreaChunkSpawnerBase.generated.h"
 
+class AChunkRmcActor;
 //TODO: add forward declarations
 UCLASS(Abstract)
 class RUNDIRECTIONALMESHINGDEMO_API AAreaChunkSpawnerBase : public AChunkSpawnerBase
@@ -21,25 +22,25 @@ public:
 	                                const FName& VoxelId) override;
 
 protected:
-	TMap<FIntVector, TSharedPtr<FChunkStruct>> ChunkGrid;
+	TMap<FIntVector, TSharedPtr<FChunk>> ChunkGrid;
 	bool ShowChunkBorders = false;
 
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	TQueue<TSharedPtr<FChunkStruct>> DespawnedChunks;
+	TQueue<TSharedPtr<FChunk>> DespawnedChunks;
 	TQueue<TWeakObjectPtr<AChunkRmcActor>, EQueueMode::Mpsc> UnusedActors;
 
 	virtual void GenerateArea()
 	{
 	}
 
-	void GenerateChunkMesh(FChunkFaceParams& chunkParams, const FIntVector& chunkGridPosition);
+	void GenerateChunkMesh(FMesherVariables& chunkParams, const FIntVector& chunkGridPosition);
 	void SpawnChunk(const FIntVector& chunkGridPosition, TSharedFuture<void>* asyncExecution = nullptr);
 	virtual void SpawnChunks() override;
 
 private:
-	void AddChunkFromGrid(FChunkFaceParams& params, const FGridDirectionToFace& faceDirection);
+	void AddChunkFromGrid(FMesherVariables& params, const FGridDirectionToFace& faceDirection);
 
 	TSharedFuture<void> EditHandle;
 	FCriticalSection Mutex;

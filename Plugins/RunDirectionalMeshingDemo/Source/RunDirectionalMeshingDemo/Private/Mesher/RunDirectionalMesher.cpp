@@ -18,7 +18,7 @@ const URunDirectionalMesher::FNormalsAndTangents URunDirectionalMesher::FaceNorm
 
 void URunDirectionalMesher::UpdateAllFacesParams()
 {
-	auto chunkLenght = VoxelGenerator->GetVoxelDimensionCount();
+	auto chunkLenght = VoxelGenerator->GetVoxelCountPerChunkDimension();
 	//Axis X
 	UpdateFaceParams(FrontFaceTemplate, FIntVector(-1, 0, 0),
 	                 FIntVector(chunkLenght - 1, 0, 0),
@@ -51,12 +51,12 @@ void URunDirectionalMesher::UpdateFaceParams(FNaiveMeshingData& face, FIntVector
                                         FIntVector chunkBorderIndexVector,
                                         FIntVector previousVoxelIndexVector) const
 {
-	face.ForwardVoxelIndex = VoxelGenerator->GetVoxelIndex(forwardVoxelIndexVector);
-	face.PreviousVoxelIndex = VoxelGenerator->GetVoxelIndex(previousVoxelIndexVector);
-	face.ChunkBorderIndex = VoxelGenerator->GetVoxelIndex(chunkBorderIndexVector);
+	face.ForwardVoxelIndex = VoxelGenerator->CalculateVoxelIndex(forwardVoxelIndexVector);
+	face.PreviousVoxelIndex = VoxelGenerator->CalculateVoxelIndex(previousVoxelIndexVector);
+	face.ChunkBorderIndex = VoxelGenerator->CalculateVoxelIndex(chunkBorderIndexVector);
 }
 
-void URunDirectionalMesher::GenerateMesh(FChunkFaceParams& faceParams)
+void URunDirectionalMesher::GenerateMesh(FMesherVariables& faceParams)
 {
 	faceParams.ChunkParams.OriginalChunk->HasMesh = false;
 	if (faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable.IsEmpty())
@@ -85,13 +85,13 @@ void URunDirectionalMesher::VoxelGeneratorSet()
 	UpdateAllFacesParams();
 }
 
-void URunDirectionalMesher::InitFaceContainers(FChunkFaceParams& faceParams) const
+void URunDirectionalMesher::InitFaceContainers(FMesherVariables& faceParams) const
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh generation intialization")
 #endif
 
-	int32 chunkPlane = VoxelGenerator->GetVoxel3DimensionCount();
+	int32 chunkPlane = VoxelGenerator->GetVoxelCountPerChunk();
 	faceParams.VoxelIdToLocalVoxelMap.Reserve(faceParams.ChunkParams.OriginalChunk->ChunkVoxelTypeTable.Num());
 	faceParams.VoxelIdToLocalVoxelMap.Empty();
 
@@ -123,22 +123,22 @@ void URunDirectionalMesher::InitFaceContainers(FChunkFaceParams& faceParams) con
 	}
 }
 
-void URunDirectionalMesher::FaceGeneration(FChunkFaceParams& faceParams) const
+void URunDirectionalMesher::FaceGeneration(FMesherVariables& faceParams) const
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Run lenght meshing generation")
 #endif
 
-	auto chunkLenght = VoxelGenerator->GetVoxelDimensionCount();
+	auto chunkLenght = VoxelGenerator->GetVoxelCountPerChunkDimension();
 	// culling and run meshing
 	for (int32 x = 0; x < chunkLenght; x++)
 	{
 		auto minBorder = IsMinBorder(x);
 		auto maxBorder = IsMaxBorder(x);
 
-		auto xAxisIndex = VoxelGenerator->GetVoxelIndex(x, 0, 0);
-		auto yAxisIndex = VoxelGenerator->GetVoxelIndex(0, x, 0);
-		auto zAxisIndex = VoxelGenerator->GetVoxelIndex(0, 0, x);
+		auto xAxisIndex = VoxelGenerator->CalculateVoxelIndex(x, 0, 0);
+		auto yAxisIndex = VoxelGenerator->CalculateVoxelIndex(0, x, 0);
+		auto zAxisIndex = VoxelGenerator->CalculateVoxelIndex(0, 0, x);
 
 		for (int32 z = 0; z < chunkLenght; z++)
 		{
@@ -158,9 +158,9 @@ void URunDirectionalMesher::FaceGeneration(FChunkFaceParams& faceParams) const
 void URunDirectionalMesher::IncrementRun(int x, int y, int z, int32 axisVoxelIndex, bool isMinBorder, bool isMaxBorder,
                                     const FNaiveMeshingData& faceTemplate,
                                     const FNaiveMeshingData& reversedFaceTemplate,
-                                    FChunkFaceParams& chunkParams) const
+                                    FMesherVariables& chunkParams) const
 {
-	auto index = VoxelGenerator->GetVoxelIndex(x, y, z);
+	auto index = VoxelGenerator->CalculateVoxelIndex(x, y, z);
 	auto voxel = chunkParams.ChunkParams.OriginalChunk->Voxels[index];
 
 	if (!voxel.IsEmptyVoxel())
@@ -248,7 +248,7 @@ bool URunDirectionalMesher::IsVoxelVisible(const FVoxelIndexParams& faceData, co
 	return false;
 }
 
-void URunDirectionalMesher::DirectionalGreedyMeshing(const FChunkFaceParams& faceParams)
+void URunDirectionalMesher::DirectionalGreedyMeshing(const FMesherVariables& faceParams)
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Run directional greedy mesh generation")
@@ -288,7 +288,7 @@ void URunDirectionalMesher::DirectionalGreedyMeshing(const FChunkFaceParams& fac
 	}
 }
 
-void URunDirectionalMesher::GenerateMeshFromFaces(const FChunkFaceParams& faceParams) const
+void URunDirectionalMesher::GenerateMeshFromFaces(const FMesherVariables& faceParams) const
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh stream generation")
@@ -387,7 +387,7 @@ bool URunDirectionalMesher::IsMinBorder(const int x)
 
 bool URunDirectionalMesher::IsMaxBorder(const int x) const
 {
-	return x == VoxelGenerator->GetVoxelDimensionCount() - 1;
+	return x == VoxelGenerator->GetVoxelCountPerChunkDimension() - 1;
 }
 
 void URunDirectionalMesher::GenerateActorMesh(const TMap<uint32, uint16>& voxelIdsInMesh,
@@ -403,7 +403,7 @@ void URunDirectionalMesher::GenerateActorMesh(const TMap<uint32, uint16>& voxelI
 	//Spawn actor
 	auto chunk = ChunkParams->OriginalChunk;
 	TWeakObjectPtr<AChunkRmcActor> ActorPtr = chunk->ChunkMeshActor;
-	auto spawnLocation = FVector(chunk->GridPosition) * VoxelGenerator->GetChunkSize();
+	auto spawnLocation = FVector(chunk->GridPosition) * VoxelGenerator->GetChunkAxisSize();
 
 	FAttachmentTransformRules ActorAttachmentRules = FAttachmentTransformRules::KeepWorldTransform;
 	if (!ChunkParams->WorldTransform)

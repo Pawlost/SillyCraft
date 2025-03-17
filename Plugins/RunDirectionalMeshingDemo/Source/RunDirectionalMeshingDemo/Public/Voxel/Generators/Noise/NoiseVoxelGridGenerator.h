@@ -13,7 +13,7 @@ class RUNDIRECTIONALMESHINGDEMO_API UNoiseVoxelGridGenerator : public UVoxelGene
 
 public:
 	int32 GetVoxelTypeCount() const;
-	virtual void GenerateVoxels(FChunkStruct& chunk) override;
+	virtual void GenerateVoxels(FChunk& chunk) override;
 	virtual double GetHighestElevationAtLocation(const FVector& location) override;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Voxels")

@@ -4,6 +4,7 @@
 #include "RealTimeChunkSpawnerBase.generated.h"
 
 //TODO: add forward declarations
+//TODO: rename to despawn
 UCLASS(Abstract)
 class RUNDIRECTIONALMESHINGDEMO_API ARealTimeChunkSpawnerBase : public AAreaChunkSpawnerBase
 {

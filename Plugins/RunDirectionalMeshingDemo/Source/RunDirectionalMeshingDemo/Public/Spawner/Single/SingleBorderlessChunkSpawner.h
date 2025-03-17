@@ -15,6 +15,6 @@ protected:
 	virtual void StartMeshing() override;
 	
 private:
-	TSharedPtr<FChunkStruct> SideChunk[FACE_SIDE_COUNT];
-	void SpawnSideChunk(FChunkFaceParams& chunkParams, const FGridDirectionToFace& faceDirection);
+	TSharedPtr<FChunk> SideChunk[FACE_SIDE_COUNT];
+	void SpawnSideChunk(FMesherVariables& chunkParams, const FGridDirectionToFace& faceDirection);
 };

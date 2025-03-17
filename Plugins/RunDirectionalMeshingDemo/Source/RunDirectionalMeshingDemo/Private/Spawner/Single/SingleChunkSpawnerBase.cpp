@@ -9,7 +9,7 @@ void ASingleChunkSpawnerBase::BeginPlay()
 		SingleChunkGridPosition = WorldPositionToChunkGridPosition(GetActorLocation());;
 	}
 	
-	SingleChunk = MakeShared<FChunkStruct>();
+	SingleChunk = MakeShared<FChunk>();
 
 	AsyncTask(ENamedThreads::AnyThread, [this]()
 	{
@@ -26,6 +26,6 @@ void ASingleChunkSpawnerBase::ChangeVoxelInChunk(const FIntVector& chunkGridPosi
 		return;
 	}
 	
-	VoxelGenerator->ChangeVoxelIdInChunk(SingleChunk, voxelPosition, VoxelId);
+	VoxelGenerator->ChangeUnknownVoxelIdInChunk(SingleChunk, voxelPosition, VoxelId);
 	StartMeshing();
 }

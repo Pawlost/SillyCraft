@@ -3,7 +3,7 @@
 
 #include "Mesher/ChunkSpawnerBase.h"
 
-#include "Mesher/MeshingStructs/ChunkFaceParams.h"
+#include "Mesher/MeshingStructs/MesherVariables.h"
 
 void AChunkSpawnerBase::BeginPlay()
 {
@@ -59,20 +59,20 @@ void AChunkSpawnerBase::ChangeVoxelAtHit(const FVector& hitPosition, const FVect
 	auto chunkGridPosition = WorldPositionToChunkGridPosition(position);
 	
 	auto voxelPosition = FIntVector(
-		(position - FVector(chunkGridPosition * VoxelGenerator->GetChunkSize())) / VoxelGenerator
+		(position - FVector(chunkGridPosition * VoxelGenerator->GetChunkAxisSize())) / VoxelGenerator
 		->GetVoxelSize());
 
 	ChangeVoxelInChunk(chunkGridPosition, voxelPosition, VoxelName);
 }
 
-void AChunkSpawnerBase::AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirection direction,
-                                     const TSharedPtr<FChunkStruct>& chunk)
+void AChunkSpawnerBase::AddSideChunk(FMesherVariables& chunkParams, EFaceDirection direction,
+                                     const TSharedPtr<FChunk>& chunk)
 {
 	auto directionIndex = static_cast<uint8>(direction);
 	chunkParams.ChunkParams.SideChunks[directionIndex] = chunk.IsValid() ? chunk : nullptr;
 }
 
-void AChunkSpawnerBase::InitChunk(TSharedPtr<FChunkStruct>& chunk,
+void AChunkSpawnerBase::InitChunk(TSharedPtr<FChunk>& chunk,
                                   const FIntVector& gridPosition, TSharedFuture<void>* asyncExecution) const
 {
 	//Actor must always be respawned because of stationary mesh
@@ -81,7 +81,7 @@ void AChunkSpawnerBase::InitChunk(TSharedPtr<FChunkStruct>& chunk,
 
 	if (!chunk->IsInitialized)
 	{
-		chunk->Voxels.SetNum(VoxelGenerator->GetVoxel3DimensionCount());
+		chunk->Voxels.SetNum(VoxelGenerator->GetVoxelCountPerChunk());
 	}
 
 	chunk->IsInitialized = true;
@@ -100,7 +100,7 @@ void AChunkSpawnerBase::InitChunk(TSharedPtr<FChunkStruct>& chunk,
 
 FIntVector AChunkSpawnerBase::WorldPositionToChunkGridPosition(const FVector& worldPosition) const
 {
-	auto location = worldPosition / VoxelGenerator->GetChunkSize();
+	auto location = worldPosition / VoxelGenerator->GetChunkAxisSize();
 	return FIntVector(FMath::FloorToInt32(location.X), FMath::FloorToInt32(location.Y),
 	                  FMath::FloorToInt32(location.Z));
 }

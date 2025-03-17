@@ -32,11 +32,11 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 	
-	static void AddSideChunk(FChunkFaceParams& chunkParams, EFaceDirection direction,
-	                         const TSharedPtr<FChunkStruct>& chunk);
+	static void AddSideChunk(FMesherVariables& chunkParams, EFaceDirection direction,
+	                         const TSharedPtr<FChunk>& chunk);
 
 	
-	void InitChunk(TSharedPtr<FChunkStruct>& chunk,
+	void InitChunk(TSharedPtr<FChunk>& chunk,
 								  const FIntVector& gridPosition, TSharedFuture<void>* asyncExecution = nullptr) const;
 	
 	virtual void SpawnChunks()

@@ -24,7 +24,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	
-	TSharedPtr<FChunkStruct> SingleChunk;
+	TSharedPtr<FChunk> SingleChunk;
 	
 	virtual void StartMeshing() {};
 };

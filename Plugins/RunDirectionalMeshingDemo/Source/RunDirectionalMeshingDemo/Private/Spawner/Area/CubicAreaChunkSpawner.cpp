@@ -2,7 +2,7 @@
 
 #include "Spawner/Area/CubicAreaChunkSpawner.h"
 
-#include "Mesher/MeshingStructs/ChunkFaceParams.h"
+#include "Mesher/MeshingStructs/MesherVariables.h"
 
 void ACubicAreaChunkSpawner::GenerateArea()
 {
@@ -21,7 +21,7 @@ void ACubicAreaChunkSpawner::GenerateArea()
 		}
 	}
 
-	FChunkFaceParams chunkParams;
+	FMesherVariables chunkParams;
 	for (int32 x = minPosition.X; x < maxPosition.X; x++)
 	{
 		for (int32 y = minPosition.Y; y < maxPosition.Y; y++)

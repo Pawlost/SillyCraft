@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include "FaceDirection.h"
 #include "Chunk/ChunkFace.h"
-#include "Chunk/ChunkStruct.h"
-#include "ChunkFaceParams.generated.h"
+#include "Chunk/Chunk.h"
+#include "MesherVariables.generated.h"
 
 class AChunkSpawnerBase;
 
@@ -11,8 +11,8 @@ struct RUNDIRECTIONALMESHINGDEMO_API FChunkParams
 {
 	GENERATED_BODY()
 
-	TSharedPtr<FChunkStruct> SideChunks[FACE_SIDE_COUNT];
-	TSharedPtr<FChunkStruct> OriginalChunk;
+	TSharedPtr<FChunk> SideChunks[FACE_SIDE_COUNT];
+	TSharedPtr<FChunk> OriginalChunk;
 
 	UPROPERTY()
 	TWeakObjectPtr<AChunkSpawnerBase> SpawnerPtr = nullptr;
@@ -23,7 +23,7 @@ struct RUNDIRECTIONALMESHINGDEMO_API FChunkParams
 };
 
 USTRUCT()
-struct RUNDIRECTIONALMESHINGDEMO_API FChunkFaceParams
+struct RUNDIRECTIONALMESHINGDEMO_API FMesherVariables
 {
 	GENERATED_BODY()
 

@@ -2,10 +2,10 @@
 #include "CoreMinimal.h"
 #include "ChunkRMCActor.h"
 #include "RunDirectionalMeshingDemo/Public/Voxel/Voxel.h"
-#include "ChunkStruct.generated.h"
+#include "Chunk.generated.h"
 
 USTRUCT()
-struct RUNDIRECTIONALMESHINGDEMO_API FChunkStruct
+struct RUNDIRECTIONALMESHINGDEMO_API FChunk
 {
 	GENERATED_BODY()
 

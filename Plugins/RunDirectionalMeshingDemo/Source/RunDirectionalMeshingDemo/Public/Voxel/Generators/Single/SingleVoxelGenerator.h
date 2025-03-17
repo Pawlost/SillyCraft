@@ -11,5 +11,5 @@ class RUNDIRECTIONALMESHINGDEMO_API USingleVoxelGenerator : public USingleVoxelG
 	GENERATED_BODY()
 
 public:
-	virtual void GenerateVoxels(FChunkStruct& chunk) override;
+	virtual void GenerateVoxels(FChunk& chunk) override;
 };
