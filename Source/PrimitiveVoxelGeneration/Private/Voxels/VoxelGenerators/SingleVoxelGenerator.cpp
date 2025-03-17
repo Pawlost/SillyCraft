@@ -1,5 +1,5 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
-#include "Voxels/VoxelGenerators/SingleVoxelGenerator.h"
+#include "Voxels/Voxels/Generators/SingleVoxelGenerator.h"
 
 void USingleVoxelGenerator::GenerateVoxels(FChunkStruct& chunk)
 {

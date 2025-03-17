@@ -12,8 +12,9 @@ public class PrimitiveVoxelGeneration : ModuleRules
                 "Core",
                 "ProceduralMeshComponent",
                 "RealtimeMeshComponent",
+                "FastNoise",
                 "FastNoiseGenerator",
-                "FastNoise"
+                "RunDirectionalMeshingDemo"
             }
         );
 
@@ -23,7 +24,7 @@ public class PrimitiveVoxelGeneration : ModuleRules
                 "CoreUObject",
                 "Engine",
                 "Slate",
-                "SlateCore"
+                "SlateCore",
             }
         );
     }

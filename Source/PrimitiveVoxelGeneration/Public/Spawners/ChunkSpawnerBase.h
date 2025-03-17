@@ -4,6 +4,7 @@
 #include "Meshers/MesherBase.h"
 #include "Chunks/ChunkStruct.h"
 #include "Meshers/MeshingStructs/FaceDirection.h"
+#include "Voxels/Voxels/Generators/VoxelGeneratorBase.h"
 #include "ChunkSpawnerBase.generated.h"
 
 //TODO: add forward declarations

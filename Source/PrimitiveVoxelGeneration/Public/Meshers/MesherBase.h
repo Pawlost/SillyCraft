@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 #pragma once
 #include "CoreMinimal.h"
-#include "Voxels/VoxelGenerators/VoxelGeneratorBase.h"
+#include "Voxels/Voxels/Generators/VoxelGeneratorBase.h"
 #include "MesherBase.generated.h"
 //TODO: add forward declarations
 

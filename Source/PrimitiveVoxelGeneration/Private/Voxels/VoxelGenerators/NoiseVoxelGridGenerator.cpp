@@ -1,5 +1,5 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
-#include "Voxels/VoxelGenerators/NoiseVoxelGridGenerator.h"
+#include "Voxels/Voxels/Generators/NoiseVoxelGridGenerator.h"
 
 #include "FastNoiseWrapper.h"
 #include "Voxels/Voxel.h"

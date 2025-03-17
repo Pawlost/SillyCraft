@@ -1,6 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Voxels/VoxelGenerators/VoxelGeneratorBase.h"
+#include "Voxels/Voxels/Generators/VoxelGeneratorBase.h"
+#include "FastNoiseGenerator.h"
 #include "Meshers/MesherBase.h"
 
 void UVoxelGeneratorBase::BeginPlay()

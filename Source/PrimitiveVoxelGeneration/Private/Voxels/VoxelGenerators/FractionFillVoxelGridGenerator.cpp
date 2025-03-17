@@ -1,5 +1,5 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
-#include "Voxels/VoxelGenerators/FractionFillVoxelGridGenerator.h"
+#include "Voxels/Voxels/Generators/FractionFillVoxelGridGenerator.h"
 
 void UFractionFillVoxelGridGenerator::GenerateVoxels(FChunkStruct& chunk)
 {

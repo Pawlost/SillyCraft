@@ -1,6 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Voxels/VoxelGenerators/SingleVoxelGeneratorBase.h"
+#include "Voxels/Voxels/Generators/SingleVoxelGeneratorBase.h"
 
 void USingleVoxelGeneratorBase::BeginPlay()
 {
