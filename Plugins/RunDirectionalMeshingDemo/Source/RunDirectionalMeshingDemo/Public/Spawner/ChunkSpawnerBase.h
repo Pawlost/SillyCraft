@@ -19,7 +19,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Chunk")
 	bool UseWorldCenter = false;
-
+	
+	UPROPERTY(VisibleAnywhere)
+	FIntVector CenterGridPosition;
+	
 	UFUNCTION(BlueprintCallable)
 	double GetHighestElevationAtLocation(const FVector& Location) const;
 
@@ -47,8 +50,6 @@ protected:
 	TObjectPtr<UVoxelGeneratorBase> VoxelGenerator;
 
 	FIntVector WorldPositionToChunkGridPosition(const FVector& WorldPosition) const;
-
-	FIntVector CenterGridPosition;
 	
 	// Wait for all futures
 	static void WaitForAllTasks(TArray<TSharedFuture<void>>& Tasks);
