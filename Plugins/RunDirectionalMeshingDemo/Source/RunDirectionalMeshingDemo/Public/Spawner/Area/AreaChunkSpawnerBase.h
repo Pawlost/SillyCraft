@@ -12,7 +12,7 @@ class RUNDIRECTIONALMESHINGDEMO_API AAreaChunkSpawnerBase : public AChunkSpawner
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,  Category = "Chunk")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Chunk")
 	int32 SpawnZone = 2;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Chunk")
@@ -28,11 +28,11 @@ protected:
 
 	TQueue<TWeakObjectPtr<AChunkRMCActor>, EQueueMode::Mpsc> UnusedActors;
 
-	virtual void GenerateArea() PURE_VIRTUAL(AAreaChunkSpawnerBase::GenerateArea) 
+	virtual void GenerateArea() PURE_VIRTUAL(AAreaChunkSpawnerBase::GenerateArea)
 
 	void GenerateChunkMesh(FMesherVariables& MesherVars, const FIntVector& ChunkGridPosition);
 	virtual void SpawnChunk(const FIntVector& ChunkGridPosition, TSharedFuture<void>* OutAsyncExecution = nullptr);
-	
+
 	virtual void SpawnChunks() override;
 
 private:

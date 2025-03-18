@@ -23,7 +23,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(VisibleAnywhere, Category = "Voxels")
+	UPROPERTY(VisibleAnywhere, Category = "PrivateGenerators")
 	TArray<FNoiseSurfaceGenerator> SurfaceGenerators;
 
 private:

@@ -32,7 +32,7 @@ void URunDirectionalMesher::GenerateMesh(FMesherVariables& MeshVars)
 	GenerateMeshFromFaces(MeshVars);
 }
 
-void URunDirectionalMesher::InitFaceContainers(FMesherVariables& MeshVars)
+void URunDirectionalMesher::InitFaceContainers(FMesherVariables& MeshVars) const
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh generation intialization")
@@ -68,7 +68,7 @@ void URunDirectionalMesher::InitFaceContainers(FMesherVariables& MeshVars)
 			}
 			
 			// Preallocate memory needed for meshing
-			const uint32 Count = *VoxelTable.Find(Voxel.Value);
+			const uint32 Count = VoxelGenerator->GetVoxelCountPerChunk();
 			FaceArray->Reserve(Count);
 		}
 	}
@@ -381,7 +381,7 @@ void URunDirectionalMesher::GenerateActorMesh(const TMap<uint32, uint16>& LocalV
 	const auto SpawnLocation = FVector(Chunk->GridPosition) * VoxelGenerator->GetChunkAxisSize();
 
 	FAttachmentTransformRules ActorAttachmentRules = FAttachmentTransformRules::KeepWorldTransform;
-	if (!ChunkParams->LocalTransform)
+	if (!ChunkParams->WorldTransform)
 	{
 		ActorAttachmentRules = FAttachmentTransformRules::KeepRelativeTransform;
 	}
@@ -407,7 +407,7 @@ void URunDirectionalMesher::GenerateActorMesh(const TMap<uint32, uint16>& LocalV
 		}
 		
 		// If actor exists, ensure correct location
-		if (ChunkParams->LocalTransform)
+		if (!ChunkParams->WorldTransform)
 		{
 			ActorPtr->SetActorRelativeLocation(SpawnLocation);
 		}

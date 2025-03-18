@@ -17,7 +17,7 @@ struct RUNDIRECTIONALMESHINGDEMO_API FChunkParams
 	UPROPERTY()
 	TWeakObjectPtr<AChunkSpawnerBase> SpawnerPtr = nullptr;
 
-	bool LocalTransform = false;
+	bool WorldTransform = false;
 	bool ShowBorders = false;
 	bool ExecutedOnMainThread = false;
 };

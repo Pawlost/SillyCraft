@@ -30,10 +30,12 @@ void ASingleChunkSpawnerBase::ChangeVoxelInChunk(const FIntVector& ChunkGridPosi
 		return;
 	}
 
-	// Modify voxel at hit position
-	VoxelGenerator->ChangeUnknownVoxelIdInChunk(SingleChunk, VoxelPosition, VoxelId);
-	AsyncTask(ENamedThreads::BackgroundThreadPriority, [this]()
+	AsyncTask(ENamedThreads::BackgroundThreadPriority, [this, VoxelPosition, VoxelId]()
 	{
+		FScopeLock Lock(&CritSection);
+		
+		// Modify voxel at hit position
+		VoxelGenerator->ChangeUnknownVoxelIdInChunk(SingleChunk, VoxelPosition, VoxelId);
 		StartMeshing();
 	});
 }

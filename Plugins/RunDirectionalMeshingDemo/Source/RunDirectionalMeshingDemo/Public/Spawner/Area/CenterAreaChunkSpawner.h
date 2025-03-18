@@ -9,7 +9,7 @@ class RUNDIRECTIONALMESHINGDEMO_API ACenterAreaChunkSpawner : public ADespawnChu
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,  Category = "Chunk")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category = "Chunk")
 	int32 MeshZone = 2;
 	
 protected:

@@ -13,12 +13,12 @@ class RUNDIRECTIONALMESHINGDEMO_API AChunkSpawnerBase : public AActor
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(AllowAbstract="false", BlueprintBaseOnly), NoClear,
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowAbstract="false", BlueprintBaseOnly), NoClear,
 		Category="Chunk")
 	TSubclassOf<UVoxelGeneratorBase> VoxelGeneratorBlueprint = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Chunk")
-	bool LocalChunkTransform = false;
+	bool UseWorldCenter = false;
 
 	UFUNCTION(BlueprintCallable)
 	double GetHighestElevationAtLocation(const FVector& Location) const;

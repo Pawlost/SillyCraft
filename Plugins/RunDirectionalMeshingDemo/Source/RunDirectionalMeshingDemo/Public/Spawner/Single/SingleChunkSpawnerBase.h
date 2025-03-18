@@ -10,7 +10,7 @@ class RUNDIRECTIONALMESHINGDEMO_API ASingleChunkSpawnerBase : public AChunkSpawn
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Chunk")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
 	FIntVector SingleChunkGridPosition;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Chunk")
@@ -24,4 +24,7 @@ protected:
 	virtual void StartMeshing() PURE_VIRTUAL(ASingleChunkSpawnerBase::StartMeshing)
 	
 	TSharedPtr<FChunk> SingleChunk;
+
+private:
+	FCriticalSection CritSection;
 };

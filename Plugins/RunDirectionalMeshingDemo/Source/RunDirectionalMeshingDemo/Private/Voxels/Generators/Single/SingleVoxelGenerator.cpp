@@ -8,4 +8,5 @@ void USingleVoxelGenerator::GenerateVoxels(FChunk& Chunk)
 	const auto VoxelGridDensity = GetVoxelCountPerChunk();
 
 	Chunk.VoxelGrid.Init(VoxelFillIndex, VoxelGridDensity);
+	Chunk.ChunkVoxelIdTable.Add(VoxelFillIndex.VoxelId, VoxelGridDensity);
 }

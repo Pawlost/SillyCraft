@@ -12,16 +12,16 @@ class RUNDIRECTIONALMESHINGDEMO_API ADespawnChunkSpawnerBase : public AAreaChunk
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Chunk")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Chunk")
 	int32 DespawnZone = 2;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Chunk")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Chunk")
 	int32 ChunksAboveSpawner = 0;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Chunk")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Chunk")
 	int32 ChunksBelowSpawner = 0;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Chunk")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Chunk")
 	int32 BufferZone = 1;
 	
 	UFUNCTION(BlueprintCallable)

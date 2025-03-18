@@ -25,11 +25,11 @@ public:
 		meta=(ToolTip=
 			"The number of voxels in a single dimension (X, Y, or Z) of the chunk. This value represents the count of voxels along one axis of the chunk, not the total number of voxels in the entire chunk."
 		, MinClamp="0"))
-	int64 VoxelCountPerChunkDimension = 0;
+	int64 VoxelCountPerChunkDimension = 32;
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category ="Voxels",
-		meta=(ToolTip="Size of a single voxel in world coordinates."))
-	double VoxelSize = 0;
+		meta=(ToolTip="Size of a single voxel in world coordinates.", MinClamp="0"))
+	double VoxelSize = 20;
 
 	void ChangeKnownVoxelAtIndex(FChunk& Chunk, const uint32& Index, const FVoxel& Voxel);
 

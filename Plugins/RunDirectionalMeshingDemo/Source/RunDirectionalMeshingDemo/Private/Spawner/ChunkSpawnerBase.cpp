@@ -48,7 +48,7 @@ void AChunkSpawnerBase::ChangeVoxelAtHit(const FVector& HitPosition, const FVect
 	// Adjust position based on normal
 	auto Position = HitPosition - AdjustedNormal * VoxelGenerator->GetVoxelSize();
 	
-	if (LocalChunkTransform)
+	if (!UseWorldCenter)
 	{
 		// Transform hit position to local coordinates, if they are enabled
 		Position -= GetActorLocation();	

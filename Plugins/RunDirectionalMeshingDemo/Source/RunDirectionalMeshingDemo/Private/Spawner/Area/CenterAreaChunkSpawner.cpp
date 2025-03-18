@@ -16,7 +16,7 @@ void ACenterAreaChunkSpawner::GenerateArea()
 	TArray<TSharedFuture<void>> Tasks;
 	Tasks.Reserve(LowerThreadLimit);
 
-	TTuple<FFaceToDirection, int32> Directions[6] = {
+	TTuple<FFaceToDirection, int32> Directions[CHUNK_FACE_COUNT] = {
 		TTuple<FFaceToDirection, int32>(FFaceToDirection::FrontDirection, SpawnZone),
 		TTuple<FFaceToDirection, int32>(FFaceToDirection::RightDirection, SpawnZone),
 		TTuple<FFaceToDirection, int32>(FFaceToDirection::LeftDirection, SpawnZone),

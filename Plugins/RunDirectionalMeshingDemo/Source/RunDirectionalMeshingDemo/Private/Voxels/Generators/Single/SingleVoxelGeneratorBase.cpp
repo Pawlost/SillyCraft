@@ -16,7 +16,7 @@ TTuple<FName, FVoxelType> USingleVoxelGeneratorBase::GetVoxelTypeById(const int3
 	// Explore voxel table attached to row handle
 	const auto VoxelTable = VoxelTypeHandle.DataTable;
 	auto RowNames = VoxelTable->GetRowNames();
-	checkf(!RowNames.IsValidIndex(VoxelId), TEXT("Voxel Id out of bounds"));
+	checkf(RowNames.IsValidIndex(VoxelId), TEXT("Voxel Id out of bounds"));
 	// Voxel index should be created from the same table
 	auto RowName = RowNames[VoxelId];
 	return TTuple<FName, FVoxelType>(

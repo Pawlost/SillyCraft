@@ -12,31 +12,31 @@ void AAreaChunkSpawnerBase::ChangeVoxelInChunk(const FIntVector& ChunkGridPositi
 
 	if (ChunkGrid.Contains(ChunkGridPosition))
 	{
-		auto foundChunk = ChunkGrid.Find(ChunkGridPosition);
+		const auto FoundChunk = ChunkGrid.Find(ChunkGridPosition);
 
-		if (foundChunk == nullptr || !foundChunk->IsValid())
+		if (FoundChunk == nullptr || !FoundChunk->IsValid())
 		{
 			return;
 		}
 
-		auto chunk = *foundChunk;
+		auto Chunk = *FoundChunk;
 
-		VoxelGenerator->ChangeUnknownVoxelIdInChunk(chunk, VoxelPosition, VoxelId);
+		VoxelGenerator->ChangeUnknownVoxelIdInChunk(Chunk, VoxelPosition, VoxelId);
 
-		EditHandle = Async(EAsyncExecution::LargeThreadPool, [this, chunk]()
+		EditHandle = Async(EAsyncExecution::LargeThreadPool, [this, Chunk]()
 		{
-			FMesherVariables chunkParams;
-			chunk->bIsActive = false;
-			GenerateChunkMesh(chunkParams, chunk->GridPosition);
-			FMesherVariables sideParams;
+			FMesherVariables MesherVars;
+			Chunk->bIsActive = false;
+			GenerateChunkMesh(MesherVars, Chunk->GridPosition);
+			FMesherVariables SideMesherVars;
 
 			for (int32 s = 0; s < CHUNK_FACE_COUNT; s++)
 			{
-				auto sideChunk = chunkParams.ChunkParams.SideChunks[s];
-				if (sideChunk.IsValid())
+				auto SideChunk = MesherVars.ChunkParams.SideChunks[s];
+				if (SideChunk.IsValid())
 				{
-					sideChunk->bIsActive = false;
-					GenerateChunkMesh(sideParams, sideChunk->GridPosition);
+					SideChunk->bIsActive = false;
+					GenerateChunkMesh(SideMesherVars, SideChunk->GridPosition);
 				}
 			}
 		}).Share();
@@ -48,7 +48,7 @@ void AAreaChunkSpawnerBase::BeginPlay()
 	Super::BeginPlay();
 	checkf(VoxelGenerator, TEXT("Voxel generator must set"));
 	
-	if (LocalChunkTransform)
+	if (!UseWorldCenter)
 	{
 		CenterGridPosition = WorldPositionToChunkGridPosition(GetTransform().GetLocation());
 	}
@@ -57,9 +57,9 @@ void AAreaChunkSpawnerBase::BeginPlay()
 	{
 		//Spawn center chunk
 		SpawnChunk(CenterGridPosition);
-		FMesherVariables faceParams;
-		faceParams.ChunkParams.ExecutedOnMainThread = true;
-		GenerateChunkMesh(faceParams, CenterGridPosition);
+		FMesherVariables MesherVars;
+		MesherVars.ChunkParams.ExecutedOnMainThread = true;
+		GenerateChunkMesh(MesherVars, CenterGridPosition);
 	}
 
 	SpawnChunks();
@@ -77,17 +77,17 @@ void AAreaChunkSpawnerBase::GenerateChunkMesh(FMesherVariables& MesherVars, cons
 		return;
 	}
 
-	TSharedPtr<FChunk>& chunk = *ChunkGrid.Find(ChunkGridPosition);
+	const TSharedPtr<FChunk>& Chunk = *ChunkGrid.Find(ChunkGridPosition);
 
-	if (chunk->bIsActive)
+	if (Chunk->bIsActive)
 	{
 		return;
 	}
 
 	MesherVars.ChunkParams.SpawnerPtr = this;
-	MesherVars.ChunkParams.OriginalChunk = chunk;
+	MesherVars.ChunkParams.OriginalChunk = Chunk;
 	MesherVars.ChunkParams.ShowBorders = ShowChunkBorders;
-	MesherVars.ChunkParams.LocalTransform = LocalChunkTransform;
+	MesherVars.ChunkParams.WorldTransform = UseWorldCenter;
 
 	AddChunkFromGrid(MesherVars, FFaceToDirection::TopDirection);
 	AddChunkFromGrid(MesherVars, FFaceToDirection::BottomDirection);
@@ -96,29 +96,30 @@ void AAreaChunkSpawnerBase::GenerateChunkMesh(FMesherVariables& MesherVars, cons
 	AddChunkFromGrid(MesherVars, FFaceToDirection::FrontDirection);
 	AddChunkFromGrid(MesherVars, FFaceToDirection::BackDirection);
 
-	if (chunk->ChunkMeshActor == nullptr)
+	if (Chunk->ChunkMeshActor == nullptr)
 	{
-		UnusedActors.Dequeue(chunk->ChunkMeshActor);
+		UnusedActors.Dequeue(Chunk->ChunkMeshActor);
 	}
 
 	//Mesh could be spawned on a Async Thread similarly to voxel models but it is not done so to showcase real time speed of mesh generation (requirement for bachelor thesis)
 	VoxelGenerator->GenerateMesh(MesherVars);
 
-	if (!chunk->bHasMesh)
+	if (!Chunk->bHasMesh)
 	{
-		UnusedActors.Enqueue(chunk->ChunkMeshActor);
-		chunk->ChunkMeshActor = nullptr;
+		UnusedActors.Enqueue(Chunk->ChunkMeshActor);
+		Chunk->ChunkMeshActor = nullptr;
 	}
 
-	for (auto sideChunk : MesherVars.ChunkParams.SideChunks)
+	for (auto SideChunk : MesherVars.ChunkParams.SideChunks)
 	{
-		if (sideChunk == nullptr || !sideChunk.IsValid())
+		if (SideChunk == nullptr || !SideChunk.IsValid())
 		{
+			// If not all side chunks were available the chunk is not fully active and needs to be remeshed
 			return;
 		}
 	}
 
-	chunk->bIsActive = true;
+	Chunk->bIsActive = true;
 }
 
 void AAreaChunkSpawnerBase::SpawnChunk(const FIntVector& ChunkGridPosition, TSharedFuture<void>* AsyncExecution)

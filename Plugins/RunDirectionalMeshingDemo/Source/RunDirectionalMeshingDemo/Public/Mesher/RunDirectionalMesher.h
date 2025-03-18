@@ -38,7 +38,7 @@ private:
 	                    const int32& AxisVoxelIndex,
 	                    const TSharedPtr<TArray<FChunkFace>>& ChunkFaces, const FChunkParams& ChunkParams);
 
-	static void InitFaceContainers(FMesherVariables& MeshVars);
+	void InitFaceContainers(FMesherVariables& MeshVars) const;
 	void FaceGeneration(FMesherVariables& MeshVars) const;
 	static void DirectionalGreedyMeshing(const FMesherVariables& MeshVars);
 	void GenerateMeshFromFaces(const FMesherVariables& MeshVars) const;

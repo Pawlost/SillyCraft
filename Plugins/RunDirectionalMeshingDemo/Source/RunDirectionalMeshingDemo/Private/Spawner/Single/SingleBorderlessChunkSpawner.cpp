@@ -8,7 +8,7 @@ void ASingleBorderlessChunkSpawner::StartMeshing()
 	FMesherVariables ChunkParams;
 	ChunkParams.ChunkParams.SpawnerPtr = this;
 	ChunkParams.ChunkParams.OriginalChunk = SingleChunk;
-	ChunkParams.ChunkParams.LocalTransform = LocalChunkTransform;
+	ChunkParams.ChunkParams.WorldTransform = UseWorldCenter;
 
 	SpawnSideChunk(ChunkParams, FFaceToDirection::TopDirection);
 	SpawnSideChunk(ChunkParams, FFaceToDirection::BottomDirection);
