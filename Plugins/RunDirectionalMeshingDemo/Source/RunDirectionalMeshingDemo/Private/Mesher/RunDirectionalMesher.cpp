@@ -58,6 +58,7 @@ void URunDirectionalMesher::InitFaceContainers(FMesherVariables& MeshVars) const
 			auto FaceArray = MeshVars.Faces[f][Voxel.Value];
 			if (FaceArray == nullptr || !FaceArray.IsValid())
 			{
+				// In case voxel table is not available this code needs to be rewritten to add local voxels id dynamically during voxel grid traversal
 				FaceArray = MakeShared<TArray<FChunkFace>>();
 				MeshVars.Faces[f][Voxel.Value] = FaceArray;
 			}

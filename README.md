@@ -1,9 +1,33 @@
 # SillyCraft
 ![SillyCraft](./Screenshots/SillCraft.PNG)
 
-## Description
-Unreal Engine Voxel algorithm inspired by Terra created as a part of company project interview. Repurposed as a foundation of my bachelors thesis. Made in Unreal Engine 5.4. Repurposed.
 
+## Table of Contents
+- [Description](#description)
+    - [Project as plugin](#project-as-plugin)
+- [Installation](#installation)
+    - [Prerequisites](#prerequisites)
+    - [Project Setup](#project-setup)
+- [Known Issues (RMC Plugin)](#known-issues-rmc-plugin)
+- [Usage](#usage)
+    - [Data Table](#data-table)
+    - [Voxel Generators](#voxel-generators)
+    - [Chunk Spawners](#chunk-spawners)
+    - [Characters](#characters)
+    - [Scenes](#scenes)
+- [Releases](#releases)
+- [Contribution](#contribution)
+- [License](#license)
+- [Contact](#contact)
+
+## Description
+SillyCraft is a new meshing algorithm demo showcase developed in Unreal Engine 5.4. Originally created as part of a company project interview, it has since been repurposed as the foundation for a bachelor’s thesis.
+
+### Project as plugin
+SillyCraft includes a freely usable and shareable Unreal Engine plugin, located in the Plugins folder.
+To enable plugin content: Content Browser → Settings → Show Plugin Content.
+
+## Installation
 ### Prerequisites
 Windows 11:
 * [Visual Studio Installer](https://visualstudio.microsoft.com/cs/downloads/)
@@ -15,58 +39,80 @@ Windows 11:
     * [Fast Noise Generator Plugin](https://www.fab.com/listings/c1d444fc-54cc-4f11-8a4a-c0c41112a321)
     * [Realtime Mesh - Core](https://www.fab.com/listings/bb2e4fbb-617c-41d3-aac6-e181eddf8b3b)
 
-**Note: Linux environment is not tested**
+Note: Linux environment is not tested
 
-## Installation
+After installing all prerequisites, restart your computer to ensure all dependencies are recognized.
 
-After installing all Prerequisites, restart the computer.
+If .uproject files are not associated with Unreal Engine:
 
-If .uproject files are not associated with unreal engine
-1. Copy `C:\Program Files (x86)\Epic Games\Launcher\Engine\Binaries\Win64\UnrealVersionSelector.exe` to `C:\Program Files\Epic Games\UE_5.4\Engine\Binaries\Win64`
-2. Run `UnrealVersionSelector` in the directory.
-3. Go to the .uproject file
-4. Right click -> open with -> Unreal Engine
+1. Copy `C:\Program Files (x86)\Epic Games\Launcher\Engine\Binaries\Win64\UnrealVersionSelector.exe` to `C:\Program Files\Epic Games\UE_5.4\Engine\Binaries\Win64`.
+2. Run UnrealVersionSelector from the directory.
+3. Navigate to the .uproject file.
+4. Right-click -> Open With -> Unreal Engine.
 
-## Github Project
+### Project Setup
 
-1. Copy project files to a directory
-2. right click uproject -> show more options -> open with unreal engine -> Generate Visual Studio project files
-3. Open solution `.sln` in Rider (or your IDE)
-    1. Wait for rider to process solution files
-    2. Make sure RiderLink plugin was installed
-4. Run the project
-For further details see [Usage](#usage).
+1. Clone or download the repository to a directory of your choice.
+2. Right-click the `.uproject` file -> Show More Options -> Generate Visual Studio project files.
+3. Open the generated `.sln` solution file in **JetBrains Rider** (or your preferred IDE able to run UE projects):
+ 1. Wait for the IDE to process the solution files.
+ 2. Ensure the **RiderLink plugin** is installed.
+4. Build and run the project.
 
-## Project as plugin
+For further details, see [Usage](#usage).
+
+## Known Issue (RMC Plugin)
+When running Unreal Engine in Debug Mode, closing the editor before chunk spawning is complete may trigger a breakpoint in the Realtime Mesh Component (RMC) plugin. This issue does not cause a crash, resume execution to continue.
 
 ## Usage
 ### Data table
-Example voxel types are stored DT_BlockTable. 
-You can create new voxel table from ...
+Example tables can be found in `Plugins/RunDirectionalMeshingDemo/VoxelTypes`.
 
-### Blueprints
-You can make custom terrain/voxel generators 
+* Example voxel definitions are stored in `DT_BlockTable`.
+* To create a new voxel table, use the **VoxelType** row struct.
+* Add new rows, assign materials, and configure properties.
 
-Example voxel generators can be found in
+![VoxelTypeCreation](./Screenshots/VoxelTypeTableCreation.jpg)
 
-Mesher turns voxel grid from voxel generator to mesh.
+### Voxel Generators
+Example voxel generators  can be found in `Plugins/RunDirectionalMeshingDemo/Blueprints/ChunkSpawners/VoxelGenerators`.
 
-For chunk spawner you need to specify voxel generator and which voxel it is using.
+Voxel generators are unspawnable actor components that define how chunks are filled with voxels, set chunk dimensions, and determine voxel size. **Meshers** are algorithms responsible for converting the generated voxel grid into a mesh. Currently, only **RunDirectionalMesher** is supported.
 
-You can make spawning actor that spawns terrain as its moving or you can make independed generator.
+![VoxelGenerator](./Screenshots/VoxelGenerator.jpg)
 
-Example of chunk spawning actor can be found in.
+### Chunk Spawners
+Example tables can be found in `Plugins/RunDirectionalMeshingDemo/Blueprints/ChunkSpawners`.
+
+Chunk spawners determine the number and positions of generated chunks. To configure a chunk spawner:
+1. Assign a voxel generator.
+2. Modify configuration.
+3. Place it in the scene.
+
+![PreloadedSpawner](./Screenshots/PreloadedSpawner.jpg)
+
+
+### Characters
+SillyCraft includes two playable characters with voxel interaction capabilities:
+
+1. BP_VoxelInteractionObserverCharacter -- Enables voxel placement and picking.
+2. BP_VoxelWorldExplorer *(inherits from BP_VoxelInteractionObserverCharacter)* -- Automatically spawns chunks around the player for exploration.
+
+They can be found in `Plugins/RunDirectionalMeshingDemo/Blueprints/Characters`.
 
 ### Scenes
-Example scenes can be found in.
+Example maps showcasing different voxel terrain configurations and chunk spawning techniques can be found in: `Plugins/RunDirectionalMeshingDemo/Maps`.
+
+## Releases
+For a pre-built version of the game, visit the [Releases](https://github.com/Pawlost/SillyCraft/releases) page.
 
 ## Contribution
-This project is not meant for contribution.
+This project is **not** currently open for external contributions. However, it is **free to use and share**.
 
 ## Licence
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Contact
-
 * Email: [mr.p.balusek@gmail.com](mailto:mr.p.balusek@gmail.com)
 * Github: [Pawlost](https://github.com/Pawlost?tab=repositories)
+* LinkedIn: [Pavel Balusek](https://www.linkedin.com/in/pavel-balusek-4211b4197/)

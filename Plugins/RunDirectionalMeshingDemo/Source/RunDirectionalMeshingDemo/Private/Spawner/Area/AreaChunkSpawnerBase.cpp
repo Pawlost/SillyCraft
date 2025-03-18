@@ -47,7 +47,7 @@ void AAreaChunkSpawnerBase::BeginPlay()
 {
 	Super::BeginPlay();
 	checkf(VoxelGenerator, TEXT("Voxel generator must set"));
-	
+
 	if (UseWorldCenter)
 	{
 		CenterGridPosition = WorldPositionToChunkGridPosition(GetTransform().GetLocation());
