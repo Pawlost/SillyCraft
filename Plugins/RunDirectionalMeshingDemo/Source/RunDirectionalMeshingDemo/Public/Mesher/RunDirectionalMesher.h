@@ -6,7 +6,6 @@
 #include "RunDirectionalMesher.generated.h"
 
 struct FChunkParams;
-enum class EFaceDirection;
 
 UCLASS(ClassGroup=(Meshers), Blueprintable)
 class RUNDIRECTIONALMESHINGDEMO_API URunDirectionalMesher : public UMesherBase
@@ -14,7 +13,7 @@ class RUNDIRECTIONALMESHINGDEMO_API URunDirectionalMesher : public UMesherBase
 	GENERATED_BODY()
 
 public:
-	virtual void GenerateMesh(FMesherVariables& faceParams) override;
+	virtual void GenerateMesh(FMesherVariables& MeshVars) override;
 	
 private:
 	struct FVoxelIndexParams
@@ -32,17 +31,17 @@ private:
 
 	void IncrementRun(int X, int Y, int Z, int32 AxisVoxelIndex, bool bIsMinBorder, bool bIsMaxBorder,
 	                  const FMeshingDirections& FaceTemplate, const FMeshingDirections& ReversedFaceTemplate,
-	                  FMesherVariables& MesherVariables) const;
+	                  FMesherVariables& MeshVars) const;
 
 	static void AddFace(const FMeshingDirections& FaceTemplate, bool bIsBorder,
 	                    const int32& Index, const FIntVector& Position, const FVoxel& Voxel,
 	                    const int32& AxisVoxelIndex,
 	                    const TSharedPtr<TArray<FChunkFace>>& ChunkFaces, const FChunkParams& ChunkParams);
 
-	static void InitFaceContainers(FMesherVariables& MesherVariables);
-	void FaceGeneration(FMesherVariables& MesherVariables) const;
-	static void DirectionalGreedyMeshing(const FMesherVariables& MesherVariables);
-	void GenerateMeshFromFaces(const FMesherVariables& MesherVariables) const;
+	static void InitFaceContainers(FMesherVariables& MeshVars);
+	void FaceGeneration(FMesherVariables& MeshVars) const;
+	static void DirectionalGreedyMeshing(const FMesherVariables& MeshVars);
+	void GenerateMeshFromFaces(const FMesherVariables& MeshVars) const;
 	
 	void GenerateActorMesh(const TMap<uint32, uint16>& LocalVoxelTable,
 	                       const RealtimeMesh::FRealtimeMeshStreamSet& StreamSet,

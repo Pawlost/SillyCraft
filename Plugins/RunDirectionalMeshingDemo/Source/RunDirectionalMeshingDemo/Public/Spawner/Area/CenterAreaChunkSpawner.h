@@ -1,18 +1,20 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-#pragma once
+﻿#pragma once
 #include "CoreMinimal.h"
-#include "RealTimeChunkSpawnerBase.h"
+#include "DespawnChunkSpawnerBase.h"
 #include "CenterAreaChunkSpawner.generated.h"
 
-//TODO: add forward declarations
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class RUNDIRECTIONALMESHINGDEMO_API ACenterAreaChunkSpawner : public ARealTimeChunkSpawnerBase
+UCLASS(ClassGroup=(ChunkSpawners), meta=(BlueprintSpawnableComponent))
+class RUNDIRECTIONALMESHINGDEMO_API ACenterAreaChunkSpawner : public ADespawnChunkSpawnerBase
 {
 	GENERATED_BODY()
 
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,  Category = "Chunk")
+	int32 MeshZone = 2;
+	
 protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
 	virtual void GenerateArea() override;
-	static void WaitForAllTasks(TArray<TSharedFuture<void>>& tasks);
+	
+private:
+	const int LowerThreadLimit = 6;
 };

@@ -1,5 +1,7 @@
 ﻿#include "Spawner/Single/SingleChunkSpawnerBase.h"
 
+#include "Voxel/Generators/VoxelGeneratorBase.h"
+
 void ASingleChunkSpawnerBase::BeginPlay()
 {
 	Super::BeginPlay();
@@ -8,26 +10,30 @@ void ASingleChunkSpawnerBase::BeginPlay()
 	{
 		SingleChunkGridPosition = WorldPositionToChunkGridPosition(GetActorLocation());;
 	}
-	
+
+	// Initialize single chunk
 	SingleChunk = MakeShared<FChunk>();
 
-	AsyncTask(ENamedThreads::AnyThread, [this]()
+	AsyncTask(ENamedThreads::BackgroundThreadPriority, [this]()
 	{
 		AddChunkToGrid(SingleChunk, SingleChunkGridPosition);
 		StartMeshing();
 	});
 }
 
-void ASingleChunkSpawnerBase::ChangeVoxelInChunk(const FIntVector& chunkGridPosition, const FIntVector& voxelPosition,
+void ASingleChunkSpawnerBase::ChangeVoxelInChunk(const FIntVector& ChunkGridPosition, const FIntVector& VoxelPosition,
 	const FName& VoxelId)
 {
-
-	//TODO: add async
-	if (chunkGridPosition != SingleChunkGridPosition)
+	if (ChunkGridPosition != SingleChunkGridPosition)
 	{
+		// Return if adding to single chunk border
 		return;
 	}
-	
-	VoxelGenerator->ChangeUnknownVoxelIdInChunk(SingleChunk, voxelPosition, VoxelId);
-	StartMeshing();
+
+	// Modify voxel at hit position
+	VoxelGenerator->ChangeUnknownVoxelIdInChunk(SingleChunk, VoxelPosition, VoxelId);
+	AsyncTask(ENamedThreads::BackgroundThreadPriority, [this]()
+	{
+		StartMeshing();
+	});
 }

@@ -4,15 +4,15 @@
 
 void APreloadedVoxelCenterAreaChunkSpawner::GenerateArea()
 {
-	auto initialCenter = CenterGridPosition;
+	auto InitialCenter = CenterGridPosition;
 	TSet<FIntVector> VisitedSpawnPositions;
 	VisitedSpawnPositions.Reserve(SpawnZone * SpawnZone * SpawnZone * CHUNK_FACE_COUNT);
 	TQueue<FIntVector> SpawnPositionsArray;
-	SpawnChunk(initialCenter);
-	TArray<TSharedFuture<void>> tasks;
-	tasks.Reserve(6);
+	SpawnChunk(InitialCenter);
+	TArray<TSharedFuture<void>> Tasks;
+	Tasks.Reserve(6);
 
-	SpawnPositionsArray.Enqueue(initialCenter);
+	SpawnPositionsArray.Enqueue(InitialCenter);
 
 	TTuple<FFaceToDirection, int32> Directions[6] = {
 		TTuple<FFaceToDirection, int32>(FFaceToDirection::FrontDirection, SpawnZone),
@@ -23,52 +23,57 @@ void APreloadedVoxelCenterAreaChunkSpawner::GenerateArea()
 		TTuple<FFaceToDirection, int32>(FFaceToDirection::BottomDirection, SpawnZone)
 	};
 
-	FIntVector centerPosition;
+	FIntVector CenterPosition;
 	VisitedSpawnPositions.Add(CenterGridPosition);
 
-	while (IsValid(this) && SpawnPositionsArray.Dequeue(centerPosition) && initialCenter == CenterGridPosition)
+	/*
+	 * Use BFS to explore chunk locations around spawner in 3D.
+	 * 
+	 */
+	while (IsValid(this) && SpawnPositionsArray.Dequeue(CenterPosition) && InitialCenter == CenterGridPosition)
 	{
 		for (int32 s = 0; s < CHUNK_FACE_COUNT; s++)
 		{
-			auto direction = Directions[s];
+			auto Direction = Directions[s];
 
-			auto position = centerPosition + direction.Key.Direction;
+			auto Position = CenterPosition + Direction.Key.Direction;
 
-			auto chunkPtr = ChunkGrid.Find(position);
+			auto ChunkPtr = ChunkGrid.Find(Position);
 
-			if (FVector::Distance(FVector(initialCenter), FVector(position)) < direction.Value)
+			if (FVector::Distance(FVector(InitialCenter), FVector(Position)) < Direction.Value)
 			{
-				if (chunkPtr == nullptr)
+				if (ChunkPtr == nullptr)
 				{
-					TSharedFuture<void> task;
-					SpawnChunk(position, &task);
+					TSharedFuture<void> Task;
+					SpawnChunk(Position, &Task);
 
-					if (task.IsValid() && !task.IsReady())
+					if (Task.IsValid() && !Task.IsReady())
 					{
-						tasks.Add(task);
+						Tasks.Add(Task);
 					}
 				}
 
-				if (VisitedSpawnPositions.Find(position) == nullptr)
+				if (VisitedSpawnPositions.Find(Position) == nullptr)
 				{
-					VisitedSpawnPositions.Add(position);
-					SpawnPositionsArray.Enqueue(position);
+					VisitedSpawnPositions.Add(Position);
+					SpawnPositionsArray.Enqueue(Position);
 				}
 			}
 		}
 
-		if (tasks.Num() >= 6)
+		if (Tasks.Num() >= 6)
 		{
-			WaitForAllTasks(tasks);
+			WaitForAllTasks(Tasks);
 		}
 	}
 
-	WaitForAllTasks(tasks);
+	WaitForAllTasks(Tasks);
 
-	FMesherVariables faceParams;
+	//Foreach visited and spawned chunk create mesh
+	FMesherVariables MeshVars;
 	for (auto VisitedSpawnPosition : VisitedSpawnPositions)
 	{
-		GenerateChunkMesh(faceParams, VisitedSpawnPosition);
+		GenerateChunkMesh(MeshVars, VisitedSpawnPosition);
 	}
 }
 
@@ -76,17 +81,4 @@ void APreloadedVoxelCenterAreaChunkSpawner::BeginPlay()
 {
 	ShowChunkBorders = true;
 	Super::BeginPlay();
-}
-
-void APreloadedVoxelCenterAreaChunkSpawner::WaitForAllTasks(TArray<TSharedFuture<void>>& tasks)
-{
-	for (auto task : tasks)
-	{
-		if (task.IsValid() && !task.IsReady())
-		{
-			task.Wait();
-		}
-	}
-
-	tasks.Empty();
 }

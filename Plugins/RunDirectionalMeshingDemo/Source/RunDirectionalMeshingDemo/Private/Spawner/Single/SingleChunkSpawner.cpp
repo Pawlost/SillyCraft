@@ -1,7 +1,7 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.pp[p
-#include "Spawner/Single/SingleChunkSpawner.h"
+﻿#include "Spawner/Single/SingleChunkSpawner.h"
 
 #include "Mesher/MeshingUtils/MesherVariables.h"
+#include "Voxel/Generators/VoxelGeneratorBase.h"
 
 void ASingleChunkSpawner::BeginPlay()
 {
@@ -11,16 +11,16 @@ void ASingleChunkSpawner::BeginPlay()
 
 void ASingleChunkSpawner::StartMeshing()
 {
-	FMesherVariables params;
-	params.ChunkParams.SpawnerPtr = this;
-	params.ChunkParams.OriginalChunk = SingleChunk;
-	AddSideChunk(params, EFaceDirection::Top, nullptr);
-	AddSideChunk(params, EFaceDirection::Bottom, nullptr);
-	AddSideChunk(params, EFaceDirection::Front, nullptr);
-	AddSideChunk(params, EFaceDirection::Back, nullptr);
-	AddSideChunk(params, EFaceDirection::Right, nullptr);
-	AddSideChunk(params, EFaceDirection::Left, nullptr);
-	params.ChunkParams.ShowBorders = true;
-	params.ChunkParams.WorldTransform = LocalChunkTransform;
-	VoxelGenerator->GenerateMesh(params);
+	FMesherVariables MeshVar;
+	MeshVar.ChunkParams.SpawnerPtr = this;
+	MeshVar.ChunkParams.OriginalChunk = SingleChunk;
+	AddSideChunk(MeshVar, EFaceDirection::Top, nullptr);
+	AddSideChunk(MeshVar, EFaceDirection::Bottom, nullptr);
+	AddSideChunk(MeshVar, EFaceDirection::Front, nullptr);
+	AddSideChunk(MeshVar, EFaceDirection::Back, nullptr);
+	AddSideChunk(MeshVar, EFaceDirection::Right, nullptr);
+	AddSideChunk(MeshVar, EFaceDirection::Left, nullptr);
+	MeshVar.ChunkParams.ShowBorders = true;
+	MeshVar.ChunkParams.LocalTransform = LocalChunkTransform;
+	VoxelGenerator->GenerateMesh(MeshVar);
 }

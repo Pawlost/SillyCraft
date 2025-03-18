@@ -81,12 +81,12 @@ bool UVoxelGeneratorBase::ChangeUnknownVoxelIdInChunk(const TSharedPtr<FChunk>& 
 	return false;
 }
 
-int32 UVoxelGeneratorBase::CalculateVoxelIndex(const int32 X, const int32 Y, const int32 Z) const
+uint32 UVoxelGeneratorBase::CalculateVoxelIndex(const int32 X, const int32 Y, const int32 Z) const
 {
 	return Y + (Z * VoxelCountY) + (X * VoxelCountYZ);
 }
 
-int32 UVoxelGeneratorBase::CalculateVoxelIndex(const FIntVector& VoxelPosition) const
+uint32 UVoxelGeneratorBase::CalculateVoxelIndex(const FIntVector& VoxelPosition) const
 {
 	return CalculateVoxelIndex(VoxelPosition.X, VoxelPosition.Y, VoxelPosition.Z);
 }
@@ -101,17 +101,17 @@ double UVoxelGeneratorBase::GetVoxelSize() const
 	return VoxelSize;
 }
 
-int32 UVoxelGeneratorBase::GetVoxelCountPerChunkDimension() const
+uint32 UVoxelGeneratorBase::GetVoxelCountPerChunkDimension() const
 {
 	return VoxelCountPerChunkDimension;
 }
 
-int32 UVoxelGeneratorBase::GetVoxelCountPerChunkLayer() const
+uint32 UVoxelGeneratorBase::GetVoxelCountPerChunkLayer() const
 {
 	return VoxelCountYZ;
 }
 
-int32 UVoxelGeneratorBase::GetVoxelCountPerChunk() const
+uint32 UVoxelGeneratorBase::GetVoxelCountPerChunk() const
 {
 	return VoxelCountXYZ;
 }

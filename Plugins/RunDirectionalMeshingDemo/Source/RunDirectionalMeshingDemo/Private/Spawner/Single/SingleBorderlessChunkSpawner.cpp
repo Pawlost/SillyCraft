@@ -1,7 +1,7 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.pp[p
-#include "Spawner/Single/SingleBorderlessChunkSpawner.h"
+﻿#include "Spawner/Single/SingleBorderlessChunkSpawner.h"
 
 #include "Mesher/MeshingUtils/MesherVariables.h"
+#include "Voxel/Generators/VoxelGeneratorBase.h"
 
 void ASingleBorderlessChunkSpawner::StartMeshing()
 {
@@ -20,12 +20,12 @@ void ASingleBorderlessChunkSpawner::StartMeshing()
 	VoxelGenerator->GenerateMesh(ChunkParams);
 }
 
-void ASingleBorderlessChunkSpawner::SpawnSideChunk(FMesherVariables& chunkParams, const FFaceToDirection& faceDirection )
+void ASingleBorderlessChunkSpawner::SpawnSideChunk(FMesherVariables& MeshVars, const FFaceToDirection& FaceDirection )
 {
-	auto index = static_cast<uint8>(faceDirection.FaceSide);
-	auto chunk = MakeShared<FChunk>().ToSharedPtr();
-	SideChunk[index] = chunk;
-	auto gridPosition = SingleChunkGridPosition + faceDirection.Direction;
-	AddChunkToGrid(chunk, gridPosition);
-	AddSideChunk(chunkParams, faceDirection.FaceSide, SideChunk[index]);
+	const auto Index = static_cast<uint8>(FaceDirection.FaceSide);
+	auto Chunk = MakeShared<FChunk>().ToSharedPtr();
+	SideChunk[Index] = Chunk;
+	const auto GridPosition = SingleChunkGridPosition + FaceDirection.Direction;
+	AddChunkToGrid(Chunk, GridPosition);
+	AddSideChunk(MeshVars, FaceDirection.FaceSide, SideChunk[Index]);
 }

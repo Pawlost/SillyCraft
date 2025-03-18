@@ -1,10 +1,8 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-#pragma once
+﻿#pragma once
 #include "CoreMinimal.h"
 #include "SingleChunkSpawnerBase.h"
-#include "Mesher/MeshingUtils/FaceToDirection.h"
+#include "Mesher/MeshingUtils/FaceDirection.h"
 #include "SingleBorderlessChunkSpawner.generated.h"
-//TODO: add forward declarations
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class RUNDIRECTIONALMESHINGDEMO_API ASingleBorderlessChunkSpawner : public ASingleChunkSpawnerBase
@@ -16,5 +14,5 @@ protected:
 	
 private:
 	TSharedPtr<FChunk> SideChunk[CHUNK_FACE_COUNT];
-	void SpawnSideChunk(FMesherVariables& chunkParams, const FFaceToDirection& faceDirection);
+	void SpawnSideChunk(FMesherVariables& MeshVars, const FFaceToDirection& FaceDirection);
 };

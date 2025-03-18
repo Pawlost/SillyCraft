@@ -1,8 +1,11 @@
 ﻿#pragma once
 #include "CoreMinimal.h"
-#include "Mesher/MeshingUtils/FaceDirection.h"
-#include "Voxel/Generators/VoxelGeneratorBase.h"
 #include "ChunkSpawnerBase.generated.h"
+
+enum class EFaceDirection : uint8;
+struct FChunk;
+struct FMesherVariables;
+class UVoxelGeneratorBase;
 
 UCLASS(ClassGroup=(ChunkSpawners), Abstract, Blueprintable)
 class RUNDIRECTIONALMESHINGDEMO_API AChunkSpawnerBase : public AActor
@@ -28,18 +31,17 @@ public:
 	virtual void ChangeVoxelInChunk(const FIntVector& ChunkGridPosition, const FIntVector& VoxelPosition,
 	                                const FName& VoxelName) PURE_VIRTUAL(AChunkSpawnerBase::ChangeVoxelInChunk)
 
+	UFUNCTION(BlueprintCallable)
+	virtual void SpawnChunks() PURE_VIRTUAL(AChunkSpawnerBase::SpawnChunks)
+
 protected:
 	virtual void BeginPlay() override;
 
-	static void AddSideChunk(FMesherVariables& ChunkParams, EFaceDirection Direction,
+	static void AddSideChunk(FMesherVariables& MeshVar, EFaceDirection Direction,
 	                         const TSharedPtr<FChunk>& Chunk);
-
 
 	void AddChunkToGrid(TSharedPtr<FChunk>& Chunk,
 	                    const FIntVector& GridPosition, TSharedFuture<void>* AsyncExecution = nullptr) const;
-
-	virtual void SpawnChunks() PURE_VIRTUAL(AChunkSpawnerBase::SpawnChunks)
-	virtual void DespawnChunks() PURE_VIRTUAL(AChunkSpawnerBase::DespawnChunks)
 
 	UPROPERTY()
 	TObjectPtr<UVoxelGeneratorBase> VoxelGenerator;
@@ -47,4 +49,7 @@ protected:
 	FIntVector WorldPositionToChunkGridPosition(const FVector& WorldPosition) const;
 
 	FIntVector CenterGridPosition;
+	
+	// Wait for all futures
+	static void WaitForAllTasks(TArray<TSharedFuture<void>>& Tasks);
 };

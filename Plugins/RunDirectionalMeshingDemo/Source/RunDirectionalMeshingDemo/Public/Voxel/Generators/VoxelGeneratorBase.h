@@ -24,8 +24,8 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category="Voxels",
 		meta=(ToolTip=
 			"The number of voxels in a single dimension (X, Y, or Z) of the chunk. This value represents the count of voxels along one axis of the chunk, not the total number of voxels in the entire chunk."
-		))
-	int32 VoxelCountPerChunkDimension = 0;
+		, MinClamp="0"))
+	int64 VoxelCountPerChunkDimension = 0;
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category ="Voxels",
 		meta=(ToolTip="Size of a single voxel in world coordinates."))
@@ -42,19 +42,18 @@ public:
 	/**
 	 * Calculate voxel index in chunk grid from grid coordinates.
 	 */
-	int32 CalculateVoxelIndex(const int32 X, const int32 Y, const int32 Z) const;
+	uint32 CalculateVoxelIndex(const int32 X, const int32 Y, const int32 Z) const;
 
-	UFUNCTION(BlueprintCallable)
 	/**
 	 * Calculate voxel index in chunk grid from vector grid coordinates.
 	 */
-	int32 CalculateVoxelIndex(const FIntVector& VoxelPosition) const;
+	uint32 CalculateVoxelIndex(const FIntVector& VoxelPosition) const;
 
 	double GetChunkAxisSize() const;
 	double GetVoxelSize() const;
-	int32 GetVoxelCountPerChunkDimension() const;
-	int32 GetVoxelCountPerChunkLayer() const;
-	int32 GetVoxelCountPerChunk() const;
+	uint32 GetVoxelCountPerChunkDimension() const;
+	uint32 GetVoxelCountPerChunkLayer() const;
+	uint32 GetVoxelCountPerChunk() const;
 	void GenerateMesh(FMesherVariables& MesherVariables) const;
 
 	UFUNCTION(BlueprintCallable)

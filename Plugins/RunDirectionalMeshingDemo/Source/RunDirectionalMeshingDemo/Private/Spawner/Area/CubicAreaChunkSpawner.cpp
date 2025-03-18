@@ -1,35 +1,35 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.pp[p
-
-#include "Spawner/Area/CubicAreaChunkSpawner.h"
+﻿#include "Spawner/Area/CubicAreaChunkSpawner.h"
 
 #include "Mesher/MeshingUtils/MesherVariables.h"
 
 void ACubicAreaChunkSpawner::GenerateArea()
 {
-	auto minPosition = CenterGridPosition - FIntVector(SpawnZone, SpawnZone, ChunksBelowSpawner);
-	auto maxPosition = CenterGridPosition + FIntVector(SpawnZone, SpawnZone, ChunksAboveSpawner);
+	const auto MinPosition = CenterGridPosition - FIntVector(SpawnZone, SpawnZone, ChunksBelowSpawner);
+	const auto MaxPosition = CenterGridPosition + FIntVector(SpawnZone, SpawnZone, ChunksAboveSpawner);
 
-	for (int32 x = minPosition.X; x < maxPosition.X; x++)
+	// Fill chunks with voxels from left bottom to right top
+	for (int32 x = MinPosition.X; x < MaxPosition.X; x++)
 	{
-		for (int32 y = minPosition.Y; y < maxPosition.Y; y++)
+		for (int32 y = MinPosition.Y; y < MaxPosition.Y; y++)
 		{
-			for (int32 z = minPosition.Z; z < maxPosition.Z; z++)
+			for (int32 z = MinPosition.Z; z < MaxPosition.Z; z++)
 			{
-				auto currentGridPosition = FIntVector(x, y, z);
-				SpawnChunk(currentGridPosition);
+				auto CurrentGridPosition = FIntVector(x, y, z);
+				SpawnChunk(CurrentGridPosition);
 			}
 		}
 	}
-
-	FMesherVariables chunkParams;
-	for (int32 x = minPosition.X; x < maxPosition.X; x++)
+	
+	// Create meshes from left bottom to right top
+	FMesherVariables MeshVars;
+	for (int32 x = MinPosition.X; x < MaxPosition.X; x++)
 	{
-		for (int32 y = minPosition.Y; y < maxPosition.Y; y++)
+		for (int32 y = MinPosition.Y; y < MaxPosition.Y; y++)
 		{
-			for (int32 z = minPosition.Z; z < maxPosition.Z; z++)
+			for (int32 z = MinPosition.Z; z < MaxPosition.Z; z++)
 			{
-				auto currentGridPosition = FIntVector(x, y, z);
-				GenerateChunkMesh(chunkParams, currentGridPosition);
+				auto CurrentGridPosition = FIntVector(x, y, z);
+				GenerateChunkMesh(MeshVars, CurrentGridPosition);
 			}
 		}
 	}

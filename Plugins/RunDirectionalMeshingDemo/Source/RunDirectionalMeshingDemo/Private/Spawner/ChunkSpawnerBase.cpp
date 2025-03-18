@@ -1,6 +1,7 @@
 ﻿#include "Spawner/ChunkSpawnerBase.h"
 
 #include "Mesher/MeshingUtils/MesherVariables.h"
+#include "Voxel/Generators/VoxelGeneratorBase.h"
 
 void AChunkSpawnerBase::BeginPlay()
 {
@@ -16,10 +17,8 @@ void AChunkSpawnerBase::BeginPlay()
 			VoxelGenerator->RegisterComponent();
 		}
 	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ChunkTemplate is nullptr!"));
-	}
+
+	checkf(VoxelGenerator, TEXT("Voxel generator must be valid"));
 
 	Super::BeginPlay();
 }
@@ -30,60 +29,63 @@ double AChunkSpawnerBase::GetHighestElevationAtLocation(const FVector& Location)
 }
 
 void AChunkSpawnerBase::ChangeVoxelAtHit(const FVector& HitPosition, const FVector& HitNormal, const FName& VoxelName,
-                                      bool bPick)
+                                      const bool bPick)
 {
-	FVector adjustedNormal;
+	FVector AdjustedNormal;
 	if (bPick)
 	{
-		adjustedNormal.X = FMath::Clamp(HitNormal.X, 0, 1);
-		adjustedNormal.Y = FMath::Clamp(HitNormal.Y, 0, 1);
-		adjustedNormal.Z = FMath::Clamp(HitNormal.Z, 0, 1);
+		AdjustedNormal.X = FMath::Clamp(HitNormal.X, 0, 1);
+		AdjustedNormal.Y = FMath::Clamp(HitNormal.Y, 0, 1);
+		AdjustedNormal.Z = FMath::Clamp(HitNormal.Z, 0, 1);
 	}
 	else
 	{
-		adjustedNormal.X = -FMath::Clamp(HitNormal.X, -1, 0);
-		adjustedNormal.Y = -FMath::Clamp(HitNormal.Y, -1, 0);
-		adjustedNormal.Z = -FMath::Clamp(HitNormal.Z, -1, 0);
+		AdjustedNormal.X = -FMath::Clamp(HitNormal.X, -1, 0);
+		AdjustedNormal.Y = -FMath::Clamp(HitNormal.Y, -1, 0);
+		AdjustedNormal.Z = -FMath::Clamp(HitNormal.Z, -1, 0);
 	}
+
+	// Adjust position based on normal
+	auto Position = HitPosition - AdjustedNormal * VoxelGenerator->GetVoxelSize();
 	
-	auto position = HitPosition - adjustedNormal * VoxelGenerator->GetVoxelSize();
-	
-	if (!LocalChunkTransform)
+	if (LocalChunkTransform)
 	{
-		position -= GetActorLocation();	
+		// Transform hit position to local coordinates, if they are enabled
+		Position -= GetActorLocation();	
 	}
-	
-	auto chunkGridPosition = WorldPositionToChunkGridPosition(position);
-	
-	auto voxelPosition = FIntVector(
-		(position - FVector(chunkGridPosition * VoxelGenerator->GetChunkAxisSize())) / VoxelGenerator
+
+	const auto ChunkGridPosition = WorldPositionToChunkGridPosition(Position);
+
+	// Precise voxel position in chunk
+	const auto VoxelPosition = FIntVector(
+		(Position - FVector(ChunkGridPosition * VoxelGenerator->GetChunkAxisSize())) / VoxelGenerator
 		->GetVoxelSize());
 
-	ChangeVoxelInChunk(chunkGridPosition, voxelPosition, VoxelName);
+	ChangeVoxelInChunk(ChunkGridPosition, VoxelPosition, VoxelName);
 }
 
-void AChunkSpawnerBase::AddSideChunk(FMesherVariables& ChunkParams, EFaceDirection Direction,
+void AChunkSpawnerBase::AddSideChunk(FMesherVariables& MeshVar, EFaceDirection Direction,
                                      const TSharedPtr<FChunk>& Chunk)
 {
-	auto directionIndex = static_cast<uint8>(Direction);
-	ChunkParams.ChunkParams.SideChunks[directionIndex] = Chunk.IsValid() ? Chunk : nullptr;
+	const auto DirectionIndex = static_cast<uint8>(Direction);
+	MeshVar.ChunkParams.SideChunks[DirectionIndex] = Chunk.IsValid() ? Chunk : nullptr;
 }
 
 void AChunkSpawnerBase::AddChunkToGrid(TSharedPtr<FChunk>& Chunk,
                                   const FIntVector& GridPosition, TSharedFuture<void>* AsyncExecution) const
 {
-	//Actor must always be respawned because of stationary mesh
-
 	Chunk->GridPosition = GridPosition;
 
 	if (!Chunk->bIsInitialized)
 	{
+		// Initialize and request memory for voxel grid
 		Chunk->VoxelGrid.SetNum(VoxelGenerator->GetVoxelCountPerChunk());
 	}
 
 	Chunk->bIsInitialized = true;
 	if (AsyncExecution != nullptr)
 	{
+		// Generate voxels on async thread if promise is expected
 		*AsyncExecution = Async(EAsyncExecution::LargeThreadPool, [this, Chunk]()
 		{
 			VoxelGenerator->GenerateVoxels(*Chunk.Get());
@@ -97,7 +99,20 @@ void AChunkSpawnerBase::AddChunkToGrid(TSharedPtr<FChunk>& Chunk,
 
 FIntVector AChunkSpawnerBase::WorldPositionToChunkGridPosition(const FVector& WorldPosition) const
 {
-	auto location = WorldPosition / VoxelGenerator->GetChunkAxisSize();
-	return FIntVector(FMath::FloorToInt32(location.X), FMath::FloorToInt32(location.Y),
-	                  FMath::FloorToInt32(location.Z));
+	const auto Location = WorldPosition / VoxelGenerator->GetChunkAxisSize();
+	return FIntVector(FMath::FloorToInt32(Location.X), FMath::FloorToInt32(Location.Y),
+	                  FMath::FloorToInt32(Location.Z));
+}
+
+void AChunkSpawnerBase::WaitForAllTasks(TArray<TSharedFuture<void>>& Tasks)
+{
+	for (auto Task : Tasks)
+	{
+		if (Task.IsValid() && !Task.IsReady())
+		{
+			Task.Wait();
+		}
+	}
+
+	Tasks.Empty();
 }

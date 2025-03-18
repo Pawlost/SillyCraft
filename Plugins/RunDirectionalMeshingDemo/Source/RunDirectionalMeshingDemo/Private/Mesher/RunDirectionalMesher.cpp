@@ -8,16 +8,16 @@
 
 class URealtimeMeshSimple;
 
-void URunDirectionalMesher::GenerateMesh(FMesherVariables& MesherVariables)
+void URunDirectionalMesher::GenerateMesh(FMesherVariables& MeshVars)
 {
-	MesherVariables.ChunkParams.OriginalChunk->bHasMesh = false;
+	MeshVars.ChunkParams.OriginalChunk->bHasMesh = false;
 	
-	if (MesherVariables.ChunkParams.OriginalChunk->ChunkVoxelIdTable.IsEmpty())
+	if (MeshVars.ChunkParams.OriginalChunk->ChunkVoxelIdTable.IsEmpty())
 	{
-		if (MesherVariables.ChunkParams.OriginalChunk->ChunkMeshActor.IsValid())
+		if (MeshVars.ChunkParams.OriginalChunk->ChunkMeshActor.IsValid())
 		{
 			// If chunk is full of empty voxels but actor was pulled from pool, clear its mesh
-			MesherVariables.ChunkParams.OriginalChunk->ChunkMeshActor->ClearMesh();
+			MeshVars.ChunkParams.OriginalChunk->ChunkMeshActor->ClearMesh();
 		}
 		return;
 	}
@@ -26,40 +26,40 @@ void URunDirectionalMesher::GenerateMesh(FMesherVariables& MesherVariables)
 	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh generation")
 #endif
 	
-	InitFaceContainers(MesherVariables);
-	FaceGeneration(MesherVariables);
-	DirectionalGreedyMeshing(MesherVariables);
-	GenerateMeshFromFaces(MesherVariables);
+	InitFaceContainers(MeshVars);
+	FaceGeneration(MeshVars);
+	DirectionalGreedyMeshing(MeshVars);
+	GenerateMeshFromFaces(MeshVars);
 }
 
-void URunDirectionalMesher::InitFaceContainers(FMesherVariables& MesherVariables)
+void URunDirectionalMesher::InitFaceContainers(FMesherVariables& MeshVars)
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh generation intialization")
 #endif
 
-	MesherVariables.VoxelIdToLocalVoxelMap.Reserve(MesherVariables.ChunkParams.OriginalChunk->ChunkVoxelIdTable.Num());
-	MesherVariables.VoxelIdToLocalVoxelMap.Empty();
+	MeshVars.VoxelIdToLocalVoxelMap.Reserve(MeshVars.ChunkParams.OriginalChunk->ChunkVoxelIdTable.Num());
+	MeshVars.VoxelIdToLocalVoxelMap.Empty();
 
-	for (const auto VoxelId : MesherVariables.ChunkParams.OriginalChunk->ChunkVoxelIdTable)
+	for (const auto VoxelId : MeshVars.ChunkParams.OriginalChunk->ChunkVoxelIdTable)
 	{
-		const auto LocalVoxelId = MesherVariables.VoxelIdToLocalVoxelMap.Num();
-		MesherVariables.VoxelIdToLocalVoxelMap.Add(VoxelId.Key, LocalVoxelId);
+		const auto LocalVoxelId = MeshVars.VoxelIdToLocalVoxelMap.Num();
+		MeshVars.VoxelIdToLocalVoxelMap.Add(VoxelId.Key, LocalVoxelId);
 	}
 
 	for (uint8 f = 0; f < CHUNK_FACE_COUNT; f++)
 	{
 		// Voxel faces need to be sorted to different arrays by Id because Realtime Mesh Component requires it
-		for (const auto Voxel : MesherVariables.VoxelIdToLocalVoxelMap)
+		for (const auto Voxel : MeshVars.VoxelIdToLocalVoxelMap)
 		{
-			TMap<int32, uint32>& VoxelTable = MesherVariables.ChunkParams.OriginalChunk->ChunkVoxelIdTable;
-			MesherVariables.Faces[f].SetNum(VoxelTable.Num());
+			TMap<int32, uint32>& VoxelTable = MeshVars.ChunkParams.OriginalChunk->ChunkVoxelIdTable;
+			MeshVars.Faces[f].SetNum(VoxelTable.Num());
 			
-			auto FaceArray = MesherVariables.Faces[f][Voxel.Value];
+			auto FaceArray = MeshVars.Faces[f][Voxel.Value];
 			if (FaceArray == nullptr || !FaceArray.IsValid())
 			{
 				FaceArray = MakeShared<TArray<FChunkFace>>();
-				MesherVariables.Faces[f][Voxel.Value] = FaceArray;
+				MeshVars.Faces[f][Voxel.Value] = FaceArray;
 			}
 			else
 			{
@@ -120,27 +120,27 @@ void URunDirectionalMesher::FaceGeneration(FMesherVariables& faceParams) const
 void URunDirectionalMesher::IncrementRun(const int X, const int Y, const int Z, const int32 AxisVoxelIndex, const bool bIsMinBorder, const bool bIsMaxBorder,
                                     const FMeshingDirections& FaceTemplate,
                                     const FMeshingDirections& ReversedFaceTemplate,
-                                    FMesherVariables& MesherVariables) const
+                                    FMesherVariables& MeshVars) const
 {
 	// Get voxel at current position of the run.
 	const auto Position = FIntVector(X, Y, Z);
 	const int32 Index = VoxelGenerator->CalculateVoxelIndex(Position);
-	const FVoxel Voxel = MesherVariables.ChunkParams.OriginalChunk->VoxelGrid[Index];
+	const FVoxel Voxel = MeshVars.ChunkParams.OriginalChunk->VoxelGrid[Index];
 
 	// If voxel is empty, no mesh should be generated
 	if (!Voxel.IsEmptyVoxel())
 	{
 		// Get correct face containers
-		auto OriginalChunk = MesherVariables.ChunkParams.OriginalChunk;
-		const auto LocalVoxelId = MesherVariables.VoxelIdToLocalVoxelMap[Voxel.VoxelId];
+		auto OriginalChunk = MeshVars.ChunkParams.OriginalChunk;
+		const auto LocalVoxelId = MeshVars.VoxelIdToLocalVoxelMap[Voxel.VoxelId];
 		const auto FaceContainerIndex = static_cast<uint8>(FaceTemplate.StaticMeshingData.FaceSide);
 		const auto FaceContainerVoxelIndex = static_cast<uint8>(ReversedFaceTemplate.StaticMeshingData.FaceSide);
 
 		// Generate face for each direction
 		AddFace(FaceTemplate, bIsMinBorder, Index, Position, Voxel, AxisVoxelIndex,
-		        MesherVariables.Faces[FaceContainerIndex][LocalVoxelId], MesherVariables.ChunkParams);
+		        MeshVars.Faces[FaceContainerIndex][LocalVoxelId], MeshVars.ChunkParams);
 		AddFace(ReversedFaceTemplate, bIsMaxBorder, Index, Position, Voxel, AxisVoxelIndex,
-		        MesherVariables.Faces[FaceContainerVoxelIndex][LocalVoxelId], MesherVariables.ChunkParams);
+		        MeshVars.Faces[FaceContainerVoxelIndex][LocalVoxelId], MeshVars.ChunkParams);
 	}
 }
 
@@ -218,7 +218,7 @@ bool URunDirectionalMesher::IsVoxelVisible(const FVoxelIndexParams& FaceData, co
 	return false;
 }
 
-void URunDirectionalMesher::DirectionalGreedyMeshing(const FMesherVariables& MesherVariables)
+void URunDirectionalMesher::DirectionalGreedyMeshing(const FMesherVariables& MeshVars)
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Run directional greedy mesh generation")
@@ -227,9 +227,9 @@ void URunDirectionalMesher::DirectionalGreedyMeshing(const FMesherVariables& Mes
 	// Merge faces in sorted arrays
 	for (uint8 f = 0; f < CHUNK_FACE_COUNT; f++)
 	{
-		for (const auto VoxelId : MesherVariables.VoxelIdToLocalVoxelMap)
+		for (const auto VoxelId : MeshVars.VoxelIdToLocalVoxelMap)
 		{
-			auto FaceContainer = MesherVariables.Faces[f][VoxelId.Value];
+			auto FaceContainer = MeshVars.Faces[f][VoxelId.Value];
 			const int LastElementIndex = FaceContainer->Num() - 1;
 
 			// Iterate from last face
@@ -268,7 +268,7 @@ void URunDirectionalMesher::DirectionalGreedyMeshing(const FMesherVariables& Mes
 	}
 }
 
-void URunDirectionalMesher::GenerateMeshFromFaces(const FMesherVariables& MesherVariables) const
+void URunDirectionalMesher::GenerateMeshFromFaces(const FMesherVariables& MeshVars) const
 {
 #if CPUPROFILERTRACE_ENABLED
 	TRACE_CPUPROFILER_EVENT_SCOPE("Mesh stream generation")
@@ -294,11 +294,11 @@ void URunDirectionalMesher::GenerateMeshFromFaces(const FMesherVariables& Mesher
 	TMap<uint32, uint16> LocalVoxelTable;
 
 	// Iterate through merged faces
-	for (auto VoxelId : MesherVariables.VoxelIdToLocalVoxelMap)
+	for (auto VoxelId : MeshVars.VoxelIdToLocalVoxelMap)
 	{
 		for (uint8 FaceIndex = 0; FaceIndex < CHUNK_FACE_COUNT; FaceIndex++)
 		{
-			auto FaceContainer = MesherVariables.Faces[FaceIndex];
+			auto FaceContainer = MeshVars.Faces[FaceIndex];
 
 			auto SideFaces = FaceContainer[VoxelId.Value];
 
@@ -341,14 +341,14 @@ void URunDirectionalMesher::GenerateMeshFromFaces(const FMesherVariables& Mesher
 		}
 	}
 
-	if (!MesherVariables.ChunkParams.OriginalChunk.IsValid() || LocalVoxelTable.IsEmpty())
+	if (!MeshVars.ChunkParams.OriginalChunk.IsValid() || LocalVoxelTable.IsEmpty())
 	{
 		return;
 	}
 
-	auto Spawner = MakeShared<FChunkParams>(MesherVariables.ChunkParams);
+	auto Spawner = MakeShared<FChunkParams>(MeshVars.ChunkParams);
 
-	if (!MesherVariables.ChunkParams.ExecutedOnMainThread)
+	if (!MeshVars.ChunkParams.ExecutedOnMainThread)
 	{
 		// Synchronize Mesh generation with game thread.
 		AsyncTask(ENamedThreads::GameThread, [this, LocalVoxelTable, StreamSet, Spawner]()
@@ -362,7 +362,7 @@ void URunDirectionalMesher::GenerateMeshFromFaces(const FMesherVariables& Mesher
 		GenerateActorMesh(LocalVoxelTable, *StreamSet, Spawner);
 	}
 
-	MesherVariables.ChunkParams.OriginalChunk->bHasMesh = true;
+	MeshVars.ChunkParams.OriginalChunk->bHasMesh = true;
 }
 
 void URunDirectionalMesher::GenerateActorMesh(const TMap<uint32, uint16>& LocalVoxelTable,
