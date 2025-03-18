@@ -86,7 +86,7 @@ void AChunkSpawnerBase::AddChunkToGrid(TSharedPtr<FChunk>& Chunk,
 	if (AsyncExecution != nullptr)
 	{
 		// Generate voxels on async thread if promise is expected
-		*AsyncExecution = Async(EAsyncExecution::LargeThreadPool, [this, Chunk]()
+		*AsyncExecution = Async(EAsyncExecution::ThreadPool, [this, Chunk]()
 		{
 			VoxelGenerator->GenerateVoxels(*Chunk.Get());
 		}).Share();

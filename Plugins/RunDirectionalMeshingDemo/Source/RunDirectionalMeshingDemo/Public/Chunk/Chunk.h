@@ -22,7 +22,7 @@ struct RUNDIRECTIONALMESHINGDEMO_API FChunk
 	TMap<int32, uint32> ChunkVoxelIdTable;
 
 	UPROPERTY()
-	FIntVector GridPosition;
+	FIntVector GridPosition = FIntVector(0, 0, 0);
 
 	UPROPERTY(VisibleInstanceOnly)
 	bool bIsInitialized = false;

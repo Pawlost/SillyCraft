@@ -8,6 +8,7 @@ void ACenterAreaChunkSpawner::GenerateArea()
 	MesherVars.ChunkParams.ShowBorders = BufferZone == 0;
 	
 	auto InitialCenter = CenterGridPosition;
+	// Visited position will create with every change of grid center
 	TSet<FIntVector> VisitedSpawnPositions;
 	VisitedSpawnPositions.Reserve(SpawnZone * SpawnZone * SpawnZone * CHUNK_FACE_COUNT);
 	TQueue<FIntVector> SpawnPositionsArray;

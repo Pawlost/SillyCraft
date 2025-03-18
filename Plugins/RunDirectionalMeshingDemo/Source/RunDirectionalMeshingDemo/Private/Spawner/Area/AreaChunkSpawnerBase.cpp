@@ -23,7 +23,7 @@ void AAreaChunkSpawnerBase::ChangeVoxelInChunk(const FIntVector& ChunkGridPositi
 
 		VoxelGenerator->ChangeUnknownVoxelIdInChunk(Chunk, VoxelPosition, VoxelId);
 
-		EditHandle = Async(EAsyncExecution::LargeThreadPool, [this, Chunk]()
+		EditHandle = Async(EAsyncExecution::ThreadPool, [this, Chunk]()
 		{
 			FMesherVariables MesherVars;
 			Chunk->bIsActive = false;
