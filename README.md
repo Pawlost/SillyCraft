@@ -98,10 +98,16 @@ SillyCraft includes two playable characters with voxel interaction capabilities:
 1. BP_VoxelInteractionObserverCharacter -- Enables voxel placement and picking.
 2. BP_VoxelWorldExplorer *(inherits from BP_VoxelInteractionObserverCharacter)* -- Automatically spawns chunks around the player for exploration.
 
+Controls:
+WASD - move
+Left click - pick voxel
+Right click - place voxel
+
 They can be found in `Plugins/RunDirectionalMeshingDemo/Blueprints/Characters`.
 
 ### Scenes
 Example maps showcasing different voxel terrain configurations and chunk spawning techniques can be found in: `Plugins/RunDirectionalMeshingDemo/Maps`.
+Scenes were copied to this project content.
 
 ## Releases
 For a pre-built version of the game, visit the [Releases](https://github.com/Pawlost/SillyCraft/releases) page.
