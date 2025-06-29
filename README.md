@@ -1,6 +1,8 @@
 # SillyCraft
 ![SillyCraft](./Screenshots/SillCraft.PNG)
 
+**NOTICE**
+This demo is an initial framework for my [bachelor’s thesis](https://github.com/Pawlost/bachelors-thesis-compressed-meshers) and is *obsolete*.
 
 ## Table of Contents
 - [Description](#description)
@@ -23,7 +25,7 @@
 ## Description
 SillyCraft is a new meshing algorithm demo showcase developed in Unreal Engine 5.4. Originally created as part of a company project interview, it has since been repurposed as the foundation for a bachelor’s thesis.
 
-### Project as plugin
+### Project as a plugin
 SillyCraft includes a freely usable and shareable Unreal Engine plugin, located in the Plugins folder.
 To enable plugin content: Content Browser → Settings → Show Plugin Content.
 
